@@ -974,7 +974,7 @@ async function loadLastLoginInfo() {
     if (!res) return;
     const json = await res.json();
     if (json.success && json.data) {
-      const cur = json.data.current_login;
+      const cur = json.data.last_login || json.data.current_login;
       adminLoginHistory = json.data.history || [];
 
       const timeEl = document.getElementById('topbarLastLoginTime');
