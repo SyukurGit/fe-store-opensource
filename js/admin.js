@@ -494,7 +494,6 @@ function renderOrdersTable() {
           <td>
             <div style="display: flex; gap: 4px; flex-wrap: wrap;">
               <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
-              ${isPending ? `<button class="btn-action-mini" style="background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="manualPaidAndFulfill('${escapeHtml(o.invoice_number)}')" title="Terima Transfer Manual & Kirim Lisensi">Bayar Manual</button>` : ''}
               ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry</button>` : ''}
               ${isHold ? `
                 <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli</button>
@@ -539,7 +538,6 @@ function renderOrdersTable() {
         <td style="text-align: right;">
           <div style="display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;">
             <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
-            ${isPending ? `<button class="btn-action-mini" style="background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="manualPaidAndFulfill('${escapeHtml(o.invoice_number)}')" title="Terima Transfer Manual & Kirim Lisensi">Bayar Manual</button>` : ''}
             ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry Beli</button>` : ''}
             ${isHold ? `
               <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli Paksa</button>
@@ -644,24 +642,7 @@ async function forceFulfillOrder(invoice) {
 }
 
 async function manualPaidAndFulfill(invoice) {
-  if (!confirm(`Konfirmasi pembayaran manual untuk ${invoice}?\n\nPesanan akan ditandai LUNAS dan sistem langsung membelikan lisensi ke DigitalCore.`)) return;
-
-  try {
-    const res = await adminFetch(`/api/admin/orders/${encodeURIComponent(invoice)}/manual-paid-fulfill`, {
-      method: 'POST'
-    });
-    if (!res) return;
-    const json = await res.json();
-    if (json.success) {
-      showToast('Pesanan lunas & lisensi berhasil dibeli! 🎉');
-      await loadOrders();
-      await loadStats();
-    } else {
-      alert('Gagal: ' + (json.error || 'Server error'));
-    }
-  } catch (err) {
-    alert('Error: ' + err.message);
-  }
+  alert('Fitur pembayaran manual telah dinonaktifkan demi keselamatan dan integritas transaksi toko.');
 }
 
 async function markRefundedOrder(invoice) {
@@ -755,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAdminProducts();
   loadOrders();
   loadSettings();
+  loadLastLoginInfo();
 
   // Refresh Button
   document.getElementById('btnRefreshStats')?.addEventListener('click', () => {
@@ -762,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAdminProducts();
     loadOrders();
     loadSettings();
+    loadLastLoginInfo();
     showToast('Data diperbarui 🔄');
   });
 
@@ -824,12 +807,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dcCheckModal')?.classList.remove('open');
   });
 
+  // Last Login History Modal Handlers
+  document.getElementById('btnOpenLoginHistory')?.addEventListener('click', openLoginHistoryModal);
+  document.getElementById('closeLoginModalBtn')?.addEventListener('click', () => {
+    document.getElementById('loginHistoryModal')?.classList.remove('open');
+  });
+  document.getElementById('closeLoginModalBtn2')?.addEventListener('click', () => {
+    document.getElementById('loginHistoryModal')?.classList.remove('open');
+  });
+
   // Close modals on backdrop click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       closeEditProductModal();
       document.getElementById('orderDetailModal')?.classList.remove('open');
       document.getElementById('dcCheckModal')?.classList.remove('open');
+      document.getElementById('loginHistoryModal')?.classList.remove('open');
     }
   });
 });
@@ -968,5 +961,91 @@ async function checkDigitalCore() {
       modalBody.innerHTML = `<div style="color: #f87171;">Tidak dapat mengirim request ke backend: ${escapeHtml(err.message)}</div>`;
     }
   }
+}
+
+// -------------------------------------------------------------
+// 6. ADMIN LAST LOGIN MONITORING ENGINE
+// -------------------------------------------------------------
+let adminLoginHistory = [];
+
+async function loadLastLoginInfo() {
+  try {
+    const res = await adminFetch('/api/admin/last-login');
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      const cur = json.data.current_login;
+      adminLoginHistory = json.data.history || [];
+
+      const timeEl = document.getElementById('topbarLastLoginTime');
+      const locEl = document.getElementById('topbarLastLoginLoc');
+
+      if (cur) {
+        if (timeEl) timeEl.textContent = formatLoginTime(cur.login_at);
+        if (locEl) {
+          const locText = cur.location || cur.ip_address || 'Lokal';
+          locEl.textContent = `${locText} (${cur.ip_address})`;
+          locEl.title = `IP: ${cur.ip_address} • Lokasi: ${cur.location} • Perangkat: ${cur.device_info || '-'}`;
+        }
+      } else {
+        if (timeEl) timeEl.textContent = 'Sesi Baru';
+        if (locEl) locEl.textContent = '-';
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load last login info:', err);
+  }
+}
+
+function formatLoginTime(isoStr) {
+  if (!isoStr) return '-';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }) + ' WIB';
+  } catch (e) {
+    return isoStr;
+  }
+}
+
+function openLoginHistoryModal() {
+  const modal = document.getElementById('loginHistoryModal');
+  const tbody = document.getElementById('loginHistoryTableBody');
+  if (!modal) return;
+
+  if (tbody) {
+    if (adminLoginHistory.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Belum ada riwayat login tercatat.</td></tr>`;
+    } else {
+      tbody.innerHTML = adminLoginHistory.map(item => `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <td style="padding: 10px 8px; font-family: var(--font-mono); color: #fff; font-weight: 600; white-space: nowrap;">
+            ${formatLoginTime(item.login_at)}
+          </td>
+          <td style="padding: 10px 8px; font-family: var(--font-mono); color: #fbbf24;">
+            ${escapeHtml(item.ip_address)}
+          </td>
+          <td style="padding: 10px 8px; color: #93c5fd;">
+            ${escapeHtml(item.location || 'Lokal')}
+          </td>
+          <td style="padding: 10px 8px; color: #cbd5e1; font-size: 0.78rem;">
+            ${escapeHtml(item.device_info || item.user_agent || '-')}
+          </td>
+          <td style="padding: 10px 8px; color: #a855f7; font-weight: 600;">
+            ${escapeHtml(item.username)}
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  modal.classList.add('open');
 }
 

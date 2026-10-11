@@ -21,6 +21,14 @@
         <span class="admin-brand-tag">ADMIN</span>
       </a>
       <div class="nav-actions">
+        <div id="adminLastLoginBadge" class="admin-last-login-badge" title="Informasi sesi login admin terakhir">
+          <span class="last-login-dot">●</span>
+          <span class="last-login-label">Login:</span>
+          <strong id="topbarLastLoginTime" class="last-login-time">-</strong>
+          <span class="last-login-sep">•</span>
+          <span id="topbarLastLoginLoc" class="last-login-loc">-</span>
+          <button id="btnOpenLoginHistory" class="btn-login-history" title="Lihat riwayat login">Riwayat</button>
+        </div>
         <a href="/" target="_blank" class="btn-nav">Lihat Toko ↗</a>
         <button id="btnRefreshStats" class="btn-nav">🔄 Refresh</button>
         <button id="btnLogout" class="btn-nav" style="color: #f87171;">Logout</button>
@@ -190,6 +198,40 @@
       </div>
       <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
         <button class="btn-nav" id="closeDcModalBtn2" style="background: var(--bg-surface); padding: 0.45rem 1.2rem; cursor: pointer; border-radius: 8px;">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Riwayat Login Admin -->
+  <div class="modal-overlay" id="loginHistoryModal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔐 Riwayat Sesi Login Admin</h3>
+        <button class="modal-close" id="closeLoginModalBtn">&times;</button>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Catatan waktu (WIB), IP address, estimasi lokasi, dan perangkat yang digunakan saat login ke panel admin.
+      </div>
+      <div style="overflow-x: auto; max-height: 380px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
+              <th style="padding: 8px;">Waktu (WIB)</th>
+              <th style="padding: 8px;">IP Address</th>
+              <th style="padding: 8px;">Lokasi</th>
+              <th style="padding: 8px;">Perangkat</th>
+              <th style="padding: 8px;">User</th>
+            </tr>
+          </thead>
+          <tbody id="loginHistoryTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Memuat riwayat login...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+        <button class="btn-nav" id="closeLoginModalBtn2" style="background: var(--bg-surface); padding: 0.45rem 1.2rem; cursor: pointer; border-radius: 8px;">Tutup</button>
       </div>
     </div>
   </div>

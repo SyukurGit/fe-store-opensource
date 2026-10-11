@@ -383,7 +383,6 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
   loadPaymentDetails();
 
-  document.getElementById('btnManualCheck')?.addEventListener('click', triggerManualCheck);
   document.getElementById('btnCheckExpiredLate')?.addEventListener('click', triggerManualCheck);
   document.getElementById('copyAllKeysBtn')?.addEventListener('click', copyAllKeys);
 
