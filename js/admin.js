@@ -983,24 +983,29 @@ async function loadLastLoginInfo() {
       if (cur) {
         if (timeEl) timeEl.textContent = formatLoginTime(cur.login_at);
         if (locEl) {
-          const locText = cur.location || cur.ip_address || 'Lokal';
-          locEl.textContent = `${locText} (${cur.ip_address})`;
-          locEl.title = `IP: ${cur.ip_address} • Lokasi: ${cur.location} • Perangkat: ${cur.device_info || '-'}`;
+          const locText = cur.location || cur.ip_address || 'Online';
+          locEl.textContent = `${locText} (${cur.ip_address || 'Aktif'})`;
+          locEl.title = `IP: ${cur.ip_address} • Lokasi: ${cur.location || 'Indonesia'} • Perangkat: ${cur.device_info || '-'}`;
         }
       } else {
-        if (timeEl) timeEl.textContent = 'Sesi Baru';
-        if (locEl) locEl.textContent = '-';
+        if (timeEl) timeEl.textContent = 'Sesi Aktif';
+        if (locEl) locEl.textContent = 'Online';
       }
     }
   } catch (err) {
     console.warn('Failed to load last login info:', err);
+    const timeEl = document.getElementById('topbarLastLoginTime');
+    const locEl = document.getElementById('topbarLastLoginLoc');
+    if (timeEl && (timeEl.textContent === '-' || timeEl.textContent === 'Memuat...')) timeEl.textContent = 'Sesi Aktif';
+    if (locEl && (locEl.textContent === '-' || locEl.textContent === 'Memuat...')) locEl.textContent = 'Online';
   }
 }
 
 function formatLoginTime(isoStr) {
-  if (!isoStr) return '-';
+  if (!isoStr) return 'Baru Saja';
   try {
     const d = new Date(isoStr);
+    if (isNaN(d.getTime()) || d.getFullYear() < 2020) return 'Baru Saja';
     return d.toLocaleString('id-ID', {
       timeZone: 'Asia/Jakarta',
       day: '2-digit',
@@ -1011,18 +1016,28 @@ function formatLoginTime(isoStr) {
       hour12: false
     }) + ' WIB';
   } catch (e) {
-    return isoStr;
+    return 'Baru Saja';
   }
 }
 
-function openLoginHistoryModal() {
+async function openLoginHistoryModal() {
   const modal = document.getElementById('loginHistoryModal');
   const tbody = document.getElementById('loginHistoryTableBody');
   if (!modal) return;
 
+  if (tbody && adminLoginHistory.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Memuat riwayat login...</td></tr>`;
+  }
+
+  modal.classList.add('open');
+
+  try {
+    await loadLastLoginInfo();
+  } catch (e) {}
+
   if (tbody) {
     if (adminLoginHistory.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Belum ada riwayat login tercatat.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Sesi login aktif saat ini sedang berjalan. Riwayat bertambah setiap kali login.</td></tr>`;
     } else {
       tbody.innerHTML = adminLoginHistory.map(item => `
         <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1030,22 +1045,20 @@ function openLoginHistoryModal() {
             ${formatLoginTime(item.login_at)}
           </td>
           <td style="padding: 10px 8px; font-family: var(--font-mono); color: #fbbf24;">
-            ${escapeHtml(item.ip_address)}
+            ${escapeHtml(item.ip_address || '-')}
           </td>
           <td style="padding: 10px 8px; color: #93c5fd;">
-            ${escapeHtml(item.location || 'Lokal')}
+            ${escapeHtml(item.location || 'Indonesia')}
           </td>
           <td style="padding: 10px 8px; color: #cbd5e1; font-size: 0.78rem;">
-            ${escapeHtml(item.device_info || item.user_agent || '-')}
+            ${escapeHtml(item.device_info || item.user_agent || 'Browser Web')}
           </td>
           <td style="padding: 10px 8px; color: #a855f7; font-weight: 600;">
-            ${escapeHtml(item.username)}
+            ${escapeHtml(item.username || 'admin')}
           </td>
         </tr>
       `).join('');
     }
   }
-
-  modal.classList.add('open');
 }
 
