@@ -43,8 +43,15 @@ async function initProductPage() {
   }
 
   try {
-    const detailUrl = window.digimestApi ? window.digimestApi(`/api/products/${encodeURIComponent(slug)}`) : `/api/products/${encodeURIComponent(slug)}`;
-    const res = await fetch(detailUrl);
+    // Keep '+' literal in path because Go/Chi router matches literal '+' (e.g. lovable_pro_lite_12_months_+_300_credits)
+    const pathSlug = encodeURIComponent(slug).replace(/%2B/gi, '+');
+    const detailUrl = window.digimestApi ? window.digimestApi(`/api/products/${pathSlug}`) : `/api/products/${pathSlug}`;
+    let res = await fetch(detailUrl);
+    if (!res.ok && pathSlug !== slug) {
+      const altUrl = window.digimestApi ? window.digimestApi(`/api/products/${slug}`) : `/api/products/${slug}`;
+      const altRes = await fetch(altUrl);
+      if (altRes.ok) res = altRes;
+    }
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       showError('Produk Tidak Ditemukan', errData.error || 'Produk tidak ditemukan atau sedang tidak aktif.');
