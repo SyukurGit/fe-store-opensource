@@ -35,37 +35,67 @@ function showToast(msg) {
 
 async function initProductPage() {
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('slug');
+  const rawSlug = params.get('slug');
 
-  if (!slug) {
+  if (!rawSlug) {
     showError('Parameter Produk Kosong', 'Silakan pilih produk dari katalog toko terlebih dahulu.');
     return;
   }
 
+  // Clean slug variations
+  let cleanSlug = rawSlug;
   try {
-    // Keep '+' literal in path because Go/Chi router matches literal '+' (e.g. lovable_pro_lite_12_months_+_300_credits)
-    const pathSlug = encodeURIComponent(slug).replace(/%2B/gi, '+');
+    cleanSlug = decodeURIComponent(rawSlug);
+  } catch (e) {}
+
+  try {
+    // 1. Try direct detail fetch with literal '+' (Chi router matches literal '+')
+    const pathSlug = encodeURIComponent(cleanSlug).replace(/%2B/gi, '+');
     const detailUrl = window.digimestApi ? window.digimestApi(`/api/products/${pathSlug}`) : `/api/products/${pathSlug}`;
     let res = await fetch(detailUrl);
-    if (!res.ok && pathSlug !== slug) {
-      const altUrl = window.digimestApi ? window.digimestApi(`/api/products/${slug}`) : `/api/products/${slug}`;
+
+    if (!res.ok && pathSlug !== cleanSlug) {
+      const altUrl = window.digimestApi ? window.digimestApi(`/api/products/${encodeURIComponent(cleanSlug)}`) : `/api/products/${encodeURIComponent(cleanSlug)}`;
       const altRes = await fetch(altUrl);
       if (altRes.ok) res = altRes;
     }
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      showError('Produk Tidak Ditemukan', errData.error || 'Produk tidak ditemukan atau sedang tidak aktif.');
-      return;
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        currentProduct = json.data;
+        renderProductDetail(currentProduct);
+        return;
+      }
     }
 
-    const json = await res.json();
-    if (!json.success || !json.data) {
-      showError('Gagal Memuat Produk', 'Data produk tidak dapat ditampilkan saat ini.');
-      return;
+    // 2. SELF-HEALING FALLBACK: If direct slug fetch failed (404/encoding issue), fallback to /api/products catalog!
+    console.warn('Direct detail lookup missed, activating catalog fallback for:', cleanSlug);
+    const catalogUrl = window.digimestApi ? window.digimestApi('/api/products') : '/api/products';
+    const catRes = await fetch(catalogUrl);
+    if (catRes.ok) {
+      const catJson = await catRes.json();
+      const list = catJson.data || [];
+
+      // Flexible matching: exact, unescaped, normalized (+ vs _ vs space)
+      const normSlug = cleanSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const found = list.find(p => {
+        if (!p || !p.slug) return false;
+        if (p.slug === cleanSlug || p.slug === rawSlug) return true;
+        const normP = p.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normP === normSlug;
+      });
+
+      if (found) {
+        currentProduct = found;
+        renderProductDetail(currentProduct);
+        return;
+      }
     }
 
-    currentProduct = json.data;
-    renderProductDetail(currentProduct);
+    // Only if both direct fetch and catalog fallback completely fail
+    const errData = await res.json().catch(() => ({}));
+    showError('Produk Tidak Ditemukan', errData.error || `Produk '${cleanSlug}' tidak ditemukan atau sedang tidak aktif.`);
 
   } catch (err) {
     console.error('Fetch product error:', err);
@@ -160,7 +190,8 @@ function renderProductDetail(p) {
 function getEffectiveUnitPrice(qty) {
   if (!currentProduct) return 0;
   let price = currentProduct.priceIDR;
-  if (currentProduct.tiers && currentProduct.tiers.length > 0) {
+  // Jika produk dikustomisasi oleh admin atau sedang ada promo, harga dari katalog index WAJIB digunakan (tidak boleh ditimpa tiers grosir upstream)
+  if (!currentProduct.isCustomized && !currentProduct.hasPromo && currentProduct.tiers && currentProduct.tiers.length > 0) {
     for (const tier of currentProduct.tiers) {
       if (qty >= tier.minQty && (tier.maxQty === null || tier.maxQty === undefined || qty <= tier.maxQty)) {
         if (tier.priceIDR && tier.priceIDR > 0) {

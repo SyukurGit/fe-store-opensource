@@ -91,6 +91,18 @@ async function loadStats() {
       }
     }
 
+    const badge = document.getElementById('apiStatusBadge');
+    if (badge) {
+      if (s.digitalcore_connected) {
+        badge.className = 'badge badge-stock';
+        badge.textContent = `● DC Terhubung ($${(s.digitalcore_balance || 0).toFixed(2)})`;
+      } else if (s.digitalcore_error) {
+        badge.className = 'badge badge-stock empty';
+        badge.textContent = '● DC Error / Disconnected';
+        badge.title = s.digitalcore_error;
+      }
+    }
+
     document.getElementById('statDcOrders').textContent = s.digitalcore_orders || '0';
     document.getElementById('statTodayRevenue').textContent = formatIDR(s.today_revenue_idr);
     document.getElementById('statTodayOrders').textContent = s.today_orders;
@@ -482,7 +494,6 @@ function renderOrdersTable() {
           <td>
             <div style="display: flex; gap: 4px; flex-wrap: wrap;">
               <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
-              ${isPending ? `<button class="btn-action-mini" style="background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="manualPaidAndFulfill('${escapeHtml(o.invoice_number)}')" title="Terima Transfer Manual & Kirim Lisensi">Bayar Manual</button>` : ''}
               ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry</button>` : ''}
               ${isHold ? `
                 <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli</button>
@@ -527,7 +538,6 @@ function renderOrdersTable() {
         <td style="text-align: right;">
           <div style="display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;">
             <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
-            ${isPending ? `<button class="btn-action-mini" style="background: rgba(16,185,129,0.18); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="manualPaidAndFulfill('${escapeHtml(o.invoice_number)}')" title="Terima Transfer Manual & Kirim Lisensi">Bayar Manual</button>` : ''}
             ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry Beli</button>` : ''}
             ${isHold ? `
               <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli Paksa</button>
@@ -632,24 +642,7 @@ async function forceFulfillOrder(invoice) {
 }
 
 async function manualPaidAndFulfill(invoice) {
-  if (!confirm(`Konfirmasi pembayaran manual untuk ${invoice}?\n\nPesanan akan ditandai LUNAS dan sistem langsung membelikan lisensi ke DigitalCore.`)) return;
-
-  try {
-    const res = await adminFetch(`/api/admin/orders/${encodeURIComponent(invoice)}/manual-paid-fulfill`, {
-      method: 'POST'
-    });
-    if (!res) return;
-    const json = await res.json();
-    if (json.success) {
-      showToast('Pesanan lunas & lisensi berhasil dibeli! 🎉');
-      await loadOrders();
-      await loadStats();
-    } else {
-      alert('Gagal: ' + (json.error || 'Server error'));
-    }
-  } catch (err) {
-    alert('Error: ' + err.message);
-  }
+  alert('Fitur pembayaran manual telah dinonaktifkan demi keselamatan dan integritas transaksi toko.');
 }
 
 async function markRefundedOrder(invoice) {
@@ -743,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAdminProducts();
   loadOrders();
   loadSettings();
+  loadLastLoginInfo();
 
   // Refresh Button
   document.getElementById('btnRefreshStats')?.addEventListener('click', () => {
@@ -750,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAdminProducts();
     loadOrders();
     loadSettings();
+    loadLastLoginInfo();
     showToast('Data diperbarui 🔄');
   });
 
@@ -801,11 +796,256 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('orderDetailModal')?.classList.remove('open');
   });
 
+  // DigitalCore Check Connection
+  document.getElementById('btnCheckDcTop')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckDcCard')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckDcSettings')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('closeDcModalBtn')?.addEventListener('click', () => {
+    document.getElementById('dcCheckModal')?.classList.remove('open');
+  });
+  document.getElementById('closeDcModalBtn2')?.addEventListener('click', () => {
+    document.getElementById('dcCheckModal')?.classList.remove('open');
+  });
+
+  // Last Login History Modal Handlers
+  document.getElementById('btnOpenLoginHistory')?.addEventListener('click', openLoginHistoryModal);
+  document.getElementById('closeLoginModalBtn')?.addEventListener('click', () => {
+    document.getElementById('loginHistoryModal')?.classList.remove('open');
+  });
+  document.getElementById('closeLoginModalBtn2')?.addEventListener('click', () => {
+    document.getElementById('loginHistoryModal')?.classList.remove('open');
+  });
+
   // Close modals on backdrop click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       closeEditProductModal();
       document.getElementById('orderDetailModal')?.classList.remove('open');
+      document.getElementById('dcCheckModal')?.classList.remove('open');
+      document.getElementById('loginHistoryModal')?.classList.remove('open');
     }
   });
 });
+
+// -------------------------------------------------------------
+// 5. DIGITALCORE CONNECTION TEST ENGINE
+// -------------------------------------------------------------
+async function checkDigitalCore() {
+  const modal = document.getElementById('dcCheckModal');
+  const modalBody = document.getElementById('dcModalBody');
+  const modalTitle = document.getElementById('dcModalTitle');
+  const badge = document.getElementById('apiStatusBadge');
+
+  if (modal && modalBody) {
+    modalTitle.textContent = '🔍 Memeriksa Koneksi DigitalCore...';
+    modalBody.innerHTML = `
+      <div style="text-align: center; padding: 24px 0;">
+        <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+        <div style="font-weight: 700; color: #fff;">Sedang Menghubungi Server DigitalCore...</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Mengetes endpoint /api/user/me dengan API Key terpasang</div>
+      </div>
+    `;
+    modal.classList.add('open');
+  }
+
+  try {
+    const res = await adminFetch('/api/admin/digitalcore/check');
+    if (!res) {
+      if (modalBody) {
+        modalBody.innerHTML = `<div style="color: #f87171;">Sesi admin tidak valid atau tidak dapat terhubung ke backend.</div>`;
+      }
+      return;
+    }
+
+    const json = await res.json();
+    const data = json.data || {};
+
+    if (json.success && data.success) {
+      // Update balance & orders on screen immediately
+      const dcBalEl = document.getElementById('statDcBalance');
+      if (dcBalEl) {
+        dcBalEl.textContent = `$${(data.balance || 0).toFixed(2)}`;
+        dcBalEl.style.color = (data.balance >= 5.0) ? '#10b981' : '#f87171';
+      }
+      const dcOrdEl = document.getElementById('statDcOrders');
+      if (dcOrdEl) {
+        dcOrdEl.textContent = data.total_orders || '0';
+      }
+      if (badge) {
+        badge.className = 'badge badge-stock';
+        badge.textContent = `● DC Terhubung ($${(data.balance || 0).toFixed(2)})`;
+      }
+
+      showToast(`Koneksi DigitalCore Sukses! Saldo: $${(data.balance || 0).toFixed(2)}`);
+
+      if (modalBody) {
+        modalTitle.textContent = '✅ Koneksi DigitalCore Berhasil';
+        modalBody.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #34d399; font-size: 0.95rem; margin-bottom: 4px;">● Status: TERHUBUNG (HTTP ${data.http_status})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || 'API Key valid dan upstream merespons normal.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Saldo Bot Realtime</td>
+              <td style="padding: 8px 0; font-weight: 800; font-family: var(--font-mono); font-size: 1.1rem; color: #10b981; text-align: right;">$${(data.balance || 0).toFixed(2)} USD</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Total Order Upstream</td>
+              <td style="padding: 8px 0; font-weight: 700; color: #fff; text-align: right;">${escapeHtml(data.total_orders || '0')} order</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || '-')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">API Key</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '-')}</code></td>
+            </tr>
+          </table>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Mentah Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    } else {
+      if (badge) {
+        badge.className = 'badge badge-stock empty';
+        badge.textContent = '● DC Disconnected / Error';
+      }
+
+      showToast('Gagal terhubung ke DigitalCore.');
+
+      if (modalBody) {
+        modalTitle.textContent = '⚠️ Gagal Terhubung ke DigitalCore';
+        modalBody.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #f87171; font-size: 0.95rem; margin-bottom: 4px;">● Status: GAGAL (HTTP ${data.http_status || '-'})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || json.error || 'Server DigitalCore menolak permintaan.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || '-')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">API Key Terpasang</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '(kosong)')}</code></td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; font-size: 0.78rem; color: #94a3b8;">
+            💡 <strong>Panduan Solusi:</strong><br>
+            1. Periksa file <code>.env</code> di VPS, pastikan <code>DIGITALCORE_API_KEY</code> sudah terisi.<br>
+            2. Jika baru mengisi atau mengubah <code>.env</code>, jalankan <code>sudo systemctl restart storeku</code> di VPS agar aplikasi memuat key baru.
+          </div>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #f87171; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    }
+  } catch (err) {
+    if (modalBody) {
+      modalTitle.textContent = '❌ Terjadi Kesalahan Jaringan';
+      modalBody.innerHTML = `<div style="color: #f87171;">Tidak dapat mengirim request ke backend: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// 6. ADMIN LAST LOGIN MONITORING ENGINE
+// -------------------------------------------------------------
+let adminLoginHistory = [];
+
+async function loadLastLoginInfo() {
+  try {
+    const res = await adminFetch('/api/admin/last-login');
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      const cur = json.data.last_login || json.data.current_login;
+      adminLoginHistory = json.data.history || [];
+
+      const timeEl = document.getElementById('topbarLastLoginTime');
+      const locEl = document.getElementById('topbarLastLoginLoc');
+
+      if (cur) {
+        if (timeEl) timeEl.textContent = formatLoginTime(cur.login_at);
+        if (locEl) {
+          const locText = cur.location || cur.ip_address || 'Lokal';
+          locEl.textContent = `${locText} (${cur.ip_address})`;
+          locEl.title = `IP: ${cur.ip_address} • Lokasi: ${cur.location} • Perangkat: ${cur.device_info || '-'}`;
+        }
+      } else {
+        if (timeEl) timeEl.textContent = 'Sesi Baru';
+        if (locEl) locEl.textContent = '-';
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load last login info:', err);
+  }
+}
+
+function formatLoginTime(isoStr) {
+  if (!isoStr) return '-';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }) + ' WIB';
+  } catch (e) {
+    return isoStr;
+  }
+}
+
+function openLoginHistoryModal() {
+  const modal = document.getElementById('loginHistoryModal');
+  const tbody = document.getElementById('loginHistoryTableBody');
+  if (!modal) return;
+
+  if (tbody) {
+    if (adminLoginHistory.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Belum ada riwayat login tercatat.</td></tr>`;
+    } else {
+      tbody.innerHTML = adminLoginHistory.map(item => `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <td style="padding: 10px 8px; font-family: var(--font-mono); color: #fff; font-weight: 600; white-space: nowrap;">
+            ${formatLoginTime(item.login_at)}
+          </td>
+          <td style="padding: 10px 8px; font-family: var(--font-mono); color: #fbbf24;">
+            ${escapeHtml(item.ip_address)}
+          </td>
+          <td style="padding: 10px 8px; color: #93c5fd;">
+            ${escapeHtml(item.location || 'Lokal')}
+          </td>
+          <td style="padding: 10px 8px; color: #cbd5e1; font-size: 0.78rem;">
+            ${escapeHtml(item.device_info || item.user_agent || '-')}
+          </td>
+          <td style="padding: 10px 8px; color: #a855f7; font-weight: 600;">
+            ${escapeHtml(item.username)}
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  modal.classList.add('open');
+}
+

@@ -150,9 +150,9 @@ function openCheckoutModal(slug) {
     emailInput.value = savedEmail;
   }
 
-  // Render wholesale tiers if available
+  // Render wholesale tiers if available (only if no custom price or promo override)
   const tierContainer = document.getElementById('tierPillsContainer');
-  if (selectedProduct.tiers && selectedProduct.tiers.length > 0) {
+  if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
     tierContainer.innerHTML = selectedProduct.tiers.map(t => {
       const range = t.maxQty ? `${t.minQty}–${t.maxQty} pcs` : `${t.minQty}+ pcs`;
       return `<span class="tier-pill">${range}: ${formatIDR(t.priceIDR)}</span>`;
@@ -179,8 +179,8 @@ function updateCheckoutCalculations() {
   const qty = parseInt(document.getElementById('qtyInput').value, 10) || 1;
   let unitPriceIDR = selectedProduct.priceIDR;
 
-  // Check tiers for quantity
-  if (selectedProduct.tiers && selectedProduct.tiers.length > 0) {
+  // Check tiers for quantity (only if not customized or promo override)
+  if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
     for (const t of selectedProduct.tiers) {
       if (qty >= t.minQty && (t.maxQty === null || qty <= t.maxQty)) {
         unitPriceIDR = t.priceIDR;

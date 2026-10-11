@@ -4,9 +4,9 @@
 
 # Static Assets Caching
 /css/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /js/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /logo/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
 
