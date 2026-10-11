@@ -1,4 +1,4 @@
-// Digihub Payment Page Engine
+// Digimest Payment Page Engine
 
 let pollInterval = null;
 let timerInterval = null;
@@ -32,6 +32,23 @@ function copyText(text) {
   });
 }
 
+function parseTimestamp(dateStr) {
+  if (!dateStr) return null;
+  if (typeof dateStr === 'number') return isNaN(dateStr) ? null : dateStr;
+  let clean = String(dateStr).trim();
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(clean)) {
+    clean = clean.replace(' ', 'T') + 'Z';
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(clean)) {
+    clean = clean + 'Z';
+  }
+  const t = new Date(clean).getTime();
+  return isNaN(t) ? null : t;
+}
+
+function getOrderHandler() {
+  return window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
+}
+
 async function loadPaymentDetails() {
   const params = new URLSearchParams(window.location.search);
   currentInvoice = params.get('inv') || params.get('invoice');
@@ -54,7 +71,8 @@ async function checkStatus() {
   if (!currentInvoice) return;
 
   try {
-    const res = await fetch(`/api/orders/${encodeURIComponent(currentInvoice)}/status`);
+    const statusUrl = window.digimestApi ? window.digimestApi(`/api/orders/${encodeURIComponent(currentInvoice)}/status`) : `/api/orders/${encodeURIComponent(currentInvoice)}/status`;
+    const res = await fetch(statusUrl);
     if (!res.ok) return;
 
     const json = await res.json();
@@ -65,15 +83,17 @@ async function checkStatus() {
     document.getElementById('claimDisplay').textContent = order.claim_code;
 
     // Sync order state into browser's Pesanan Saya
-    if (window.StoreKuOrders) {
-      StoreKuOrders.saveOrder({
+    const handler = getOrderHandler();
+    if (handler) {
+      handler.saveOrder({
         invoice_number: order.invoice_number,
         claim_code: order.claim_code,
         product_name: order.product_name,
         quantity: order.quantity,
         total_amount: order.total_amount,
         payment_status: order.payment_status,
-        expires_at: order.expires_at
+        expires_at: order.expires_at,
+        created_at: order.created_at
       });
     }
 
@@ -90,7 +110,7 @@ async function checkStatus() {
     if (order.payment_status === 'PAID') {
       clearInterval(pollInterval);
       clearInterval(timerInterval);
-      if (window.StoreKuOrders) StoreKuOrders.updateOrderStatus(order.invoice_number, 'PAID');
+      if (handler) handler.updateOrderStatus(order.invoice_number, 'PAID');
       showSuccessView(order);
       return;
     }
@@ -98,7 +118,7 @@ async function checkStatus() {
     if (order.payment_status === 'EXPIRED') {
       clearInterval(pollInterval);
       clearInterval(timerInterval);
-      if (window.StoreKuOrders) StoreKuOrders.updateOrderStatus(order.invoice_number, 'EXPIRED');
+      if (handler) handler.updateOrderStatus(order.invoice_number, 'EXPIRED');
       showExpiredView();
       return;
     }
@@ -106,7 +126,7 @@ async function checkStatus() {
     if (order.payment_status === 'CANCELLED') {
       clearInterval(pollInterval);
       clearInterval(timerInterval);
-      if (window.StoreKuOrders) StoreKuOrders.updateOrderStatus(order.invoice_number, 'CANCELLED');
+      if (handler) handler.updateOrderStatus(order.invoice_number, 'CANCELLED');
       showCancelledView();
       return;
     }
@@ -130,8 +150,16 @@ function renderPendingView(order) {
   }
 
   // Setup countdown timer
-  if (order.expires_at && !timerInterval) {
-    startCountdown(new Date(order.expires_at).getTime());
+  if (!timerInterval) {
+    let targetTime = parseTimestamp(order.expires_at);
+    if (!targetTime && order.created_at) {
+      const createdTime = parseTimestamp(order.created_at);
+      if (createdTime) targetTime = createdTime + 15 * 60 * 1000;
+    }
+    if (!targetTime) {
+      targetTime = Date.now() + 15 * 60 * 1000;
+    }
+    startCountdown(targetTime);
   }
 }
 
@@ -144,7 +172,8 @@ function startCountdown(targetTime) {
 
     if (distance <= 0) {
       clearInterval(timerInterval);
-      if (window.StoreKuOrders) StoreKuOrders.updateOrderStatus(currentInvoice, 'EXPIRED');
+      const handler = getOrderHandler();
+      if (handler) handler.updateOrderStatus(currentInvoice, 'EXPIRED');
       showExpiredView();
       return;
     }
@@ -200,7 +229,7 @@ function showSuccessView(order) {
         <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
           ${escapeHtml(order.quota_out_message || defaultMsg)}
         </p>
-        <a href="https://t.me/Digihubsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
+        <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
           <span>Hubungi CS via Telegram</span> ➔
         </a>
       </div>
@@ -261,7 +290,8 @@ async function confirmCancelOrder() {
   }
 
   try {
-    const res = await fetch(`/api/orders/${encodeURIComponent(currentInvoice)}/cancel`, {
+    const cancelUrl = window.digimestApi ? window.digimestApi(`/api/orders/${encodeURIComponent(currentInvoice)}/cancel`) : `/api/orders/${encodeURIComponent(currentInvoice)}/cancel`;
+    const res = await fetch(cancelUrl, {
       method: 'POST'
     });
     const json = await res.json();
@@ -279,8 +309,9 @@ async function confirmCancelOrder() {
     clearInterval(pollInterval);
     clearInterval(timerInterval);
 
-    if (window.StoreKuOrders) {
-      StoreKuOrders.updateOrderStatus(currentInvoice, 'CANCELLED');
+    const handler = getOrderHandler();
+    if (handler) {
+      handler.updateOrderStatus(currentInvoice, 'CANCELLED');
     }
 
     showCancelledView();
@@ -303,13 +334,15 @@ async function triggerManualCheck() {
   btn.innerText = 'Memeriksa mutasi ShopeePay...';
 
   try {
-    const res = await fetch(`/api/orders/${encodeURIComponent(currentInvoice)}/check`, {
+    const checkUrl = window.digimestApi ? window.digimestApi(`/api/orders/${encodeURIComponent(currentInvoice)}/check`) : `/api/orders/${encodeURIComponent(currentInvoice)}/check`;
+    const res = await fetch(checkUrl, {
       method: 'POST'
     });
     const json = await res.json();
     if (json.success && json.data) {
       if (json.data.payment_status === 'PAID') {
-        if (window.StoreKuOrders) StoreKuOrders.updateOrderStatus(currentInvoice, 'PAID');
+        const handler = getOrderHandler();
+        if (handler) handler.updateOrderStatus(currentInvoice, 'PAID');
         showSuccessView(json.data);
         return;
       }

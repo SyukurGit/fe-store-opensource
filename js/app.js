@@ -1,4 +1,4 @@
-// Digihub Frontend Catalog & Checkout Engine
+// Digimest Frontend Catalog & Checkout Engine
 
 let allProducts = [];
 let selectedProduct = null;
@@ -19,19 +19,19 @@ function showToast(msg) {
 
 // LocalStorage History Helpers (Delegates to unified DigihubOrders)
 function getHistory() {
-  const handler = window.DigihubOrders || window.StoreKuOrders;
+  const handler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
   return handler ? handler.getOrders() : [];
 }
 
 function saveHistoryItem(item) {
-  const handler = window.DigihubOrders || window.StoreKuOrders;
+  const handler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
   if (handler) {
     handler.saveOrder(item);
   }
 }
 
 function updateHistoryBadge() {
-  const handler = window.DigihubOrders || window.StoreKuOrders;
+  const handler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
   if (handler) {
     handler.updateBadge();
   }
@@ -144,7 +144,7 @@ function openCheckoutModal(slug) {
   qtyInput.max = selectedProduct.stock > 0 ? selectedProduct.stock : 100;
 
   // Prefill email if previously used
-  const savedEmail = localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email') || '';
+  const savedEmail = localStorage.getItem('digimest_saved_email') || localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email') || '';
   const emailInput = document.getElementById('emailInput');
   if (emailInput && !emailInput.value) {
     emailInput.value = savedEmail;
@@ -215,7 +215,8 @@ async function submitCheckout() {
   btn.innerText = 'Menyiapkan QRIS ShopeePay...';
 
   try {
-    const res = await fetch('/api/checkout', {
+    const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
+    const res = await fetch(checkoutUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -237,9 +238,9 @@ async function submitCheckout() {
     const order = data.data;
 
     // SAVE EMAIL & ORDER TO LOCAL STORAGE!
-    localStorage.setItem('digihub_saved_email', email);
+    localStorage.setItem('digimest_saved_email', email); localStorage.setItem('digihub_saved_email', email);
     localStorage.setItem('storeku_saved_email', email);
-    const orderHandler = window.DigihubOrders || window.StoreKuOrders;
+    const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
     if (orderHandler) {
       orderHandler.saveOrder({
         invoice_number: order.invoice_number,
@@ -264,7 +265,7 @@ async function submitCheckout() {
 
 // History Modal Render (Uses unified DigihubOrders)
 function openHistoryModal() {
-  const orderHandler = window.DigihubOrders || window.StoreKuOrders;
+  const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
   if (orderHandler) {
     orderHandler.renderHistoryList('historyListContainer');
   }
@@ -288,7 +289,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load products
   try {
-    const res = await fetch('/api/products');
+    const productsUrl = window.digimestApi ? window.digimestApi('/api/products') : '/api/products';
+    const res = await fetch(productsUrl);
     const data = await res.json();
     if (data.success && data.data) {
       allProducts = data.data;

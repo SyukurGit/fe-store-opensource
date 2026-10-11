@@ -1,4 +1,4 @@
-// Digihub Product Detail JavaScript
+// Digimest Product Detail JavaScript
 let currentProduct = null;
 let currentQty = 1;
 
@@ -43,7 +43,8 @@ async function initProductPage() {
   }
 
   try {
-    const res = await fetch(`/api/products/${encodeURIComponent(slug)}`);
+    const detailUrl = window.digimestApi ? window.digimestApi(`/api/products/${encodeURIComponent(slug)}`) : `/api/products/${encodeURIComponent(slug)}`;
+    const res = await fetch(detailUrl);
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       showError('Produk Tidak Ditemukan', errData.error || 'Produk tidak ditemukan atau sedang tidak aktif.');
@@ -61,7 +62,7 @@ async function initProductPage() {
 
   } catch (err) {
     console.error('Fetch product error:', err);
-    showError('Koneksi Gagal', 'Gagal menghubungi server Digihub. Silakan coba beberapa saat lagi.');
+    showError('Koneksi Gagal', 'Gagal menghubungi server Digimest. Silakan coba beberapa saat lagi.');
   }
 }
 
@@ -79,7 +80,7 @@ function renderProductDetail(p) {
   document.getElementById('productDetailContent').style.display = 'grid';
 
   // Page title & Breadcrumb
-  document.title = `${p.name} - Digihub`;
+  document.title = `${p.name} - Digimest`;
   document.getElementById('bcProductName').textContent = p.name;
 
   // Header
@@ -243,7 +244,7 @@ function openCheckoutModal() {
   document.getElementById('mProdLogo').src = currentProduct.logo || 'https://via.placeholder.com/40';
 
   const emailInput = document.getElementById('emailInput');
-  const savedEmail = localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email');
+  const savedEmail = localStorage.getItem('digimest_saved_email') || localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email');
   if (emailInput && savedEmail) {
     emailInput.value = savedEmail;
   }
@@ -277,7 +278,8 @@ async function submitCheckout() {
   btn.innerText = 'Menyiapkan QRIS ShopeePay...';
 
   try {
-    const res = await fetch('/api/checkout', {
+    const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
+    const res = await fetch(checkoutUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -299,10 +301,10 @@ async function submitCheckout() {
     const order = data.data;
 
     // SAVE EMAIL & ORDER TO LOCAL STORAGE!
-    localStorage.setItem('digihub_saved_email', email);
+    localStorage.setItem('digimest_saved_email', email); localStorage.setItem('digihub_saved_email', email);
     localStorage.setItem('storeku_saved_email', email);
-    if (window.DigihubOrders) {
-      DigihubOrders.saveOrder({
+    if ((window.DigimestOrders || window.DigihubOrders)) {
+      (window.DigimestOrders || window.DigihubOrders).saveOrder({
         invoice_number: order.invoice_number,
         claim_code: order.claim_code,
         product_name: order.product_name,

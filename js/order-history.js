@@ -1,9 +1,9 @@
-// Digihub Unified Order History Engine
+// Digimest Unified Order History Engine
 // Manages local order storage, real-time payment states, 15-min expiration audit & UI rendering
 
-const DigihubOrders = (() => {
-  const PRIMARY_STORAGE_KEY = 'digihub_orders';
-  const LEGACY_STORAGE_KEYS = ['storeku_orders', 'storeku_history'];
+const DigimestOrders = (() => {
+  const PRIMARY_STORAGE_KEY = 'digimest_orders';
+  const LEGACY_STORAGE_KEYS = ['digihub_orders', 'diginest_orders', 'storeku_orders', 'storeku_history'];
 
   // Format currency helper
   function formatIDR(num) {
@@ -18,11 +18,45 @@ const DigihubOrders = (() => {
     }[tag] || tag));
   }
 
-  // Check if expiration timestamp has elapsed
-  function isExpired(expiresAt) {
-    if (!expiresAt) return false;
-    const expTime = new Date(expiresAt).getTime();
-    if (isNaN(expTime)) return false;
+  // Safe timestamp parser (normalizes strings without timezone as UTC)
+  function parseTimestamp(dateStr) {
+    if (!dateStr) return null;
+    if (typeof dateStr === 'number') return isNaN(dateStr) ? null : dateStr;
+    let clean = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(clean)) {
+      clean = clean.replace(' ', 'T') + 'Z';
+    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(clean)) {
+      clean = clean + 'Z';
+    }
+    const t = new Date(clean).getTime();
+    return isNaN(t) ? null : t;
+  }
+
+  // Check if order or expiration timestamp has elapsed
+  function isExpired(target) {
+    if (!target) return false;
+
+    // If passed an order object
+    if (typeof target === 'object') {
+      if (target.payment_status === 'EXPIRED') return true;
+
+      if (target.expires_at) {
+        const expTime = parseTimestamp(target.expires_at);
+        if (expTime) return Date.now() > expTime;
+      }
+
+      // Fallback: created_at + 15 minutes
+      if (target.created_at) {
+        const createTime = parseTimestamp(target.created_at);
+        if (createTime) return Date.now() > (createTime + 15 * 60 * 1000);
+      }
+
+      return false;
+    }
+
+    // If passed a timestamp or date string directly
+    const expTime = parseTimestamp(target);
+    if (!expTime) return false;
     return Date.now() > expTime;
   }
 
@@ -143,12 +177,141 @@ const DigihubOrders = (() => {
     });
   }
 
+  // Remove a single order from history
+  function removeOrder(invoiceNumber, containerId) {
+    if (!invoiceNumber) return;
+    try {
+      let list = getOrders();
+      list = list.filter(o => o.invoice_number !== invoiceNumber);
+      localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(list));
+      for (const legKey of LEGACY_STORAGE_KEYS) {
+        try {
+          let legacy = JSON.parse(localStorage.getItem(legKey) || '[]');
+          if (Array.isArray(legacy)) {
+            legacy = legacy.filter(o => o.invoice_number !== invoiceNumber);
+            localStorage.setItem(legKey, JSON.stringify(legacy));
+          }
+        } catch (e) {}
+      }
+      updateBadge();
+      if (containerId) {
+        renderHistoryList(containerId, true);
+      }
+    } catch (e) {
+      console.warn('DigimestOrders: Failed to remove order:', e);
+    }
+  }
+
+  // Clear all expired or cancelled orders from history
+  function clearExpiredOrders(containerId) {
+    try {
+      let list = getOrders();
+      list = list.filter(o => {
+        if (o.payment_status === 'EXPIRED' || o.payment_status === 'CANCELLED') return false;
+        if (o.payment_status === 'PENDING' && isExpired(o)) return false;
+        return true;
+      });
+      localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(list));
+      for (const legKey of LEGACY_STORAGE_KEYS) {
+        try {
+          let legacy = JSON.parse(localStorage.getItem(legKey) || '[]');
+          if (Array.isArray(legacy)) {
+            legacy = legacy.filter(o => {
+              if (o.payment_status === 'EXPIRED' || o.payment_status === 'CANCELLED') return false;
+              if (o.payment_status === 'PENDING' && isExpired(o)) return false;
+              return true;
+            });
+            localStorage.setItem(legKey, JSON.stringify(legacy));
+          }
+        } catch (e) {}
+      }
+      updateBadge();
+      if (containerId) {
+        renderHistoryList(containerId, true);
+      }
+    } catch (e) {
+      console.warn('DigimestOrders: Failed to clear expired orders:', e);
+    }
+  }
+
+  // Background sync for pending orders against backend API
+  let isSyncing = false;
+  let lastSyncTime = 0;
+
+  async function syncPendingOrders(containerId) {
+    const now = Date.now();
+    if (isSyncing || (now - lastSyncTime < 8000)) return;
+    isSyncing = true;
+    lastSyncTime = now;
+
+    try {
+      let list = getOrders();
+      const pendingOrders = list.filter(o => !o.payment_status || o.payment_status === 'PENDING');
+      if (pendingOrders.length === 0) {
+        isSyncing = false;
+        return;
+      }
+
+      let changed = false;
+      await Promise.all(pendingOrders.slice(0, 10).map(async (order) => {
+        try {
+          const inv = encodeURIComponent(order.invoice_number);
+          const statusUrl = window.digimestApi ? window.digimestApi(`/api/orders/${inv}/status`) : `/api/orders/${inv}/status`;
+          const res = await fetch(statusUrl);
+          if (!res.ok) return;
+          const json = await res.json();
+          if (json.success && json.data) {
+            const s = json.data.payment_status;
+            if (s && s !== order.payment_status) {
+              order.payment_status = s;
+              changed = true;
+            }
+            if (json.data.claim_code && json.data.claim_code !== order.claim_code) {
+              order.claim_code = json.data.claim_code;
+              changed = true;
+            }
+            if (json.data.expires_at && json.data.expires_at !== order.expires_at) {
+              order.expires_at = json.data.expires_at;
+              changed = true;
+            }
+          }
+        } catch (err) {}
+      }));
+
+      if (changed) {
+        localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(list));
+        localStorage.setItem('storeku_orders', JSON.stringify(list));
+        updateBadge();
+        if (containerId) {
+          renderHistoryList(containerId, true);
+        }
+      }
+    } catch (e) {
+      console.warn('DigimestOrders: Background sync failed:', e);
+    } finally {
+      isSyncing = false;
+    }
+  }
+
   // Render modal list
-  function renderHistoryList(containerId) {
+  function renderHistoryList(containerId, skipSync = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const list = getOrders();
+    let list = getOrders();
+
+    // Local audit: immediately flag pending items that have expired by time
+    let hasLocalChanges = false;
+    for (const item of list) {
+      if ((!item.payment_status || item.payment_status === 'PENDING') && isExpired(item)) {
+        item.payment_status = 'EXPIRED';
+        hasLocalChanges = true;
+      }
+    }
+    if (hasLocalChanges) {
+      localStorage.setItem(PRIMARY_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem('storeku_orders', JSON.stringify(list));
+    }
 
     if (list.length === 0) {
       container.innerHTML = `
@@ -161,7 +324,20 @@ const DigihubOrders = (() => {
       return;
     }
 
-    container.innerHTML = list.map(item => {
+    // Check if there are any expired or cancelled orders to show clear banner
+    const hasExpiredOrCancelled = list.some(item => item.payment_status === 'EXPIRED' || item.payment_status === 'CANCELLED' || isExpired(item));
+    
+    let html = '';
+    if (hasExpiredOrCancelled) {
+      html += `
+        <div class="history-clear-bar">
+          <span>⚠️ Ditemukan pesanan kadaluarsa / dibatalkan</span>
+          <button type="button" class="btn-clear-expired" onclick="DigimestOrders.clearExpiredOrders('${escapeHtml(containerId)}')">Bersihkan Riwayat Kadaluarsa</button>
+        </div>
+      `;
+    }
+
+    html += list.map(item => {
       const inv = escapeHtml(item.invoice_number);
       const claim = escapeHtml(item.claim_code);
       const name = escapeHtml(item.product_name);
@@ -169,10 +345,10 @@ const DigihubOrders = (() => {
       const amountStr = formatIDR(item.total_amount);
 
       let effectiveStatus = item.payment_status || 'PENDING';
-      const expiredByTime = effectiveStatus === 'PENDING' && isExpired(item.expires_at);
+      const expiredByTime = effectiveStatus === 'PENDING' && isExpired(item);
 
       if (effectiveStatus === 'PAID') {
-        // Paid item
+        // Paid item (clickable to claim)
         return `
           <div class="order-history-card active-card" onclick="window.location.href='/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}'">
             <div class="order-card-main">
@@ -199,13 +375,13 @@ const DigihubOrders = (() => {
           </div>
         `;
       } else if (effectiveStatus === 'CANCELLED') {
-        // Cancelled order (DISABLED, non-clickable)
+        // Cancelled order (DISABLED, 100% non-clickable with delete button)
         return `
           <div class="order-history-card order-card-disabled">
             <div class="order-card-main">
               <div class="order-card-header">
                 <span class="order-card-title" style="color: #9ca3af;">${name}</span>
-                <span class="badge-history badge-history-cancelled">✕ Order Dibatalkan</span>
+                <span class="badge-history badge-history-cancelled">✕ Dibatalkan</span>
               </div>
               <div class="order-card-meta">
                 <span>${inv}</span>
@@ -220,11 +396,12 @@ const DigihubOrders = (() => {
             </div>
             <div class="order-card-action">
               <span class="btn-history-disabled">Dibatalkan</span>
+              <button type="button" class="btn-history-delete" title="Hapus dari riwayat" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(containerId)}');">✕</button>
             </div>
           </div>
         `;
       } else if (effectiveStatus === 'EXPIRED' || expiredByTime) {
-        // Expired order (DISABLED, non-clickable)
+        // Expired order (DISABLED, 100% non-clickable with delete button)
         return `
           <div class="order-history-card order-card-disabled">
             <div class="order-card-main">
@@ -245,6 +422,7 @@ const DigihubOrders = (() => {
             </div>
             <div class="order-card-action">
               <span class="btn-history-disabled">Kadaluarsa</span>
+              <button type="button" class="btn-history-delete" title="Hapus dari riwayat" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(containerId)}');">✕</button>
             </div>
           </div>
         `;
@@ -277,6 +455,13 @@ const DigihubOrders = (() => {
         `;
       }
     }).join('');
+
+    container.innerHTML = html;
+
+    // Trigger background sync if not skipped
+    if (!skipSync) {
+      syncPendingOrders(containerId);
+    }
   }
 
   // Public Interface
@@ -285,31 +470,36 @@ const DigihubOrders = (() => {
     saveOrder,
     updateOrderStatus,
     isExpired,
+    removeOrder,
+    clearExpiredOrders,
+    syncPendingOrders,
     updateBadge,
     renderHistoryList
   };
 })();
 
-// Export globally with backwards-compatible alias
-window.DigihubOrders = DigihubOrders;
-window.StoreKuOrders = DigihubOrders;
+// Export globally with backwards-compatible aliases
+window.DigimestOrders = DigimestOrders;
+window.DigihubOrders = DigimestOrders;
+window.StoreKuOrders = DigimestOrders;
 
 // Auto-init badge on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  DigihubOrders.updateBadge();
+  DigimestOrders.updateBadge();
 });
 
 // Auto-sync Telegram support username dynamically from /api/config
 (async () => {
   try {
-    let username = sessionStorage.getItem('digihub_tele_user');
+    let username = sessionStorage.getItem('digimest_tele_user') || sessionStorage.getItem('digihub_tele_user');
     if (!username) {
-      const res = await fetch('/api/config');
+      const configUrl = window.digimestApi ? window.digimestApi('/api/config') : '/api/config';
+      const res = await fetch(configUrl);
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.telegram_username) {
           username = data.telegram_username;
-          sessionStorage.setItem('digihub_tele_user', username);
+          sessionStorage.setItem('digimest_tele_user', username);
         }
       }
     }

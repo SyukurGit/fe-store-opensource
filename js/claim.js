@@ -1,4 +1,4 @@
-// Digihub License Claim Engine
+// Digimest License Claim Engine
 
 function showToast(msg) {
   const toast = document.getElementById('toast');
@@ -26,7 +26,8 @@ async function doClaim(queryCode) {
   resultBox.style.display = 'none';
 
   try {
-    const res = await fetch(`/api/claim?code=${encodeURIComponent(queryCode)}`);
+    const claimUrl = window.digimestApi ? window.digimestApi(`/api/claim?code=${encodeURIComponent(queryCode)}`) : `/api/claim?code=${encodeURIComponent(queryCode)}`;
+    const res = await fetch(claimUrl);
     const data = await res.json();
 
     loading.style.display = 'none';
@@ -50,7 +51,7 @@ function renderClaimResult(data) {
   resultBox.style.display = 'block';
 
   // Sync to local order history
-  const orderHandler = window.DigihubOrders || window.StoreKuOrders;
+  const orderHandler = window.DigimestOrders || window.StoreKuOrders;
   if (orderHandler && data.invoice_number) {
     orderHandler.saveOrder({
       invoice_number: data.invoice_number,
@@ -96,7 +97,7 @@ function renderClaimResult(data) {
         <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
           ${escapeHtml(data.quota_out_message || defaultMsg)}
         </p>
-        <a href="https://t.me/Digihubsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
+        <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
           <span>Hubungi CS via Telegram</span> ➔
         </a>
       </div>

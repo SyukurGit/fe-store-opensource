@@ -40,10 +40,12 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(11, 15, 25, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0.85rem 1.5rem;
+  background: rgba(11, 15, 25, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 0.75rem 1.5rem;
 }
 
 .nav-container {
@@ -60,7 +62,7 @@ body {
   align-items: center;
   gap: 0.65rem;
   text-decoration: none;
-  color: #fff;
+  color: #ffffff;
   font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
@@ -69,33 +71,31 @@ body {
 .logo-navbar-img {
   height: 38px;
   width: auto;
-  max-width: 145px;
+  max-width: 175px;
   object-fit: contain;
-  background: #ffffff;
-  padding: 3px 10px;
-  border-radius: 9px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   display: block;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .logo-navbar-img:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
 .footer-logo-img {
-  height: 42px;
+  height: 40px;
   width: auto;
   max-width: 160px;
   object-fit: contain;
-  background: #ffffff;
-  padding: 4px 12px;
-  border-radius: 9px;
+  background: transparent;
+  padding: 0;
   display: inline-block;
   margin-bottom: 0.85rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
 
 /* Brand Showcase Card untuk About Page */
 .brand-showcase-card {
@@ -193,6 +193,48 @@ body {
   padding: 1px 6px;
   border-radius: 12px;
   font-weight: 700;
+}
+
+/* Dark Theme Synchronized Navbar Overrides */
+.navbar .btn-nav {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.navbar .btn-nav:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.navbar .btn-reseller {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  color: #fbbf24 !important;
+  font-weight: 700 !important;
+}
+
+.navbar .btn-reseller:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #fde68a !important;
+  transform: translateY(-1px);
+}
+
+.navbar .reseller-tag {
+  background: #f59e0b;
+  color: #0b0f19;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.navbar .badge-counter {
+  background: var(--primary);
+  color: #ffffff;
 }
 
 .nav-text-desktop {
@@ -971,8 +1013,8 @@ body {
 @media (max-width: 640px) {
   .logo-navbar-img {
     height: 32px;
-    padding: 2px 7px;
-    max-width: 125px;
+    padding: 0;
+    max-width: 140px;
   }
   /* Catalog 2-box per row on mobile */
   .products-section {
@@ -1190,8 +1232,8 @@ body {
 }
 
 .footer-nav-links {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
   gap: 0.65rem 1.5rem;
 }
 
@@ -1200,15 +1242,16 @@ body {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.18s ease;
-  display: inline-block;
-  padding: 4px 0;
+  transition: color 0.18s ease, transform 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 0;
 }
 
 .footer-nav-links a:hover {
   color: #ffffff;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  transform: translateX(2px);
+  text-decoration: none;
 }
 
 .footer-reseller-card {
@@ -1272,18 +1315,12 @@ body {
 .footer-bottom-simple {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
+  justify-content: center;
+  text-align: center;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #64748b;
-}
-
-.footer-status-pill {
-  color: #10b981;
-  font-weight: 600;
 }
 
 @media (max-width: 768px) {
@@ -1291,12 +1328,17 @@ body {
   .btn-reseller {
     display: none !important;
   }
+  .logo-navbar-img {
+    height: 34px;
+    max-width: 150px;
+  }
   .footer-streamlined-grid {
     grid-template-columns: 1fr !important;
     gap: 2rem !important;
   }
   .footer-nav-links {
-    gap: 0.5rem 1.15rem !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem 1rem !important;
   }
   .footer-nav-links a {
     font-size: 0.86rem !important;
@@ -1309,9 +1351,8 @@ body {
     margin-top: 3.5rem;
   }
   .footer-bottom-simple {
-    flex-direction: column;
     text-align: center;
-    align-items: center;
+    justify-content: center;
   }
 
   /* NAVBAR MOBILE ERGONOMICS: RAPI, PADAT, TIDAK BENTROK */
@@ -1607,6 +1648,8 @@ body {
 .order-history-card.order-card-disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
   background: rgba(255, 255, 255, 0.015);
   border-color: rgba(255, 255, 255, 0.05);
 }
@@ -1687,6 +1730,9 @@ body {
 }
 
 .order-card-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -1739,6 +1785,60 @@ body {
   pointer-events: none;
   cursor: not-allowed;
   white-space: nowrap;
+}
+
+.btn-history-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto !important;
+  transition: all 0.18s ease;
+}
+
+.btn-history-delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.history-clear-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.75rem;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: 8px;
+  margin-bottom: 0.85rem;
+  font-size: 0.78rem;
+  color: #fca5a5;
+}
+
+.btn-clear-expired {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ffffff;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-clear-expired:hover {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: rgba(239, 68, 68, 0.6);
 }
 
 /* ==========================================================================

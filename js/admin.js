@@ -1,4 +1,4 @@
-// Digihub Admin Engine (Multi-page Support)
+// Digimest Admin Engine (Multi-page Support)
 
 let allAdminProducts = [];
 let filteredAdminProducts = [];
@@ -38,7 +38,7 @@ function showToast(msg) {
 // AUTH & FETCH HELPER
 // -------------------------------------------------------------
 function getAdminHeaders() {
-  const token = localStorage.getItem('digihub_admin_token') || localStorage.getItem('storeku_admin_token');
+  const token = localStorage.getItem('digimest_admin_token') || localStorage.getItem('Digimest_admin_token') || localStorage.getItem('storeku_admin_token');
   const headers = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -51,9 +51,11 @@ async function adminFetch(url, options = {}) {
     ...getAdminHeaders(),
     ...(options.headers || {})
   };
-  const res = await fetch(url, { ...options, headers: combinedHeaders });
+  const targetUrl = window.digimestApi ? window.digimestApi(url) : url;
+  const res = await fetch(targetUrl, { ...options, headers: combinedHeaders });
   if (res.status === 401) {
-    localStorage.removeItem('digihub_admin_token');
+    localStorage.removeItem('digimest_admin_token');
+    localStorage.removeItem('Digimest_admin_token');
     localStorage.removeItem('storeku_admin_token');
     window.location.href = '/admin/login';
     return null;
@@ -749,9 +751,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Logout Button
   document.getElementById('btnLogout')?.addEventListener('click', async () => {
-    localStorage.removeItem('digihub_admin_token');
+    localStorage.removeItem('digimest_admin_token');
+    localStorage.removeItem('Digimest_admin_token');
     localStorage.removeItem('storeku_admin_token');
-    await fetch('/api/admin/logout', { method: 'POST' });
+    const logoutUrl = window.digimestApi ? window.digimestApi('/api/admin/logout') : '/api/admin/logout';
+    try {
+      await fetch(logoutUrl, { method: 'POST' });
+    } catch (e) {}
     window.location.href = '/admin/login';
   });
 

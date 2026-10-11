@@ -1,0 +1,19 @@
+# ==============================================================
+# Cloudflare Pages: Cache-Control & Security Headers
+# ==============================================================
+
+# Static Assets Caching
+/css/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/js/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/logo/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+# Public HTML Pages: Revalidate untuk update konten terkini
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Admin Panel: No-cache demi keamanan
+/admin/*
+  Cache-Control: no-cache, no-store, must-revalidate
