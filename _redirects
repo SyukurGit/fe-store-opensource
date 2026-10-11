@@ -2,8 +2,7 @@
 # Cloudflare Pages: API Reverse Proxy ke VPS Backend
 # ==============================================================
 # Meneruskan seluruh request /api/* ke VPS backend secara transparan
-# Jika domain VPS Anda berbeda, sesuaikan https://api.digimest.tech di bawah ini:
-/api/*  https://api.digimest.tech/api/:splat  200
+/api/*  https://digimest.syukurapi.online/api/:splat  200
 
 # ==============================================================
 # Cloudflare Pages: Clean URLs Rewrites (Tanpa Ekstensi .html)

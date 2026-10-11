@@ -1,19 +1,14 @@
 /**
  * Digimest Frontend API Configuration
- * 
- * Pengaturan Endpoint API:
- * 1. Default (Kosong ""):
- *    Semua request API (/api/...) memanggil domain yang sama.
- *    Sangat cocok untuk:
- *    - Development lokal di localhost / Laragon.
- *    - Cloudflare Pages yang menggunakan reverse proxy via file `_redirects` (/api/* -> VPS).
- * 
- * 2. Direct Cross-Origin VPS (Opsional):
- *    Jika Anda ingin frontend memanggil langsung VPS tanpa melalui reverse proxy Cloudflare Pages,
- *    isi nilai di bawah dengan domain VPS Anda:
- *    Contoh: window.DIGIMEST_API_BASE = 'https://api.digimest.tech';
+ * Production VPS Endpoint: https://digimest.syukurapi.online
  */
-window.DIGIMEST_API_BASE = window.DIGIMEST_API_BASE || window.API_BASE || '';
+(function() {
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  // Default API VPS: https://digimest.syukurapi.online
+  const defaultApi = isLocalhost ? '' : 'https://digimest.syukurapi.online';
+  
+  window.DIGIMEST_API_BASE = window.DIGIMEST_API_BASE || window.API_BASE || defaultApi;
+})();
 
 /**
  * Helper untuk menyusun URL endpoint API secara aman.
