@@ -190,7 +190,8 @@ function renderProductDetail(p) {
 function getEffectiveUnitPrice(qty) {
   if (!currentProduct) return 0;
   let price = currentProduct.priceIDR;
-  if (currentProduct.tiers && currentProduct.tiers.length > 0) {
+  // Jika produk dikustomisasi oleh admin atau sedang ada promo, harga dari katalog index WAJIB digunakan (tidak boleh ditimpa tiers grosir upstream)
+  if (!currentProduct.isCustomized && !currentProduct.hasPromo && currentProduct.tiers && currentProduct.tiers.length > 0) {
     for (const tier of currentProduct.tiers) {
       if (qty >= tier.minQty && (tier.maxQty === null || tier.maxQty === undefined || qty <= tier.maxQty)) {
         if (tier.priceIDR && tier.priceIDR > 0) {

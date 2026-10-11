@@ -91,6 +91,18 @@ async function loadStats() {
       }
     }
 
+    const badge = document.getElementById('apiStatusBadge');
+    if (badge) {
+      if (s.digitalcore_connected) {
+        badge.className = 'badge badge-stock';
+        badge.textContent = `● DC Terhubung ($${(s.digitalcore_balance || 0).toFixed(2)})`;
+      } else if (s.digitalcore_error) {
+        badge.className = 'badge badge-stock empty';
+        badge.textContent = '● DC Error / Disconnected';
+        badge.title = s.digitalcore_error;
+      }
+    }
+
     document.getElementById('statDcOrders').textContent = s.digitalcore_orders || '0';
     document.getElementById('statTodayRevenue').textContent = formatIDR(s.today_revenue_idr);
     document.getElementById('statTodayOrders').textContent = s.today_orders;
@@ -801,11 +813,160 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('orderDetailModal')?.classList.remove('open');
   });
 
+  // DigitalCore Check Connection
+  document.getElementById('btnCheckDcTop')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckDcCard')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckDcSettings')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('closeDcModalBtn')?.addEventListener('click', () => {
+    document.getElementById('dcCheckModal')?.classList.remove('open');
+  });
+  document.getElementById('closeDcModalBtn2')?.addEventListener('click', () => {
+    document.getElementById('dcCheckModal')?.classList.remove('open');
+  });
+
   // Close modals on backdrop click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       closeEditProductModal();
       document.getElementById('orderDetailModal')?.classList.remove('open');
+      document.getElementById('dcCheckModal')?.classList.remove('open');
     }
   });
 });
+
+// -------------------------------------------------------------
+// 5. DIGITALCORE CONNECTION TEST ENGINE
+// -------------------------------------------------------------
+async function checkDigitalCore() {
+  const modal = document.getElementById('dcCheckModal');
+  const modalBody = document.getElementById('dcModalBody');
+  const modalTitle = document.getElementById('dcModalTitle');
+  const badge = document.getElementById('apiStatusBadge');
+
+  if (modal && modalBody) {
+    modalTitle.textContent = '🔍 Memeriksa Koneksi DigitalCore...';
+    modalBody.innerHTML = `
+      <div style="text-align: center; padding: 24px 0;">
+        <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+        <div style="font-weight: 700; color: #fff;">Sedang Menghubungi Server DigitalCore...</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Mengetes endpoint /api/user/me dengan API Key terpasang</div>
+      </div>
+    `;
+    modal.classList.add('open');
+  }
+
+  try {
+    const res = await adminFetch('/api/admin/digitalcore/check');
+    if (!res) {
+      if (modalBody) {
+        modalBody.innerHTML = `<div style="color: #f87171;">Sesi admin tidak valid atau tidak dapat terhubung ke backend.</div>`;
+      }
+      return;
+    }
+
+    const json = await res.json();
+    const data = json.data || {};
+
+    if (json.success && data.success) {
+      // Update balance & orders on screen immediately
+      const dcBalEl = document.getElementById('statDcBalance');
+      if (dcBalEl) {
+        dcBalEl.textContent = `$${(data.balance || 0).toFixed(2)}`;
+        dcBalEl.style.color = (data.balance >= 5.0) ? '#10b981' : '#f87171';
+      }
+      const dcOrdEl = document.getElementById('statDcOrders');
+      if (dcOrdEl) {
+        dcOrdEl.textContent = data.total_orders || '0';
+      }
+      if (badge) {
+        badge.className = 'badge badge-stock';
+        badge.textContent = `● DC Terhubung ($${(data.balance || 0).toFixed(2)})`;
+      }
+
+      showToast(`Koneksi DigitalCore Sukses! Saldo: $${(data.balance || 0).toFixed(2)}`);
+
+      if (modalBody) {
+        modalTitle.textContent = '✅ Koneksi DigitalCore Berhasil';
+        modalBody.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #34d399; font-size: 0.95rem; margin-bottom: 4px;">● Status: TERHUBUNG (HTTP ${data.http_status})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || 'API Key valid dan upstream merespons normal.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Saldo Bot Realtime</td>
+              <td style="padding: 8px 0; font-weight: 800; font-family: var(--font-mono); font-size: 1.1rem; color: #10b981; text-align: right;">$${(data.balance || 0).toFixed(2)} USD</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Total Order Upstream</td>
+              <td style="padding: 8px 0; font-weight: 700; color: #fff; text-align: right;">${escapeHtml(data.total_orders || '0')} order</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || '-')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">API Key</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '-')}</code></td>
+            </tr>
+          </table>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Mentah Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    } else {
+      if (badge) {
+        badge.className = 'badge badge-stock empty';
+        badge.textContent = '● DC Disconnected / Error';
+      }
+
+      showToast('Gagal terhubung ke DigitalCore.');
+
+      if (modalBody) {
+        modalTitle.textContent = '⚠️ Gagal Terhubung ke DigitalCore';
+        modalBody.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #f87171; font-size: 0.95rem; margin-bottom: 4px;">● Status: GAGAL (HTTP ${data.http_status || '-'})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || json.error || 'Server DigitalCore menolak permintaan.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || '-')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">API Key Terpasang</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '(kosong)')}</code></td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; font-size: 0.78rem; color: #94a3b8;">
+            💡 <strong>Panduan Solusi:</strong><br>
+            1. Periksa file <code>.env</code> di VPS, pastikan <code>DIGITALCORE_API_KEY</code> sudah terisi.<br>
+            2. Jika baru mengisi atau mengubah <code>.env</code>, jalankan <code>sudo systemctl restart storeku</code> di VPS agar aplikasi memuat key baru.
+          </div>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #f87171; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    }
+  } catch (err) {
+    if (modalBody) {
+      modalTitle.textContent = '❌ Terjadi Kesalahan Jaringan';
+      modalBody.innerHTML = `<div style="color: #f87171;">Tidak dapat mengirim request ke backend: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+

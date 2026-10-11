@@ -44,8 +44,11 @@
         <h1>Dashboard Monitoring Toko</h1>
         <p>Pantau pembayaran QRIS, perputaran omzet, dan saldo stok DigitalCore secara real-time.</p>
       </div>
-      <div>
-        <span class="badge badge-stock" id="apiStatusBadge">● Gateway & Upstream Connected</span>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <span class="badge badge-stock" id="apiStatusBadge">● Memeriksa Status...</span>
+        <button id="btnCheckDcTop" class="btn-nav" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; cursor: pointer; border-radius: 8px; font-weight: 600;">
+          ⚡ Cek API DigitalCore
+        </button>
       </div>
     </div>
 
@@ -66,7 +69,12 @@
           <span>🤖</span>
         </div>
         <div class="stat-value highlight-gold" id="statDcBalance">$0.00</div>
-        <div class="stat-meta">Total order DC: <strong id="statDcOrders" style="color:#fff;">0</strong></div>
+        <div class="stat-meta" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <span>Order DC: <strong id="statDcOrders" style="color:#fff;">0</strong></span>
+          <button id="btnCheckDcCard" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 700;">
+            🔍 Cek API
+          </button>
+        </div>
       </div>
 
       <div class="stat-card">
@@ -167,6 +175,22 @@
         <button class="modal-close" id="closeDetailModalBtn">&times;</button>
       </div>
       <div id="modalDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal Hasil Cek DigitalCore -->
+  <div class="modal-overlay" id="dcCheckModal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="dcModalTitle">🔍 Hasil Cek Koneksi DigitalCore</h3>
+        <button class="modal-close" id="closeDcModalBtn">&times;</button>
+      </div>
+      <div id="dcModalBody" style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
+        Memeriksa koneksi...
+      </div>
+      <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+        <button class="btn-nav" id="closeDcModalBtn2" style="background: var(--bg-surface); padding: 0.45rem 1.2rem; cursor: pointer; border-radius: 8px;">Tutup</button>
+      </div>
     </div>
   </div>
 
