@@ -4,21 +4,3 @@
 # Meneruskan seluruh request /api/* ke VPS backend secara transparan
 /api/*  https://digimest.syukurapi.online/api/:splat  200
 
-# ==============================================================
-# Cloudflare Pages: Clean URLs Rewrites (Tanpa Ekstensi .html)
-# ==============================================================
-/product        /product.html         200
-/payment        /payment.html         200
-/claim          /claim.html           200
-/about          /about.html           200
-/how-to-buy     /how-to-buy.html      200
-/warranty       /warranty.html        200
-/privacy        /privacy.html         200
-/terms          /terms.html           200
-
-# Admin Panel Clean URLs
-/admin          /admin/index.html     200
-/admin/login    /admin/login.html     200
-/admin/products /admin/products.html  200
-/admin/orders   /admin/orders.html    200
-/admin/settings /admin/settings.html  200
