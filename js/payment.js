@@ -172,6 +172,7 @@ function startCountdown(targetTime) {
 
     if (distance <= 0) {
       clearInterval(timerInterval);
+      clearInterval(pollInterval);
       const handler = getOrderHandler();
       if (handler) handler.updateOrderStatus(currentInvoice, 'EXPIRED');
       showExpiredView();
@@ -259,6 +260,8 @@ function showSuccessView(order) {
 
 
 function showExpiredView() {
+  clearInterval(pollInterval);
+  clearInterval(timerInterval);
   document.getElementById('pendingView').style.display = 'none';
   document.getElementById('successView').style.display = 'none';
   const cancelledView = document.getElementById('cancelledView');
@@ -267,6 +270,8 @@ function showExpiredView() {
 }
 
 function showCancelledView() {
+  clearInterval(pollInterval);
+  clearInterval(timerInterval);
   document.getElementById('pendingView').style.display = 'none';
   document.getElementById('successView').style.display = 'none';
   document.getElementById('expiredView').style.display = 'none';
@@ -325,13 +330,16 @@ async function confirmCancelOrder() {
   }
 }
 
-// "Saya Sudah Bayar" instant trigger
-async function triggerManualCheck() {
-  const btn = document.getElementById('btnManualCheck');
-  if (!btn || !currentInvoice) return;
+// "Saya Sudah Bayar" instant trigger (dynamically handles either pending or expired late button)
+async function triggerManualCheck(e) {
+  const targetBtn = (e && e.currentTarget) ? e.currentTarget : document.getElementById('btnManualCheck');
+  if (!currentInvoice) return;
 
-  btn.disabled = true;
-  btn.innerText = 'Memeriksa mutasi ShopeePay...';
+  const originalText = targetBtn ? targetBtn.innerText : '⚡ Saya Sudah Bayar';
+  if (targetBtn) {
+    targetBtn.disabled = true;
+    targetBtn.innerText = 'Memeriksa mutasi ShopeePay...';
+  }
 
   try {
     const checkUrl = window.digimestApi ? window.digimestApi(`/api/orders/${encodeURIComponent(currentInvoice)}/check`) : `/api/orders/${encodeURIComponent(currentInvoice)}/check`;
@@ -347,13 +355,15 @@ async function triggerManualCheck() {
         return;
       }
     }
-    showToast('Mutasi belum terdeteksi. Silakan tunggu 10-30 detik.');
+    showToast(json.message || 'Mutasi belum terdeteksi. Silakan tunggu 10-30 detik.');
   } catch (e) {
     showToast('Gagal memeriksa mutasi: ' + e.message);
   } finally {
     setTimeout(() => {
-      btn.disabled = false;
-      btn.innerText = '⚡ Saya Sudah Bayar (Cek Mutasi Sekarang)';
+      if (targetBtn) {
+        targetBtn.disabled = false;
+        targetBtn.innerText = originalText;
+      }
     }, 4000);
   }
 }
@@ -383,5 +393,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnConfirmCancelAction')?.addEventListener('click', confirmCancelOrder);
   document.getElementById('cancelConfirmModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'cancelConfirmModal') closeCancelModal();
+  });
+
+  // Pause polling when tab is hidden, resume when tab is active
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(pollInterval);
+    } else {
+      const isPending = document.getElementById('pendingView')?.style.display !== 'none';
+      if (currentInvoice && isPending) {
+        checkStatus();
+        clearInterval(pollInterval);
+        pollInterval = setInterval(checkStatus, 3000);
+      }
+    }
   });
 });

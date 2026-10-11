@@ -238,6 +238,10 @@ function setupEventListeners() {
 
 function openCheckoutModal() {
   if (!currentProduct) return;
+  if (currentProduct.stock <= 0 || currentProduct.isForceOutOfStock) {
+    alert('Mohon maaf, stok produk ini sedang habis atau dinonaktifkan sementara.');
+    return;
+  }
   const modal = document.getElementById('checkoutModal');
   document.getElementById('mProdName').textContent = currentProduct.name;
   document.getElementById('mProdType').textContent = currentProduct.type || 'Digital License';

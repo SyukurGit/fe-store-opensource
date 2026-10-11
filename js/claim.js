@@ -33,7 +33,12 @@ async function doClaim(queryCode) {
     loading.style.display = 'none';
 
     if (!res.ok || !data.success) {
-      errBox.textContent = data.error || 'Pesanan dengan kode tersebut tidak ditemukan.';
+      errBox.innerHTML = `
+        <div>${escapeHtml(data.error || 'Pesanan dengan kode tersebut tidak ditemukan.')}</div>
+        <div style="margin-top: 10px;">
+          <a href="/" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">← Kembali ke Katalog Toko</a>
+        </div>
+      `;
       errBox.style.display = 'block';
       return;
     }
@@ -41,7 +46,12 @@ async function doClaim(queryCode) {
     renderClaimResult(data);
   } catch (err) {
     loading.style.display = 'none';
-    errBox.textContent = 'Koneksi gagal: ' + err.message;
+    errBox.innerHTML = `
+      <div>Koneksi gagal: ${escapeHtml(err.message)}</div>
+      <div style="margin-top: 10px;">
+        <a href="/" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">← Kembali ke Katalog Toko</a>
+      </div>
+    `;
     errBox.style.display = 'block';
   }
 }
@@ -67,7 +77,22 @@ function renderClaimResult(data) {
   document.getElementById('resInvoice').textContent = `Invoice: ${data.invoice_number} | Kode Klaim: ${data.claim_code}`;
 
   const statusBadge = document.getElementById('resStatusBadge');
-  if (data.payment_status === 'PAID') {
+  const isRefunded = data.fulfillment_status === 'REFUNDED';
+  const isExpired = data.payment_status === 'EXPIRED';
+  const isCancelled = data.payment_status === 'CANCELLED';
+
+  if (isRefunded) {
+    statusBadge.className = 'badge badge-region';
+    statusBadge.style.color = '#94a3b8';
+    statusBadge.style.borderColor = 'rgba(148, 163, 184, 0.4)';
+    statusBadge.textContent = '● DANA DIREFUND';
+  } else if (isExpired) {
+    statusBadge.className = 'badge badge-stock empty';
+    statusBadge.textContent = '● TAGIHAN KADALUARSA';
+  } else if (isCancelled) {
+    statusBadge.className = 'badge badge-stock empty';
+    statusBadge.textContent = '● ORDER DIBATALKAN';
+  } else if (data.payment_status === 'PAID') {
     statusBadge.className = 'badge badge-stock';
     statusBadge.textContent = '● PEMBAYARAN LUNAS';
   } else {
@@ -78,7 +103,47 @@ function renderClaimResult(data) {
   const itemsContainer = document.getElementById('resItemsContainer');
   const items = data.delivered_items || [];
 
-  if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
+  if (isRefunded) {
+    itemsContainer.innerHTML = `
+      <div style="background: rgba(148, 163, 184, 0.08); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; margin-bottom: 6px;">💸</div>
+        <div style="font-weight: 700; color: #cbd5e1; font-size: 1rem; margin-bottom: 6px;">Dana Transaksi Telah Direfund</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
+          Pesanan ini telah diselesaikan dengan pengembalian dana (refund) oleh admin. Jika ada pertanyaan, hubungi CS kami.
+        </p>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+          <a href="/" class="btn-buy" style="text-decoration: none; padding: 6px 16px; font-size: 0.82rem;">Katalog Toko ➔</a>
+          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn-nav" style="text-decoration: none; padding: 6px 14px; font-size: 0.82rem;" data-tele-cs>Hubungi CS Telegram</a>
+        </div>
+      </div>
+    `;
+  } else if (isExpired) {
+    itemsContainer.innerHTML = `
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; margin-bottom: 6px;">⌛</div>
+        <div style="font-weight: 700; color: #f87171; font-size: 1rem; margin-bottom: 6px;">Batas Waktu Pembayaran Telah Habis</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
+          Tagihan QRIS 15 menit untuk pesanan ini telah kedaluwarsa. Silakan lakukan pemesanan baru di katalog toko.
+        </p>
+        <a href="/" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
+          Pesan Ulang di Katalog Toko ➔
+        </a>
+      </div>
+    `;
+  } else if (isCancelled) {
+    itemsContainer.innerHTML = `
+      <div style="background: rgba(148, 163, 184, 0.08); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; margin-bottom: 6px;">✕</div>
+        <div style="font-weight: 700; color: #94a3b8; font-size: 1rem; margin-bottom: 6px;">Pesanan Dibatalkan Oleh Pembeli</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
+          Transaksi ini telah dibatalkan dan tagihan QRIS dinonaktifkan. Anda dapat membuat pesanan baru kapan saja.
+        </p>
+        <a href="/" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
+          Kembali ke Katalog Toko ➔
+        </a>
+      </div>
+    `;
+  } else if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
     const isFailed = data.fulfillment_status === 'FAILED' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
     const title = isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual';
     const defaultMsg = isFailed
@@ -112,7 +177,7 @@ function renderClaimResult(data) {
     } else {
       itemsContainer.innerHTML = `
         <div style="background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; color: var(--text-muted); font-size: 0.85rem;">
-          Pesanan ini belum dibayar. <a href="/payment?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary);">Klik di sini untuk bayar QRIS ➔</a>
+          Pesanan ini belum dibayar. <a href="/payment?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Klik di sini untuk bayar QRIS sekarang ➔</a>
         </div>
       `;
     }
@@ -157,5 +222,18 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const q = document.getElementById('claimInput').value.trim();
     if (q) doClaim(q);
+  });
+
+  // History modal handlers
+  document.getElementById('btnOpenHistory')?.addEventListener('click', () => {
+    const handler = window.DigimestOrders || window.StoreKuOrders;
+    if (handler) handler.renderHistoryList('historyListContainer');
+    document.getElementById('historyModal')?.classList.add('open');
+  });
+  document.getElementById('closeHistoryBtn')?.addEventListener('click', () => {
+    document.getElementById('historyModal')?.classList.remove('open');
+  });
+  document.getElementById('historyModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'historyModal') document.getElementById('historyModal')?.classList.remove('open');
   });
 });

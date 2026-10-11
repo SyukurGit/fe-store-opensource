@@ -690,6 +690,8 @@ async function loadSettings() {
       document.getElementById('cfgMarginFixed').value = json.data.margin_fixed || 2000;
       const maxSurge = document.getElementById('cfgMaxSurgePct');
       if (maxSurge) maxSurge.value = json.data.max_surge_disable_percent || 50;
+      const teleInput = document.getElementById('cfgTelegramUser');
+      if (teleInput) teleInput.value = json.data.telegram_cs_username || 'Digimestsupport';
     }
   } catch (err) {
     console.error('Failed to load settings:', err);
@@ -702,11 +704,13 @@ async function saveSettings() {
   btn.disabled = true;
   btn.innerText = 'Menyimpan...';
 
+  const teleInput = document.getElementById('cfgTelegramUser');
   const body = {
     usd_rate: document.getElementById('cfgUsdRate').value,
     margin_percent: document.getElementById('cfgMarginPct').value,
     margin_fixed: document.getElementById('cfgMarginFixed').value,
-    max_surge_disable_percent: document.getElementById('cfgMaxSurgePct')?.value || "50"
+    max_surge_disable_percent: document.getElementById('cfgMaxSurgePct')?.value || "50",
+    telegram_cs_username: teleInput ? teleInput.value.trim().replace(/^@/, '') : "Digimestsupport"
   };
 
   try {
@@ -718,7 +722,7 @@ async function saveSettings() {
     if (!res) return;
     const json = await res.json();
     if (json.success) {
-      showToast('Pengaturan kurs & margin berhasil disimpan! ✨');
+      showToast('Pengaturan kurs, margin, dan CS berhasil disimpan! ✨');
     } else {
       alert('Gagal menyimpan: ' + (json.error || 'Server error'));
     }

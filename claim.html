@@ -27,6 +27,15 @@
         <a href="https://t.me/Digimestsupport?text=Halo%20Digimest%2C%20saya%20tertarik%20join%20Reseller%20(Harga%20Lebih%20Murah)" target="_blank" rel="noopener noreferrer" class="btn-nav btn-reseller" data-tele-nav-reseller>
           🤝 Join Reseller <span class="reseller-tag">Harga Lebih Murah</span>
         </a>
+        <button id="btnOpenHistory" class="btn-nav">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="nav-text-desktop">Pesanan Saya</span>
+          <span class="nav-text-mobile">Pesanan</span>
+          <span id="historyBadge" class="badge-counter" style="display:none;">0</span>
+        </button>
         <a href="/claim" class="btn-nav" style="border-color: var(--primary);">
           <span class="nav-text-desktop">🔑 Klaim Produk</span>
           <span class="nav-text-mobile">🔑 Klaim</span>
@@ -84,6 +93,22 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Drawer / Modal Riwayat Pesanan Saya (LocalStorage) -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Riwayat Pesanan Saya</h3>
+        <button class="modal-close" id="closeHistoryBtn">&times;</button>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Riwayat ini tersimpan otomatis di browser Anda tanpa perlu akun login. Anda dapat membuka atau mengklaim kembali lisensi kapan saja.
+      </div>
+      <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
+        <!-- Injected via JavaScript -->
+      </div>
     </div>
   </div>
 

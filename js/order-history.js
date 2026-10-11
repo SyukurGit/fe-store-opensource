@@ -318,7 +318,10 @@ const DigimestOrders = (() => {
         <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
           <div style="font-size: 2.2rem; margin-bottom: 0.5rem; opacity: 0.7;">📦</div>
           <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Belum Ada Riwayat Pesanan</div>
-          <div style="font-size: 0.82rem;">Pesanan yang Anda buat akan otomatis tercatat di browser ini tanpa perlu registrasi akun.</div>
+          <div style="font-size: 0.82rem; margin-bottom: 1.25rem;">Pesanan yang Anda buat akan otomatis tercatat di browser ini tanpa perlu registrasi akun.</div>
+          <a href="/" class="btn-buy" style="display: inline-block; padding: 0.55rem 1.4rem; font-size: 0.85rem; text-decoration: none;" onclick="document.getElementById('historyModal')?.classList.remove('open');">
+            Jelajahi Katalog Toko ➔
+          </a>
         </div>
       `;
       return;
