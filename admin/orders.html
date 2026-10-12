@@ -27,7 +27,7 @@
           <strong id="topbarLastLoginTime" class="last-login-time">Sesi Aktif</strong>
           <span class="last-login-sep">•</span>
           <span id="topbarLastLoginLoc" class="last-login-loc">Memuat...</span>
-          <button id="btnOpenLoginHistory" class="btn-login-history" title="Lihat riwayat login">Riwayat</button>
+          <a href="/admin/security" class="btn-login-history" title="Buka Halaman Log Keamanan & Riwayat Login">Log Keamanan ➔</a>
         </div>
         <a href="/" target="_blank" class="btn-nav">Lihat Toko ↗</a>
         <button id="btnRefreshStats" class="btn-nav">🔄 Refresh</button>
@@ -43,6 +43,7 @@
       <a href="/admin" class="admin-nav-tab">📊 Ringkasan Dashboard</a>
       <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk</a>
       <a href="/admin/orders" class="admin-nav-tab active">📜 Riwayat Pesanan</a>
+      <a href="/admin/security" class="admin-nav-tab">🛡️ Log Keamanan & Login</a>
       <a href="/admin/settings" class="admin-nav-tab">⚙️ Pengaturan Toko</a>
     </nav>
 
@@ -151,7 +152,7 @@
 
   <div id="toast" class="toast-notice"></div>
 
-  <script src="/js/api-config.js"></script>
-  <script src="/js/admin.js"></script>
+  <script src="/js/api-config.js?v=3.2"></script>
+  <script src="/js/admin.js?v=3.2"></script>
 </body>
 </html>

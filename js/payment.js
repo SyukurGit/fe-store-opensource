@@ -332,10 +332,10 @@ async function confirmCancelOrder() {
 
 // "Saya Sudah Bayar" instant trigger (dynamically handles either pending or expired late button)
 async function triggerManualCheck(e) {
-  const targetBtn = (e && e.currentTarget) ? e.currentTarget : document.getElementById('btnManualCheck');
+  const targetBtn = (e && e.currentTarget) ? e.currentTarget : null;
   if (!currentInvoice) return;
 
-  const originalText = targetBtn ? targetBtn.innerText : '⚡ Saya Sudah Bayar';
+  const originalText = targetBtn ? targetBtn.innerText : '⚡ Periksa Status';
   if (targetBtn) {
     targetBtn.disabled = true;
     targetBtn.innerText = 'Memeriksa mutasi ShopeePay...';

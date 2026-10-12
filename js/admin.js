@@ -203,7 +203,7 @@ function renderAdminProductsTable() {
           </div>
         </td>
         <td>
-          <div style="font-weight: 600;">${p.stock} pcs</div>
+          <div style="font-weight: 600;">${p.stock} pcs ${p.custom_stock !== undefined && p.custom_stock >= 0 ? '<span class="badge-custom" style="font-size: 0.65rem; padding: 1px 6px; margin-left: 4px;">Kustom</span>' : ''}</div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.region || 'Global')} • ${escapeHtml(p.warranty || '-')}</div>
         </td>
         <td>
@@ -264,6 +264,30 @@ function openEditProductModal(slug) {
   if (forceOutEl) forceOutEl.checked = !!p.is_force_out_of_stock;
   document.getElementById('edCustomName').value = p.custom_name || '';
 
+  // Custom Type
+  const edType = document.getElementById('edCustomType');
+  if (edType) edType.value = p.custom_type || '';
+  const defTypeEl = document.getElementById('edDefaultTypeNotice');
+  if (defTypeEl) defTypeEl.textContent = p.original_type || p.type || 'Digital License';
+
+  // Custom Region
+  const edReg = document.getElementById('edCustomRegion');
+  if (edReg) edReg.value = p.custom_region || '';
+  const defRegEl = document.getElementById('edDefaultRegionNotice');
+  if (defRegEl) defRegEl.textContent = p.original_region || p.region || 'Global';
+
+  // Custom Warranty
+  const edWar = document.getElementById('edCustomWarranty');
+  if (edWar) edWar.value = p.custom_warranty || '';
+  const defWarEl = document.getElementById('edDefaultWarrantyNotice');
+  if (defWarEl) defWarEl.textContent = p.original_warranty || p.warranty || 'Garansi Toko';
+
+  // Custom Stock
+  const edStock = document.getElementById('edCustomStock');
+  if (edStock) edStock.value = (p.custom_stock !== undefined && p.custom_stock >= 0) ? p.custom_stock : '';
+  const defStockEl = document.getElementById('edDefaultStockNotice');
+  if (defStockEl) defStockEl.textContent = `${p.original_stock !== undefined ? p.original_stock : p.stock} Stok`;
+
   // Pre-fill Harga Acuan with current active reference price
   const refPrice = p.reference_price_idr || p.calculated_price_idr;
   document.getElementById('edCustomPrice').value = refPrice;
@@ -310,6 +334,15 @@ async function saveProductOverride() {
     }
   }
 
+  const customStockVal = document.getElementById('edCustomStock') ? document.getElementById('edCustomStock').value.trim() : '';
+  let customStock = -1;
+  if (customStockVal !== '') {
+    const parsedStock = parseInt(customStockVal, 10);
+    if (!isNaN(parsedStock) && parsedStock >= 0) {
+      customStock = parsedStock;
+    }
+  }
+
   const btn = document.getElementById('btnSaveProduct');
   btn.disabled = true;
   btn.textContent = 'Menyimpan...';
@@ -318,6 +351,10 @@ async function saveProductOverride() {
     is_active: document.getElementById('edIsActive').checked,
     is_force_out_of_stock: document.getElementById('edIsForceOutOfStock') ? document.getElementById('edIsForceOutOfStock').checked : false,
     custom_name: (document.getElementById('edCustomName').value || '').trim(),
+    custom_type: document.getElementById('edCustomType') ? document.getElementById('edCustomType').value.trim() : '',
+    custom_region: document.getElementById('edCustomRegion') ? document.getElementById('edCustomRegion').value.trim() : '',
+    custom_warranty: document.getElementById('edCustomWarranty') ? document.getElementById('edCustomWarranty').value.trim() : '',
+    custom_stock: customStock,
     custom_price_idr: customPrice,
     promo_price_idr: promoPrice,
     custom_description: (document.getElementById('edCustomDesc').value || '').trim(),
@@ -816,6 +853,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginHistoryModal')?.classList.remove('open');
   });
 
+  // Security Page Handlers
+  if (document.getElementById('secLogsTableBody')) {
+    loadSecurityStats();
+    loadSecurityLogs();
+
+    document.getElementById('btnRefreshSecurity')?.addEventListener('click', () => {
+      loadSecurityStats();
+      loadSecurityLogs();
+      showToast('Log keamanan diperbarui 🔄');
+    });
+
+    document.querySelectorAll('[data-sec-filter]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-sec-filter]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentSecFilter = e.target.dataset.secFilter;
+        loadSecurityLogs();
+      });
+    });
+
+    let secSearchTimer = null;
+    document.getElementById('secSearchInput')?.addEventListener('input', () => {
+      clearTimeout(secSearchTimer);
+      secSearchTimer = setTimeout(loadSecurityLogs, 300);
+    });
+  }
+
   // Close modals on backdrop click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
@@ -1061,4 +1125,142 @@ async function openLoginHistoryModal() {
     }
   }
 }
+
+// -------------------------------------------------------------
+// 7. SECURITY AUDIT & THREAT MONITORING ENGINE
+// -------------------------------------------------------------
+let allSecurityLogs = [];
+let currentSecFilter = 'ALL';
+
+async function loadSecurityStats() {
+  try {
+    const res = await adminFetch('/api/admin/security/stats');
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      const s = json.data;
+      const elSuccess = document.getElementById('secStatSuccess');
+      if (elSuccess) elSuccess.textContent = s.total_success || 0;
+
+      const elFailed = document.getElementById('secStatFailed');
+      if (elFailed) elFailed.textContent = s.total_failed || 0;
+
+      const elLastFailedIP = document.getElementById('secStatLastFailedIP');
+      const elLastFailedMeta = document.getElementById('secStatLastFailedMeta');
+      if (elLastFailedIP) {
+        if (s.last_failed_ip) {
+          elLastFailedIP.textContent = s.last_failed_ip;
+          if (elLastFailedMeta) {
+            elLastFailedMeta.innerHTML = `User: <strong>'${escapeHtml(s.last_failed_user || 'admin')}'</strong> • ${formatLoginTime(s.last_failed_at)}`;
+          }
+        } else {
+          elLastFailedIP.textContent = 'Aman (0)';
+          if (elLastFailedMeta) elLastFailedMeta.textContent = 'Tidak ada upaya gagal terdeteksi';
+        }
+      }
+
+      const elCurIP = document.getElementById('secStatCurrentIP');
+      const elCurMeta = document.getElementById('secStatCurrentMeta');
+      if (elCurIP && s.current_session) {
+        elCurIP.textContent = s.current_session.ip_address || '127.0.0.1';
+        if (elCurMeta) {
+          elCurMeta.textContent = `${s.current_session.location || 'Indonesia'} • ${s.current_session.device_info || '-'}`;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load security stats:', err);
+  }
+}
+
+async function loadSecurityLogs() {
+  const tbody = document.getElementById('secLogsTableBody');
+  if (!tbody) return;
+
+  try {
+    const search = (document.getElementById('secSearchInput')?.value || '').trim();
+    let url = `/api/admin/security/logs?status=${encodeURIComponent(currentSecFilter)}&limit=200`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+
+    const res = await adminFetch(url);
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      allSecurityLogs = json.data.logs || [];
+      renderSecurityTable();
+      updateSecurityCounts(json.data.total);
+    }
+  } catch (err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">Gagal memuat log: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function updateSecurityCounts(total) {
+  const elAll = document.getElementById('countAllLogs');
+  if (elAll && currentSecFilter === 'ALL') elAll.textContent = total !== undefined ? total : allSecurityLogs.length;
+
+  const countSuccess = allSecurityLogs.filter(l => l.status === 'SUCCESS').length;
+  const countFailed = allSecurityLogs.filter(l => l.status === 'FAILED').length;
+
+  const elSucc = document.getElementById('countSuccessLogs');
+  if (elSucc && currentSecFilter === 'ALL') elSucc.textContent = countSuccess;
+
+  const elFail = document.getElementById('countFailedLogs');
+  if (elFail && currentSecFilter === 'ALL') elFail.textContent = countFailed;
+}
+
+function renderSecurityTable() {
+  const tbody = document.getElementById('secLogsTableBody');
+  if (!tbody) return;
+
+  if (allSecurityLogs.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+          Tidak ada riwayat login yang cocok dengan filter pencarian.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = allSecurityLogs.map(l => {
+    const isSuccess = l.status === 'SUCCESS';
+    const statusPill = isSuccess
+      ? `<span class="badge-sec-success">● BERHASIL</span>`
+      : `<span class="badge-sec-failed">✕ GAGAL</span>`;
+
+    const ipClass = isSuccess ? 'ip-success-badge' : 'ip-failed-badge';
+    const reasonText = l.failure_reason || (isSuccess ? 'Login berhasil' : 'Ditolak');
+
+    return `
+      <tr style="${isSuccess ? '' : 'background: rgba(239, 68, 68, 0.05);'}">
+        <td>
+          <div style="font-weight: 700; color: #fff; font-family: var(--font-mono); font-size: 0.82rem;">${formatLoginTime(l.login_at)}</div>
+        </td>
+        <td>
+          <span style="font-weight: 700; color: ${isSuccess ? '#a855f7' : '#f87171'}; font-family: var(--font-mono); font-size: 0.85rem;">${escapeHtml(l.username || 'admin')}</span>
+        </td>
+        <td>
+          ${statusPill}
+        </td>
+        <td>
+          <code class="${ipClass}" style="font-size: 0.85rem;">${escapeHtml(l.ip_address)}</code>
+        </td>
+        <td>
+          <div style="color: #93c5fd; font-size: 0.84rem; font-weight: 500;">${escapeHtml(l.location || 'Indonesia')}</div>
+        </td>
+        <td>
+          <div style="color: #cbd5e1; font-size: 0.78rem;">${escapeHtml(l.device_info || l.user_agent || '-')}</div>
+        </td>
+        <td>
+          <span style="font-size: 0.8rem; color: ${isSuccess ? '#34d399' : '#f87171'}; font-weight: 600;">
+            ${escapeHtml(reasonText)}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
 

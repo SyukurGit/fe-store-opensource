@@ -122,8 +122,8 @@ function renderProductDetail(p) {
 
   // Header
   document.getElementById('dProdLogo').src = p.logo || 'https://via.placeholder.com/76?text=DC';
-  document.getElementById('dProdTitle').textContent = p.name;
-  document.getElementById('dProdSlug').textContent = p.slug;
+  const slugEl = document.getElementById('dProdSlug');
+  if (slugEl) slugEl.textContent = p.slug;
 
   // Badges
   document.getElementById('dProdCategory').textContent = p.type || 'Digital License';

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Keamanan & Riwayat Login - Digimest Admin</title>
+  <link rel="icon" type="image/png" href="/logo/digimest_icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-container" style="max-width: 1400px;">
+      <a href="/admin" class="logo-wrap" title="Digimest Admin">
+        <img src="/logo/digimest.png" alt="Digimest" class="logo-navbar-img">
+        <span class="admin-brand-tag">ADMIN</span>
+      </a>
+      <div class="nav-actions">
+        <div id="adminLastLoginBadge" class="admin-last-login-badge" title="Informasi sesi login admin aktif saat ini">
+          <span class="last-login-dot">●</span>
+          <span class="last-login-label">Sesi:</span>
+          <strong id="topbarLastLoginTime" class="last-login-time">Sesi Aktif</strong>
+          <span class="last-login-sep">•</span>
+          <span id="topbarLastLoginLoc" class="last-login-loc">Memuat...</span>
+        </div>
+        <a href="/" target="_blank" class="btn-nav">Lihat Toko ↗</a>
+        <button id="btnRefreshStats" class="btn-nav">🔄 Refresh</button>
+        <button id="btnLogout" class="btn-nav" style="color: #f87171;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    
+    <!-- Admin Navigation Tabs -->
+    <nav class="admin-nav-tabs">
+      <a href="/admin" class="admin-nav-tab">📊 Ringkasan Dashboard</a>
+      <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk</a>
+      <a href="/admin/orders" class="admin-nav-tab">📜 Riwayat Pesanan</a>
+      <a href="/admin/security" class="admin-nav-tab active">🛡️ Log Keamanan & Login</a>
+      <a href="/admin/settings" class="admin-nav-tab">⚙️ Pengaturan Toko</a>
+    </nav>
+
+    <!-- Header Row -->
+    <div class="admin-header-row">
+      <div class="admin-title-wrap">
+        <h1>🛡️ Log Keamanan & Riwayat Login Admin</h1>
+        <p>Pantau siapa yang login, deteksi upaya peretasan / percobaan login gagal, dan periksa IP address mencurigakan secara real-time.</p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <button id="btnRefreshSecurity" class="btn-nav" style="padding: 0.5rem 1rem; font-weight: 600; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; cursor: pointer; border-radius: 8px;">
+          🔄 Refresh Log Realtime
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid: Keamanan & Percobaan Login -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">
+          <span>Login Berhasil</span>
+          <span>🟢</span>
+        </div>
+        <div class="stat-value highlight-green" id="secStatSuccess">0</div>
+        <div class="stat-meta">Total sesi login admin yang diautentikasi sah</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <span>Percobaan Gagal / Brute-Force</span>
+          <span>🔴</span>
+        </div>
+        <div class="stat-value" style="color: #f87171;" id="secStatFailed">0</div>
+        <div class="stat-meta">Upaya login ditolak karena password/user salah</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <span>IP Gagal Terakhir</span>
+          <span>⚠️</span>
+        </div>
+        <div class="stat-value" style="font-size: 1.25rem; color: #fbbf24; word-break: break-all;" id="secStatLastFailedIP">-</div>
+        <div class="stat-meta" id="secStatLastFailedMeta">Tidak ada upaya gagal tercatat</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <span>Sesi Aktif Anda</span>
+          <span>💻</span>
+        </div>
+        <div class="stat-value" style="font-size: 1.25rem; color: #93c5fd; word-break: break-all;" id="secStatCurrentIP">-</div>
+        <div class="stat-meta" id="secStatCurrentMeta">Memuat info sesi aktif...</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="orders-filter-bar" style="margin-bottom: 1.5rem;">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-sec-filter="ALL">Semua Log (<span id="countAllLogs">0</span>)</button>
+        <button class="filter-tab" data-sec-filter="SUCCESS" style="color: #34d399;">🟢 Hanya Berhasil (<span id="countSuccessLogs">0</span>)</button>
+        <button class="filter-tab" data-sec-filter="FAILED" style="color: #f87171;">🔴 Percobaan Gagal (<span id="countFailedLogs">0</span>)</button>
+      </div>
+      <div style="flex: 1; max-width: 400px;">
+        <input type="text" id="secSearchInput" class="form-input" placeholder="🔍 Cari IP address, username, atau lokasi..." style="font-size: 0.85rem; padding: 0.5rem 0.85rem;">
+      </div>
+    </div>
+
+    <!-- Security Logs Table -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="min-width: 170px;">Waktu (WIB)</th>
+              <th style="min-width: 140px;">Username</th>
+              <th style="min-width: 120px;">Status</th>
+              <th style="min-width: 150px;">IP Address</th>
+              <th style="min-width: 180px;">Estimasi Lokasi</th>
+              <th style="min-width: 200px;">Perangkat & Browser</th>
+              <th style="min-width: 220px;">Keterangan / Alasan</th>
+            </tr>
+          </thead>
+          <tbody id="secLogsTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                Memuat data riwayat keamanan & login...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast-notice"></div>
+
+  <script src="/js/api-config.js?v=3.2"></script>
+  <script src="/js/admin.js?v=3.2"></script>
+</body>
+</html>
