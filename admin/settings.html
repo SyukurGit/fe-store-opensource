@@ -138,6 +138,52 @@
       </div>
     </div>
 
+    <!-- Pemeliharaan & Pembersihan Database SQLite -->
+    <div class="section-card" style="max-width: 800px; border-color: rgba(239, 68, 68, 0.25);">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" style="color: #f87171;">🧹 Pemeliharaan & Pembersihan Database SQLite</h2>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+            Optimasi ukuran file database, hapus riwayat pesanan kadaluarsa, bersihkan serial key lama yang sudah lunas, dan lakukan SQLite VACUUM.
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <span class="badge" id="dbSizeBadge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-family: var(--font-mono); font-size: 0.78rem;">
+            💾 Ukuran: Memuat...
+          </span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Total Pesanan</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #fff;" id="dbStatsTotalOrders">-</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;"><span id="dbStatsExpiredOrders">-</span> Expired/Cancelled</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Pesanan Berlisensi</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #34d399;" id="dbStatsOrdersWithKeys">-</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;"><span id="dbStatsOldKeysCount">-</span> > 3 hari</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Log Login Admin</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #fbbf24;" id="dbStatsAdminLogs">-</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;"><span id="dbStatsFailedLogs">-</span> Gagal</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Katalog Cache & Voucher</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: #a78bfa;" id="dbStatsCachedProducts">-</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;"><span id="dbStatsVouchers">-</span> Voucher</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+        <button id="btnOpenDbMaintenance" class="btn-buy" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border: 1px solid #dc2626; padding: 0.45rem 1.25rem;">
+          🧹 Buka Menu Pembersihan Database...
+        </button>
+      </div>
+    </div>
+
   </main>
 
   <!-- Modal Hasil Cek DigitalCore -->
@@ -187,6 +233,157 @@
       <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
         <button class="btn-nav" id="closeLoginModalBtn2" style="background: var(--bg-surface); padding: 0.45rem 1.2rem; cursor: pointer; border-radius: 8px;">Tutup</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Pemeliharaan & Pembersihan Database SQLite -->
+  <div class="modal-overlay" id="dbMaintenanceModal">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #f87171;">🧹 Pembersihan & Pemadatan Database SQLite</h3>
+        <button class="modal-close" id="closeDbMaintenanceModalBtn">&times;</button>
+      </div>
+      
+      <div style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1.25rem;">
+        Pilih entitas data yang ingin dibersihkan secara selektif. Data yang telah dihapus <strong>tidak dapat dipulihkan kembali</strong>.
+      </div>
+
+      <!-- Live Summary Bar -->
+      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+        <span style="color: var(--text-muted);">Ukuran Disk Database Saat Ini:</span>
+        <span id="modalCurrentDbSize" style="font-family: var(--font-mono); font-weight: 700; color: #60a5fa;">Memuat...</span>
+      </div>
+
+      <!-- Selective Checkbox Form -->
+      <form id="dbMaintenanceForm" onsubmit="return false;">
+        <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem;">
+          
+          <!-- Option 1: Clean Orders -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="cleanOrdersCheck" style="margin-top: 3px; accent-color: #ef4444; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">1. Bersihkan Riwayat Transaksi Pesanan</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Hapus baris pesanan dari database sesuai cakupan yang dipilih.</div>
+                <div id="cleanOrdersOptions" style="margin-top: 8px; display: none; gap: 8px; flex-wrap: wrap;">
+                  <select id="cleanOrdersScope" class="form-input" style="padding: 4px 8px; font-size: 0.78rem; width: auto;">
+                    <option value="expired">Hanya Pesanan EXPIRED & CANCELLED</option>
+                    <option value="older_than">Pesanan Kadaluarsa/Batal Lebih dari X Hari</option>
+                    <option value="all">⚠️ Hapus SELURUH Transaksi Pesanan</option>
+                  </select>
+                  <select id="cleanOrdersDays" class="form-input" style="padding: 4px 8px; font-size: 0.78rem; width: auto; display: none;">
+                    <option value="3">> 3 Hari yang lalu</option>
+                    <option value="7">> 7 Hari yang lalu</option>
+                    <option value="30">> 30 Hari yang lalu</option>
+                  </select>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Option 2: Clean Delivered Keys (preserving invoices) -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="cleanKeysCheck" style="margin-top: 3px; accent-color: #ef4444; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">2. Kosongkan Serial Key / Akun yang Sudah Terkirim (Lunas)</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                  Mengosongkan teks lisensi akun lama (reset ke <code>[]</code>) agar tidak menumpuk di DB, namun <strong>riwayat invoice & omzet tetap aman tersimpan</strong>.
+                </div>
+                <div id="cleanKeysOptions" style="margin-top: 8px; display: none;">
+                  <span style="font-size: 0.78rem; color: #94a3b8;">Hapus lisensi pesanan lunas yang berumur lebih dari:</span>
+                  <select id="cleanKeysDays" class="form-input" style="padding: 4px 8px; font-size: 0.78rem; width: auto; margin-left: 6px;">
+                    <option value="3">3 Hari</option>
+                    <option value="7">7 Hari</option>
+                    <option value="30">30 Hari</option>
+                  </select>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Option 3: Clean Login Logs -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="cleanLogsCheck" style="margin-top: 3px; accent-color: #ef4444; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">3. Bersihkan Riwayat Log Keamanan & Login Admin</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Hapus riwayat pencatatan IP, lokasi, dan aktivitas login admin.</div>
+                <div id="cleanLogsOptions" style="margin-top: 8px; display: none;">
+                  <select id="cleanLogsScope" class="form-input" style="padding: 4px 8px; font-size: 0.78rem; width: auto;">
+                    <option value="older_than_7">Log lebih dari 7 hari yang lalu</option>
+                    <option value="older_than_30">Log lebih dari 30 hari yang lalu</option>
+                    <option value="failed_only">Hanya Log Percobaan GAGAL</option>
+                    <option value="all">⚠️ Hapus SELURUH Riwayat Log</option>
+                  </select>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Option 4: Clean Vouchers -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="cleanVouchersCheck" style="margin-top: 3px; accent-color: #ef4444; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">4. Bersihkan Data Kupon Promo / Voucher</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Hapus voucher yang telah habis kuota atau kadaluarsa.</div>
+                <div id="cleanVouchersOptions" style="margin-top: 8px; display: none;">
+                  <select id="cleanVouchersScope" class="form-input" style="padding: 4px 8px; font-size: 0.78rem; width: auto;">
+                    <option value="expired_or_used">Hanya Voucher Habis Kuota / Nonaktif</option>
+                    <option value="all">⚠️ Hapus SELURUH Voucher</option>
+                  </select>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Option 5: Clean Product Cache -->
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="cleanCachedProductsCheck" style="margin-top: 3px; accent-color: #ef4444; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #fff;">5. Kosongkan Tabel Cache Produk (cached_products)</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                  Aman dikosongkan. Sistem akan mengambil data produk segar dari upstream secara otomatis pada request berikutnya.
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Option 6: SQLite Vacuum -->
+          <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="vacuumDbCheck" checked style="margin-top: 3px; accent-color: #10b981; width: 16px; height: 16px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #34d399;">6. Jalankan SQLite VACUUM (Sangat Disarankan)</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                  Mengompresi dan merebut kembali (defragment) ruang disk kosong pada file <code>storeku.db</code> sehingga ukuran file fisik mengecil secara instan.
+                </div>
+              </div>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- Security Password Confirmation -->
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 1.25rem;">
+          <label class="form-label" for="cleanAdminPassword" style="color: #fca5a5; font-size: 0.8rem; margin-bottom: 6px; display: block;">
+            🔒 Konfirmasi Password Admin (Wajib diisi untuk eksekusi):
+          </label>
+          <input type="password" id="cleanAdminPassword" class="form-input" placeholder="Masukkan password admin Anda" autocomplete="current-password" style="background: rgba(0,0,0,0.5); border-color: rgba(239, 68, 68, 0.3);">
+          <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 4px;">
+            Tindakan ini memerlukan verifikasi otentikasi ganda guna mencegah eksekusi yang tidak disengaja.
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-nav" id="closeDbMaintenanceModalBtn2" style="background: var(--bg-surface); padding: 0.5rem 1.25rem; border-radius: 8px; cursor: pointer;">Batal</button>
+          <button type="button" id="btnSubmitDbClean" class="btn-buy" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border: 1px solid #dc2626; padding: 0.5rem 1.4rem;">
+            ⚠️ Mulai Eksekusi Pembersihan
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

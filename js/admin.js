@@ -774,6 +774,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadOrders();
   loadSettings();
   loadLastLoginInfo();
+  loadDatabaseStats();
+  setupDbMaintenanceUI();
 
   // Refresh Button
   document.getElementById('btnRefreshStats')?.addEventListener('click', () => {
@@ -782,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadOrders();
     loadSettings();
     loadLastLoginInfo();
+    loadDatabaseStats();
     showToast('Data diperbarui 🔄');
   });
 
@@ -887,6 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('orderDetailModal')?.classList.remove('open');
       document.getElementById('dcCheckModal')?.classList.remove('open');
       document.getElementById('loginHistoryModal')?.classList.remove('open');
+      document.getElementById('dbMaintenanceModal')?.classList.remove('open');
     }
   });
 });
@@ -1546,6 +1550,213 @@ async function deleteVoucher(id, code) {
     }
   } catch (err) {
     alert('Gagal menghubungi server admin.');
+  }
+}
+
+// -------------------------------------------------------------
+// 9. SQLITE MAINTENANCE & CLEAN ENGINE
+// -------------------------------------------------------------
+async function loadDatabaseStats() {
+  const badge = document.getElementById('dbSizeBadge');
+  if (!badge) return;
+
+  try {
+    const res = await adminFetch('/api/admin/maintenance/stats');
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      const d = json.data;
+      badge.textContent = `💾 Ukuran: ${d.file_size_human}`;
+
+      const elTotalOrders = document.getElementById('dbStatsTotalOrders');
+      if (elTotalOrders) elTotalOrders.textContent = d.total_orders;
+
+      const elExpiredOrders = document.getElementById('dbStatsExpiredOrders');
+      if (elExpiredOrders) elExpiredOrders.textContent = d.expired_orders;
+
+      const elOrdersWithKeys = document.getElementById('dbStatsOrdersWithKeys');
+      if (elOrdersWithKeys) elOrdersWithKeys.textContent = d.orders_with_delivered_items;
+
+      const elOldKeysCount = document.getElementById('dbStatsOldKeysCount');
+      if (elOldKeysCount) elOldKeysCount.textContent = `${d.delivered_keys_older_3d} item`;
+
+      const elAdminLogs = document.getElementById('dbStatsAdminLogs');
+      if (elAdminLogs) elAdminLogs.textContent = d.total_admin_logs;
+
+      const elFailedLogs = document.getElementById('dbStatsFailedLogs');
+      if (elFailedLogs) elFailedLogs.textContent = d.failed_admin_logs;
+
+      const elCachedProducts = document.getElementById('dbStatsCachedProducts');
+      if (elCachedProducts) elCachedProducts.textContent = `${d.cached_products_count} cache`;
+
+      const elVouchers = document.getElementById('dbStatsVouchers');
+      if (elVouchers) elVouchers.textContent = d.total_vouchers;
+
+      const elModalSize = document.getElementById('modalCurrentDbSize');
+      if (elModalSize) elModalSize.textContent = `${d.file_size_human} (${Number(d.file_size_bytes || 0).toLocaleString('id-ID')} bytes)`;
+    }
+  } catch (err) {
+    console.error('Failed to load database stats:', err);
+  }
+}
+
+function openDbMaintenanceModal() {
+  const modal = document.getElementById('dbMaintenanceModal');
+  if (!modal) return;
+  loadDatabaseStats();
+  const pwdInput = document.getElementById('cleanAdminPassword');
+  if (pwdInput) pwdInput.value = '';
+  modal.classList.add('open');
+}
+
+function closeDbMaintenanceModal() {
+  const modal = document.getElementById('dbMaintenanceModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function setupDbMaintenanceUI() {
+  // Checkbox sub-option display toggles
+  const ordersCheck = document.getElementById('cleanOrdersCheck');
+  const ordersOptions = document.getElementById('cleanOrdersOptions');
+  const ordersScope = document.getElementById('cleanOrdersScope');
+  const ordersDays = document.getElementById('cleanOrdersDays');
+
+  if (ordersCheck && ordersOptions) {
+    ordersCheck.addEventListener('change', () => {
+      ordersOptions.style.display = ordersCheck.checked ? 'flex' : 'none';
+    });
+  }
+
+  if (ordersScope && ordersDays) {
+    ordersScope.addEventListener('change', () => {
+      ordersDays.style.display = ordersScope.value === 'older_than' ? 'inline-block' : 'none';
+    });
+  }
+
+  const keysCheck = document.getElementById('cleanKeysCheck');
+  const keysOptions = document.getElementById('cleanKeysOptions');
+  if (keysCheck && keysOptions) {
+    keysCheck.addEventListener('change', () => {
+      keysOptions.style.display = keysCheck.checked ? 'block' : 'none';
+    });
+  }
+
+  const logsCheck = document.getElementById('cleanLogsCheck');
+  const logsOptions = document.getElementById('cleanLogsOptions');
+  if (logsCheck && logsOptions) {
+    logsCheck.addEventListener('change', () => {
+      logsOptions.style.display = logsCheck.checked ? 'block' : 'none';
+    });
+  }
+
+  const vouchersCheck = document.getElementById('cleanVouchersCheck');
+  const vouchersOptions = document.getElementById('cleanVouchersOptions');
+  if (vouchersCheck && vouchersOptions) {
+    vouchersCheck.addEventListener('change', () => {
+      vouchersOptions.style.display = vouchersCheck.checked ? 'block' : 'none';
+    });
+  }
+
+  // Open & Close triggers
+  document.getElementById('btnOpenDbMaintenance')?.addEventListener('click', openDbMaintenanceModal);
+  document.getElementById('closeDbMaintenanceModalBtn')?.addEventListener('click', closeDbMaintenanceModal);
+  document.getElementById('closeDbMaintenanceModalBtn2')?.addEventListener('click', closeDbMaintenanceModal);
+
+  // Submit trigger
+  document.getElementById('btnSubmitDbClean')?.addEventListener('click', submitDatabaseClean);
+}
+
+async function submitDatabaseClean() {
+  const cleanOrders = document.getElementById('cleanOrdersCheck')?.checked || false;
+  const cleanKeys = document.getElementById('cleanKeysCheck')?.checked || false;
+  const cleanLogs = document.getElementById('cleanLogsCheck')?.checked || false;
+  const cleanVouchers = document.getElementById('cleanVouchersCheck')?.checked || false;
+  const cleanCached = document.getElementById('cleanCachedProductsCheck')?.checked || false;
+  const vacuum = document.getElementById('vacuumDbCheck')?.checked || false;
+  const password = (document.getElementById('cleanAdminPassword')?.value || '').trim();
+
+  if (!cleanOrders && !cleanKeys && !cleanLogs && !cleanVouchers && !cleanCached && !vacuum) {
+    alert('Silakan pilih setidaknya satu opsi pembersihan data atau optimasi SQLite VACUUM!');
+    return;
+  }
+
+  if (!password) {
+    alert('Password admin wajib diisi sebagai otorisasi keamanan tindakan pembersihan database!');
+    document.getElementById('cleanAdminPassword')?.focus();
+    return;
+  }
+
+  const ordersScope = document.getElementById('cleanOrdersScope')?.value || 'expired';
+  const ordersDays = parseInt(document.getElementById('cleanOrdersDays')?.value || '3', 10);
+  const keysDays = parseInt(document.getElementById('cleanKeysDays')?.value || '3', 10);
+  const logsScope = document.getElementById('cleanLogsScope')?.value || 'older_than_7';
+  const vouchersScope = document.getElementById('cleanVouchersScope')?.value || 'expired_or_used';
+
+  let confirmMsg = 'Konfirmasi eksekusi pemeliharaan database SQLite?\n\nTindakan ini akan memproses opsi terpilih secara permanen.';
+  if (cleanOrders && ordersScope === 'all') {
+    confirmMsg = '⚠️ PERINGATAN KRITIS: Anda memilih opsi menghapus SELURUH riwayat pesanan toko!\n\nTindakan ini bersifat PERMANEN dan TIDAK DAPAT DIBATALKAN.\nApakah Anda benar-benar yakin ingin melanjutkan?';
+  }
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitDbClean');
+  btn.disabled = true;
+  btn.textContent = '⏳ Menjalankan Pembersihan & VACUUM...';
+
+  const payload = {
+    clean_orders: cleanOrders,
+    orders_scope: ordersScope,
+    orders_older_than_days: ordersDays,
+    clean_delivered_keys: cleanKeys,
+    delivered_keys_older_than_days: keysDays,
+    clean_login_logs: cleanLogs,
+    login_logs_scope: logsScope,
+    clean_vouchers: cleanVouchers,
+    vouchers_scope: vouchersScope,
+    clean_cached_products: cleanCached,
+    vacuum: vacuum,
+    admin_password: password
+  };
+
+  try {
+    const res = await adminFetch('/api/admin/maintenance/clean', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res) return;
+    const json = await res.json();
+
+    if (json.success && json.data) {
+      const d = json.data;
+      const summaryMsg = `✅ Pembersihan Database Berhasil Dilakukan!\n\n` +
+        `• Ukuran Awal: ${d.size_before}\n` +
+        `• Ukuran Akhir: ${d.size_after}\n` +
+        `• Ruang Dihemat: ${d.space_freed}\n` +
+        `• Pesanan Dihapus: ${d.orders_deleted}\n` +
+        `• Serial Key Dikosongkan: ${d.delivered_keys_cleared}\n` +
+        `• Log Login Dihapus: ${d.admin_logs_deleted}\n` +
+        `• Voucher Dihapus: ${d.vouchers_deleted}\n` +
+        `• Cache Dikosongkan: ${d.cached_products_deleted}\n` +
+        `• SQLite VACUUM: ${d.vacuumed ? 'Selesai' : 'Dilewati'}`;
+
+      alert(summaryMsg);
+      showToast('Database SQLite berhasil dibersihkan! 🧹');
+      closeDbMaintenanceModal();
+      await loadDatabaseStats();
+      if (typeof loadStats === 'function') await loadStats();
+      if (typeof loadOrders === 'function') await loadOrders();
+    } else {
+      alert('Gagal membersihkan database: ' + (json.error || 'Terjadi kesalahan sistem'));
+    }
+  } catch (err) {
+    alert('Gagal menghubungi server admin: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚠️ Mulai Eksekusi Pembersihan';
   }
 }
 
