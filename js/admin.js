@@ -1263,4 +1263,290 @@ function renderSecurityTable() {
   }).join('');
 }
 
+// ==========================================
+// VOUCHER MANAGEMENT LOGIC
+// ==========================================
+let allAdminVouchers = [];
+
+async function loadAdminVouchers() {
+  const tbody = document.getElementById('vouchersTableBody');
+  if (!tbody) return;
+
+  try {
+    const res = await adminFetch('/api/admin/vouchers');
+    if (!res) return;
+    const json = await res.json();
+    if (json.success && json.data) {
+      allAdminVouchers = json.data;
+      updateVoucherStats();
+      renderAdminVouchersTable(allAdminVouchers);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #f87171; padding: 2rem;">Gagal memuat voucher: ${escapeHtml(json.error || 'Server error')}</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #f87171; padding: 2rem;">Gagal menghubungi server admin.</td></tr>`;
+  }
+}
+
+function updateVoucherStats() {
+  const totalEl = document.getElementById('statTotalVouchers');
+  const activeEl = document.getElementById('statActiveVouchers');
+  const usedEl = document.getElementById('statUsedVouchers');
+
+  if (totalEl) totalEl.textContent = allAdminVouchers.length;
+
+  const now = new Date();
+  const activeCount = allAdminVouchers.filter(v => {
+    if (!v.is_active) return false;
+    if (v.used_count >= v.max_usage) return false;
+    if (v.expires_at && new Date(v.expires_at) < now) return false;
+    return true;
+  }).length;
+  if (activeEl) activeEl.textContent = activeCount;
+
+  const totalUsed = allAdminVouchers.reduce((sum, v) => sum + (v.used_count || 0), 0);
+  if (usedEl) usedEl.textContent = totalUsed;
+}
+
+function renderAdminVouchersTable(vouchers) {
+  const tbody = document.getElementById('vouchersTableBody');
+  if (!tbody) return;
+
+  if (!vouchers || vouchers.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+          Belum ada voucher yang dibuat. Silakan terbitkan voucher promo baru melalui formulir di atas.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const now = new Date();
+
+  tbody.innerHTML = vouchers.map(v => {
+    const isExpired = v.expires_at && new Date(v.expires_at) < now;
+    const isQuotaFull = v.used_count >= v.max_usage;
+
+    let statusPill = '<span class="status-pill paid">● Aktif</span>';
+    if (!v.is_active) {
+      statusPill = '<span class="status-pill failed">● Nonaktif</span>';
+    } else if (isQuotaFull) {
+      statusPill = '<span class="status-pill warning" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">● Kuota Habis</span>';
+    } else if (isExpired) {
+      statusPill = '<span class="status-pill warning" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35);">● Kedaluwarsa</span>';
+    }
+
+    const usagePercent = Math.min(100, Math.round((v.used_count / v.max_usage) * 100));
+    const hmacBadge = v.signature_valid
+      ? '<span class="status-pill paid" style="font-size: 0.72rem; padding: 2px 8px;" title="Tanda tangan kriptografis HMAC terverifikasi sah">🔒 HMAC Sah</span>'
+      : '<span class="status-pill failed" style="font-size: 0.72rem; padding: 2px 8px;" title="Peringatan: Tanda tangan HMAC tidak cocok!">⚠️ Tidak Sah</span>';
+
+    const minSpendText = v.min_spend_idr > 0 ? formatIDR(v.min_spend_idr) : '<span style="color: var(--text-muted); font-size: 0.8rem;">Tanpa Minimum</span>';
+    const expiresText = v.expires_at ? formatLoginTime(v.expires_at) : '<span style="color: var(--text-muted); font-size: 0.8rem;">Selamanya</span>';
+
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <code style="font-weight: 800; font-family: var(--font-mono); font-size: 0.92rem; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);">
+              ${escapeHtml(v.code)}
+            </code>
+            <button class="btn-action-mini" onclick="copyVoucherCode('${escapeHtml(v.code)}')" title="Salin Kode Voucher" style="padding: 2px 6px; font-size: 0.75rem;">
+              📋 Salin
+            </button>
+          </div>
+          ${v.note ? `<div style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px;">📝 ${escapeHtml(v.note)}</div>` : ''}
+        </td>
+        <td>
+          <div style="font-family: var(--font-mono); font-weight: 800; color: #10b981; font-size: 0.95rem;">
+            -${formatIDR(v.discount_idr)}
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 3px;">
+            ${v.used_count} / ${v.max_usage} kali
+          </div>
+          <div style="width: 100px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+            <div style="width: ${usagePercent}%; height: 100%; background: ${usagePercent >= 100 ? '#ef4444' : '#60a5fa'}; border-radius: 3px;"></div>
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.85rem;">${minSpendText}</div>
+        </td>
+        <td>
+          <div style="font-size: 0.82rem; color: ${isExpired ? '#f87171' : '#cbd5e1'};">${expiresText}</div>
+        </td>
+        <td>
+          ${hmacBadge}
+        </td>
+        <td>
+          ${statusPill}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button class="btn-action-mini" onclick="toggleVoucherStatus(${v.id})" style="font-size: 0.75rem; color: ${v.is_active ? '#fbbf24' : '#10b981'};" title="${v.is_active ? 'Nonaktifkan voucher' : 'Aktifkan voucher'}">
+              ${v.is_active ? '⏸ Matikan' : '▶ Aktifkan'}
+            </button>
+            <button class="btn-action-mini" onclick="deleteVoucher(${v.id}, '${escapeHtml(v.code)}')" style="font-size: 0.75rem; color: #f87171;" title="Hapus voucher">
+              🗑️ Hapus
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterVouchersTable() {
+  const query = (document.getElementById('searchVoucherInput')?.value || '').trim().toLowerCase();
+  if (!query) {
+    renderAdminVouchersTable(allAdminVouchers);
+    return;
+  }
+  const filtered = allAdminVouchers.filter(v => {
+    return v.code.toLowerCase().includes(query) || (v.note && v.note.toLowerCase().includes(query));
+  });
+  renderAdminVouchersTable(filtered);
+}
+
+function generateRandomVoucherCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let rand = '';
+  for (let i = 0; i < 6; i++) {
+    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const code = `DM-${rand}`;
+  const input = document.getElementById('vCode');
+  if (input) {
+    input.value = code;
+    input.focus();
+  }
+  showToast(`Kode unik di-generate: ${code} 🎲`);
+}
+
+function copyVoucherCode(code) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast(`Kode ${code} disalin ke clipboard! 📋`);
+    }).catch(() => {
+      fallbackCopy(code);
+    });
+  } else {
+    fallbackCopy(code);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  showToast(`Kode ${text} disalin! 📋`);
+}
+
+async function submitCreateVoucher() {
+  const btn = document.getElementById('btnSubmitVoucher');
+  const code = (document.getElementById('vCode')?.value || '').trim().toUpperCase();
+  const discount = parseInt(document.getElementById('vDiscount')?.value, 10) || 0;
+  const maxUsage = parseInt(document.getElementById('vMaxUsage')?.value, 10) || 1;
+  const minSpend = parseInt(document.getElementById('vMinSpend')?.value, 10) || 0;
+  const expiresAt = (document.getElementById('vExpiresAt')?.value || '').trim();
+  const note = (document.getElementById('vNote')?.value || '').trim();
+  const password = (document.getElementById('vAdminPassword')?.value || '').trim();
+
+  if (!code) {
+    alert('Kode voucher wajib diisi!');
+    document.getElementById('vCode')?.focus();
+    return;
+  }
+  if (discount < 500) {
+    alert('Potongan diskon minimal Rp 500!');
+    document.getElementById('vDiscount')?.focus();
+    return;
+  }
+  if (!password) {
+    alert('Password admin wajib diisi sebagai otorisasi keamanan penerbitan voucher!');
+    document.getElementById('vAdminPassword')?.focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Menandatangani & Menyimpan...';
+
+  try {
+    const res = await adminFetch('/api/admin/vouchers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: code,
+        discount_idr: discount,
+        max_usage: maxUsage,
+        min_spend_idr: minSpend,
+        expires_at: expiresAt,
+        note: note,
+        admin_password: password
+      })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Voucher berhasil diterbitkan! ✨');
+      document.getElementById('createVoucherForm')?.reset();
+      await loadAdminVouchers();
+    } else {
+      alert('Gagal menerbitkan voucher: ' + (json.error || 'Terjadi kesalahan'));
+    }
+  } catch (err) {
+    alert('Gagal menghubungi server admin.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '+ Terbitkan & Tanda Tangani Voucher';
+  }
+}
+
+async function toggleVoucherStatus(id) {
+  try {
+    const res = await adminFetch(`/api/admin/vouchers/${id}/toggle`, {
+      method: 'POST'
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Status voucher diperbarui! ✨');
+      await loadAdminVouchers();
+    } else {
+      alert('Gagal mengubah status: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Gagal menghubungi server admin.');
+  }
+}
+
+async function deleteVoucher(id, code) {
+  if (!confirm(`Yakin ingin menghapus permanen voucher "${code}"?\nVoucher yang sudah dihapus tidak dapat dipulihkan.`)) {
+    return;
+  }
+
+  try {
+    const res = await adminFetch(`/api/admin/vouchers/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Voucher berhasil dihapus! 🗑️');
+      await loadAdminVouchers();
+    } else {
+      alert('Gagal menghapus: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Gagal menghubungi server admin.');
+  }
+}
+
 

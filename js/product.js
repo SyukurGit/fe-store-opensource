@@ -1,6 +1,7 @@
 // Digimest Product Detail JavaScript
 let currentProduct = null;
 let currentQty = 1;
+let appliedVoucher = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initProductPage();
@@ -122,6 +123,8 @@ function renderProductDetail(p) {
 
   // Header
   document.getElementById('dProdLogo').src = p.logo || 'https://via.placeholder.com/76?text=DC';
+  const titleEl = document.getElementById('dProdTitle');
+  if (titleEl) titleEl.textContent = p.name;
   const slugEl = document.getElementById('dProdSlug');
   if (slugEl) slugEl.textContent = p.slug;
 
@@ -217,10 +220,27 @@ function updateCalculations() {
   const stickyPrice = document.getElementById('mStickyPrice');
   if (stickyPrice) stickyPrice.textContent = formatIDR(unitPrice);
 
+  // Voucher discount calculation
+  let finalTotal = subtotal;
+  if (appliedVoucher && appliedVoucher.discountIDR > 0) {
+    const effectiveDiscount = Math.min(appliedVoucher.discountIDR, Math.max(0, subtotal - 1000));
+    finalTotal = Math.max(1000, subtotal - effectiveDiscount);
+
+    const vRow = document.getElementById('mVoucherRow');
+    if (vRow) vRow.style.display = 'flex';
+    const vTag = document.getElementById('mVoucherCodeTag');
+    if (vTag) vTag.textContent = appliedVoucher.code;
+    const vAmount = document.getElementById('mVoucherDiscountAmount');
+    if (vAmount) vAmount.textContent = `-${formatIDR(effectiveDiscount)}`;
+  } else {
+    const vRow = document.getElementById('mVoucherRow');
+    if (vRow) vRow.style.display = 'none';
+  }
+
   // Modal checkout updates
   document.getElementById('mUnitPrice').textContent = formatIDR(unitPrice);
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
-  document.getElementById('mTotalPrice').textContent = formatIDR(subtotal);
+  document.getElementById('mTotalPrice').textContent = formatIDR(finalTotal);
 }
 
 function setupEventListeners() {
@@ -253,6 +273,16 @@ function setupEventListeners() {
     updateCalculations();
   });
 
+  // Voucher handlers
+  document.getElementById('btnApplyVoucher')?.addEventListener('click', handleApplyVoucher);
+  document.getElementById('btnCancelVoucher')?.addEventListener('click', handleCancelVoucher);
+  document.getElementById('voucherInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleApplyVoucher();
+    }
+  });
+
   // Modal Checkout Trigger
   document.getElementById('btnOpenCheckoutFromDetail')?.addEventListener('click', openCheckoutModal);
   document.getElementById('btnStickyBuy')?.addEventListener('click', openCheckoutModal);
@@ -272,6 +302,108 @@ function setupEventListeners() {
       closeHistoryModal();
     }
   });
+}
+
+async function handleApplyVoucher() {
+  if (!currentProduct) return;
+  const input = document.getElementById('voucherInput');
+  const code = (input?.value || '').trim().toUpperCase();
+  const feedback = document.getElementById('voucherFeedback');
+  const btnApply = document.getElementById('btnApplyVoucher');
+
+  if (!code) {
+    if (feedback) {
+      feedback.textContent = 'Silakan ketik kode voucher terlebih dahulu.';
+      feedback.style.color = '#f87171';
+      feedback.style.display = 'block';
+    }
+    input?.focus();
+    return;
+  }
+
+  btnApply.disabled = true;
+  btnApply.textContent = 'Memeriksa...';
+  if (feedback) feedback.style.display = 'none';
+
+  try {
+    const validateUrl = window.digimestApi ? window.digimestApi('/api/vouchers/validate') : '/api/vouchers/validate';
+    const res = await fetch(validateUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: code,
+        product_slug: currentProduct.slug,
+        quantity: currentQty
+      })
+    });
+
+    const json = await res.json();
+    if (json.success && json.data && json.data.valid) {
+      appliedVoucher = {
+        code: json.data.code,
+        discountIDR: json.data.discount_idr
+      };
+
+      if (feedback) {
+        feedback.textContent = `✓ ${json.data.message || 'Voucher berhasil diterapkan!'}`;
+        feedback.style.color = '#10b981';
+        feedback.style.display = 'block';
+      }
+
+      input.disabled = true;
+      btnApply.style.display = 'none';
+      const btnCancel = document.getElementById('btnCancelVoucher');
+      if (btnCancel) btnCancel.style.display = 'inline-block';
+      const statusTag = document.getElementById('voucherStatusTag');
+      if (statusTag) {
+        statusTag.textContent = `Aktif (${json.data.code})`;
+        statusTag.style.display = 'inline';
+      }
+
+      updateCalculations();
+      showToast(`Voucher ${json.data.code} berhasil diterapkan! ✨`);
+    } else {
+      appliedVoucher = null;
+      if (feedback) {
+        feedback.textContent = `✕ ${json.error || 'Kode voucher tidak valid atau kuota telah habis'}`;
+        feedback.style.color = '#f87171';
+        feedback.style.display = 'block';
+      }
+      updateCalculations();
+    }
+  } catch (err) {
+    if (feedback) {
+      feedback.textContent = 'Gagal menghubungi server validasi voucher.';
+      feedback.style.color = '#f87171';
+      feedback.style.display = 'block';
+    }
+  } finally {
+    btnApply.disabled = false;
+    btnApply.textContent = 'Terapkan';
+  }
+}
+
+function handleCancelVoucher() {
+  appliedVoucher = null;
+  const input = document.getElementById('voucherInput');
+  if (input) {
+    input.disabled = false;
+    input.value = '';
+    input.focus();
+  }
+  const btnApply = document.getElementById('btnApplyVoucher');
+  if (btnApply) {
+    btnApply.disabled = false;
+    btnApply.style.display = 'inline-block';
+  }
+  const btnCancel = document.getElementById('btnCancelVoucher');
+  if (btnCancel) btnCancel.style.display = 'none';
+  const feedback = document.getElementById('voucherFeedback');
+  if (feedback) feedback.style.display = 'none';
+  const statusTag = document.getElementById('voucherStatusTag');
+  if (statusTag) statusTag.style.display = 'none';
+
+  updateCalculations();
 }
 
 function openCheckoutModal() {
@@ -328,7 +460,8 @@ async function submitCheckout() {
         product_slug: currentProduct.slug,
         quantity: currentQty,
         customer_email: email,
-        customer_contact: contact
+        customer_contact: contact,
+        voucher_code: appliedVoucher ? appliedVoucher.code : ''
       })
     });
 

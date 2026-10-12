@@ -219,6 +219,20 @@
         <input type="text" id="contactInput" class="form-input" placeholder="08xxxxxxxxxx atau @username">
       </div>
 
+      <!-- Voucher Promo Code Box -->
+      <div class="voucher-input-card" style="margin-bottom: 1.1rem; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-subtle); border-radius: 12px; padding: 12px;">
+        <label class="form-label" for="voucherInput" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span>🎟️ Punya Kode Voucher?</span>
+          <span id="voucherStatusTag" style="font-size: 0.72rem; color: #10b981; font-weight: 600; display: none;"></span>
+        </label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="voucherInput" class="form-input" placeholder="Ketik kode (misal: HEMAT10K)" style="text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.05em;" autocomplete="off">
+          <button type="button" id="btnApplyVoucher" class="btn-nav" style="white-space: nowrap; padding: 0 14px; font-weight: 600; border-color: rgba(99, 102, 241, 0.4); color: #818cf8; cursor: pointer;">Terapkan</button>
+          <button type="button" id="btnCancelVoucher" class="btn-nav" style="display: none; padding: 0 12px; color: #f87171; border-color: rgba(239, 68, 68, 0.3); cursor: pointer;" title="Hapus voucher">✕</button>
+        </div>
+        <div id="voucherFeedback" style="font-size: 0.75rem; margin-top: 6px; display: none;"></div>
+      </div>
+
       <div class="order-summary-box">
         <div class="summary-row">
           <span>Harga Satuan</span>
@@ -227,6 +241,10 @@
         <div class="summary-row">
           <span>Jumlah</span>
           <span id="mQtyDisplay">x 1</span>
+        </div>
+        <div class="summary-row" id="mVoucherRow" style="display: none; color: #10b981; font-weight: 600;">
+          <span>Potongan Voucher (<span id="mVoucherCodeTag"></span>)</span>
+          <span id="mVoucherDiscountAmount">-Rp 0</span>
         </div>
         <div class="summary-row">
           <span>Metode Pembayaran</span>
@@ -308,8 +326,8 @@
 
   <div id="toast" class="toast-notice"></div>
 
-  <script src="/js/api-config.js?v=3.3"></script>
-  <script src="/js/order-history.js?v=3.3"></script>
-  <script src="/js/product.js?v=3.3"></script>
+  <script src="/js/api-config.js?v=3.5"></script>
+  <script src="/js/order-history.js?v=3.5"></script>
+  <script src="/js/product.js?v=3.5"></script>
 </body>
 </html>
