@@ -499,10 +499,14 @@ function renderOrdersTable() {
     } else if (o.fulfillment_status === 'REFUNDED') {
       fulfillLabel = '💸 Refunded';
       customFulfillStyle = 'background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3);';
+    } else if (o.fulfillment_status === 'PENDING_MANUAL_DELIVERY') {
+      fulfillLabel = '⚠️ Butuh Kirim Key';
+      customFulfillStyle = 'background: rgba(234,179,8,0.2); color: #facc15; border: 1px solid rgba(234,179,8,0.5); font-weight: 700;';
     }
 
     const isFulfillFailed = o.payment_status === 'PAID' && o.fulfillment_status === 'FAILED';
     const isHold = o.fulfillment_status === 'HOLD_PRICE_SPIKE' || o.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
+    const isManualDeliver = o.fulfillment_status === 'PENDING_MANUAL_DELIVERY';
     const isPending = o.payment_status === 'PENDING';
 
     if (isDashboard) {
@@ -531,6 +535,7 @@ function renderOrdersTable() {
           <td>
             <div style="display: flex; gap: 4px; flex-wrap: wrap;">
               <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
+              ${isManualDeliver ? `<button class="btn-action-mini" style="background: rgba(234,179,8,0.25); color: #facc15; border: 1px solid rgba(234,179,8,0.6);" onclick="openManualDeliverModal('${escapeHtml(o.invoice_number)}')">🔑 Kirim Key</button>` : ''}
               ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry</button>` : ''}
               ${isHold ? `
                 <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli</button>
@@ -575,6 +580,7 @@ function renderOrdersTable() {
         <td style="text-align: right;">
           <div style="display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;">
             <button class="btn-action-mini" onclick="viewOrderDetail('${escapeHtml(o.invoice_number)}')">Detail</button>
+            ${isManualDeliver ? `<button class="btn-action-mini" style="background: rgba(234,179,8,0.25); color: #facc15; border: 1px solid rgba(234,179,8,0.6);" onclick="openManualDeliverModal('${escapeHtml(o.invoice_number)}')">🔑 Kirim Key</button>` : ''}
             ${isFulfillFailed ? `<button class="btn-retry" onclick="retryFulfillment('${escapeHtml(o.invoice_number)}')">Retry Beli</button>` : ''}
             ${isHold ? `
               <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli Paksa</button>
@@ -622,7 +628,12 @@ function viewOrderDetail(invoice) {
       </div>` : ''}
       <div>
         <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Lisensi / Serial Key Terkirim:</div>
-        ${items.length === 0 ? `<div style="color: var(--text-muted); font-size: 0.85rem;">Belum ada lisensi terkirim dari DigitalCore.</div>` : items.map(it => `
+        ${items.length === 0 ? `
+          <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">Belum ada lisensi / serial key terkirim.</div>
+          ${order.fulfillment_status === 'PENDING_MANUAL_DELIVERY' || order.payment_status === 'PAID' ? `
+            <button class="btn-buy" style="padding: 0.4rem 1rem; font-size: 0.82rem;" onclick="openManualDeliverModal('${escapeHtml(order.invoice_number)}')">🔑 Kirim Lisensi / Key Manual Sekarang</button>
+          ` : ''}
+        ` : items.map(it => `
           <div class="license-item-box" style="margin-bottom: 6px;">
             <span>${escapeHtml(it)}</span>
           </div>
@@ -722,9 +733,41 @@ async function loadSettings() {
       if (maxSurge) maxSurge.value = json.data.max_surge_disable_percent || 50;
       const teleInput = document.getElementById('cfgTelegramUser');
       if (teleInput) teleInput.value = json.data.telegram_cs_username || 'Digimestsupport';
+
+      const dcSwitch = document.getElementById('cfgDigitalCoreEnabled');
+      if (dcSwitch) {
+        const isDcOn = json.data.digitalcore_enabled !== 'false';
+        dcSwitch.checked = isDcOn;
+        updateDcSwitchBadge(isDcOn);
+      }
     }
   } catch (err) {
     console.error('Failed to load settings:', err);
+  }
+}
+
+function updateDcSwitchBadge(isOn) {
+  const badge = document.getElementById('badgeDcSwitchState');
+  if (badge) {
+    if (isOn) {
+      badge.style.background = 'rgba(16, 185, 129, 0.2)';
+      badge.style.color = '#34d399';
+      badge.textContent = '● ON (AKTIF)';
+    } else {
+      badge.style.background = 'rgba(239, 68, 68, 0.2)';
+      badge.style.color = '#f87171';
+      badge.textContent = '● OFF (NONAKTIF)';
+    }
+  }
+  const dcStatus = document.getElementById('settingsDcStatus');
+  if (dcStatus) {
+    if (isOn) {
+      dcStatus.style.color = '#10b981';
+      dcStatus.textContent = '● https://digitalcore.top (Tarik API Aktif)';
+    } else {
+      dcStatus.style.color = '#f87171';
+      dcStatus.textContent = '○ Nonaktif (Toko Khusus Produk Mandiri)';
+    }
   }
 }
 
@@ -735,12 +778,14 @@ async function saveSettings() {
   btn.innerText = 'Menyimpan...';
 
   const teleInput = document.getElementById('cfgTelegramUser');
+  const dcSwitch = document.getElementById('cfgDigitalCoreEnabled');
   const body = {
     usd_rate: document.getElementById('cfgUsdRate').value,
     margin_percent: document.getElementById('cfgMarginPct').value,
     margin_fixed: document.getElementById('cfgMarginFixed').value,
     max_surge_disable_percent: document.getElementById('cfgMaxSurgePct')?.value || "50",
-    telegram_cs_username: teleInput ? teleInput.value.trim().replace(/^@/, '') : "Digimestsupport"
+    telegram_cs_username: teleInput ? teleInput.value.trim().replace(/^@/, '') : "Digimestsupport",
+    digitalcore_enabled: dcSwitch ? (dcSwitch.checked ? "true" : "false") : "true"
   };
 
   try {
@@ -785,6 +830,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     loadLastLoginInfo();
     loadDatabaseStats();
+    if (typeof loadLocalProducts === 'function' && document.getElementById('localProductsTableBody')) {
+      loadLocalProducts();
+    }
     showToast('Data diperbarui 🔄');
   });
 
@@ -800,8 +848,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/admin/login';
   });
 
-  // Settings Save
+  // Settings Save & DigitalCore Switch
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveSettings);
+  document.getElementById('cfgDigitalCoreEnabled')?.addEventListener('change', (e) => {
+    updateDcSwitchBadge(e.target.checked);
+  });
 
   // Product Filter Tabs & Search
   document.querySelectorAll('[data-pfilter]').forEach(btn => {
@@ -883,6 +934,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Local Products Page Handlers
+  if (document.getElementById('localProductsTableBody')) {
+    loadLocalProducts();
+    setupLocalProductsUI();
+  }
+
+  // Setup Manual Deliver UI (Orders & Dashboard)
+  setupManualDeliverUI();
+
   // Close modals on backdrop click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
@@ -891,6 +951,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dcCheckModal')?.classList.remove('open');
       document.getElementById('loginHistoryModal')?.classList.remove('open');
       document.getElementById('dbMaintenanceModal')?.classList.remove('open');
+      document.getElementById('localProductModal')?.classList.remove('open');
+      document.getElementById('quickKeysModal')?.classList.remove('open');
+      document.getElementById('manualDeliverModal')?.classList.remove('open');
     }
   });
 });
@@ -1759,5 +1822,550 @@ async function submitDatabaseClean() {
     btn.textContent = '⚠️ Mulai Eksekusi Pembersihan';
   }
 }
+
+// -------------------------------------------------------------
+// 7. PRODUK MANDIRI / LOKAL (CUSTOM PRODUCTS) LOGIC
+// -------------------------------------------------------------
+let allLocalProducts = [];
+let filteredLocalProducts = [];
+let currentLpFilter = 'ALL';
+let currentEditingLocalProductId = null;
+let currentQuickKeysProductId = null;
+
+async function loadLocalProducts() {
+  const tbody = document.getElementById('localProductsTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">Memuat daftar produk mandiri...</td></tr>`;
+
+  try {
+    const res = await adminFetch('/api/admin/custom-products');
+    if (!res) return;
+    const json = await res.json();
+    if (!json.success || !json.data) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2.5rem; color: #f87171;">Gagal memuat produk mandiri: ${escapeHtml(json.error || 'Server error')}</td></tr>`;
+      return;
+    }
+
+    allLocalProducts = json.data;
+    updateLocalProductsStats();
+    applyLocalProductFilter();
+  } catch (err) {
+    console.error('Failed to load local products:', err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2.5rem; color: #f87171;">Koneksi gagal: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function updateLocalProductsStats() {
+  const total = allLocalProducts.length;
+  const active = allLocalProducts.filter(p => p.is_active && !p.is_force_out_of_stock).length;
+  let totalKeys = 0;
+  let emptyCount = 0;
+
+  allLocalProducts.forEach(p => {
+    const kCount = (p.stock_keys || []).length;
+    totalKeys += kCount;
+    if (kCount === 0) emptyCount++;
+  });
+
+  if (document.getElementById('cntTotalLocalProds')) document.getElementById('cntTotalLocalProds').textContent = total;
+  if (document.getElementById('cntActiveLocalProds')) document.getElementById('cntActiveLocalProds').textContent = active;
+  if (document.getElementById('cntTotalStockKeys')) document.getElementById('cntTotalStockKeys').textContent = totalKeys;
+  if (document.getElementById('cntEmptyStockKeys')) document.getElementById('cntEmptyStockKeys').textContent = emptyCount;
+}
+
+function applyLocalProductFilter() {
+  const query = (document.getElementById('searchLocalProdInput')?.value || '').toLowerCase().trim();
+
+  filteredLocalProducts = allLocalProducts.filter(p => {
+    // Tab filter
+    const keyCount = (p.stock_keys || []).length;
+    if (currentLpFilter === 'ACTIVE' && (!p.is_active || p.is_force_out_of_stock)) return false;
+    if (currentLpFilter === 'HAS_KEYS' && keyCount === 0) return false;
+    if (currentLpFilter === 'EMPTY_KEYS' && keyCount > 0) return false;
+    if (currentLpFilter === 'HIDDEN' && p.is_active) return false;
+
+    // Search query
+    if (query) {
+      const name = (p.name || '').toLowerCase();
+      const slug = (p.slug || '').toLowerCase();
+      const type = (p.type || '').toLowerCase();
+      if (!name.includes(query) && !slug.includes(query) && !type.includes(query)) return false;
+    }
+
+    return true;
+  });
+
+  renderLocalProductsTable();
+}
+
+function renderLocalProductsTable() {
+  const tbody = document.getElementById('localProductsTableBody');
+  if (!tbody) return;
+
+  if (filteredLocalProducts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 3rem; color: var(--text-muted);">Tidak ada produk mandiri yang sesuai filter atau pencarian.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredLocalProducts.map(p => {
+    const keyCount = (p.stock_keys || []).length;
+    const hasPromo = p.has_promo && p.promo_price_idr > 0;
+    const defaultLogo = p.logo || '/icons/package.svg';
+
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="${escapeHtml(defaultLogo)}" alt="${escapeHtml(p.name)}" 
+                 style="width: 42px; height: 42px; border-radius: 8px; object-fit: cover; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);"
+                 onerror="this.src='/icons/package.svg';">
+            <div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.92rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span>${escapeHtml(p.name)}</span>
+                <span class="badge" style="background: rgba(99,102,241,0.15); color: #a5b4fc; font-size: 0.7rem; border: 1px solid rgba(99,102,241,0.3);">✨ Mandiri</span>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">
+                <code style="color: #94a3b8; font-size: 0.72rem;">/${escapeHtml(p.slug)}</code> • ${escapeHtml(p.type || 'Digital')}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.82rem; font-weight: 600; color: #cbd5e1;">${escapeHtml(p.region || 'Global')}</div>
+          <div style="font-size: 0.75rem; color: #10b981; margin-top: 2px;">🛡️ ${escapeHtml(p.warranty || 'Garansi Toko')}</div>
+        </td>
+        <td>
+          ${hasPromo ? `
+            <div>
+              <span style="font-weight: 700; color: #fbbf24; font-family: var(--font-mono); font-size: 0.95rem;">${formatIDR(p.promo_price_idr)}</span>
+              <span class="badge" style="background: rgba(245,158,11,0.2); color: #fbbf24; font-size: 0.68rem; margin-left: 4px;">PROMO</span>
+            </div>
+            <div style="text-decoration: line-through; color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono);">${formatIDR(p.price_idr)}</div>
+          ` : `
+            <div style="font-weight: 700; color: #10b981; font-family: var(--font-mono); font-size: 0.95rem;">${formatIDR(p.price_idr)}</div>
+          `}
+        </td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            ${keyCount > 0 ? `
+              <span class="badge badge-stock" style="font-size: 0.75rem; font-weight: 700;">
+                ● ${keyCount}/10 Key
+              </span>
+            ` : `
+              <span class="badge" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); font-size: 0.75rem; font-weight: 600;">
+                ○ 0 Key (Auto Kontak CS)
+              </span>
+            `}
+          </div>
+          <div style="margin-top: 4px;">
+            <button class="btn-action-mini" style="font-size: 0.7rem; padding: 2px 8px; color: #a5b4fc; background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.3);" onclick="openQuickKeysModal(${p.id})">
+              🔑 Kelola Key (${keyCount})
+            </button>
+          </div>
+        </td>
+        <td>
+          ${p.is_force_out_of_stock ? `
+            <span class="badge badge-stock empty" style="font-size: 0.72rem;">⚡ Stok Habis</span>
+          ` : p.is_active ? `
+            <span class="badge badge-stock" style="font-size: 0.72rem;">● Aktif</span>
+          ` : `
+            <span class="badge badge-region" style="font-size: 0.72rem; color: #94a3b8;">○ Nonaktif</span>
+          `}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;">
+            <button class="btn-action-mini" onclick="editLocalProduct(${p.id})">Edit</button>
+            <button class="btn-action-mini" style="color: #f87171; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);" onclick="deleteLocalProduct(${p.id}, '${escapeHtml(p.name)}')">Hapus</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openCreateLocalProductModal() {
+  currentEditingLocalProductId = null;
+  document.getElementById('localProdModalTitle').textContent = '✨ Tambah Produk Mandiri Baru';
+  document.getElementById('lpEditId').value = '';
+  document.getElementById('lpName').value = '';
+  document.getElementById('lpSlug').value = '';
+  document.getElementById('lpType').value = 'Digital';
+  document.getElementById('lpLogo').value = '';
+  document.getElementById('lpRegion').value = 'Global';
+  document.getElementById('lpWarranty').value = 'Full Garansi';
+  document.getElementById('lpPriceIDR').value = '';
+  document.getElementById('lpRefPriceIDR').value = '';
+  document.getElementById('lpHasPromo').checked = false;
+  document.getElementById('lpPromoOptions').style.display = 'none';
+  document.getElementById('lpPromoPriceIDR').value = '';
+  document.getElementById('lpStockKeys').value = '';
+  updateLocalKeysCounter();
+  document.getElementById('lpDescription').value = '';
+  document.getElementById('lpTerms').value = 'Membeli berarti menyetujui seluruh ketentuan garansi.';
+  document.getElementById('lpIsActive').checked = true;
+  document.getElementById('lpIsForceOut').checked = false;
+
+  document.getElementById('localProductModal')?.classList.add('open');
+}
+
+function editLocalProduct(id) {
+  const p = allLocalProducts.find(item => item.id === id);
+  if (!p) return;
+
+  currentEditingLocalProductId = id;
+  document.getElementById('localProdModalTitle').textContent = '✏️ Edit Produk Mandiri: ' + p.name;
+  document.getElementById('lpEditId').value = p.id;
+  document.getElementById('lpName').value = p.name || '';
+  document.getElementById('lpSlug').value = p.slug || '';
+  document.getElementById('lpType').value = p.type || '';
+  document.getElementById('lpLogo').value = p.logo || '';
+  document.getElementById('lpRegion').value = p.region || 'Global';
+  document.getElementById('lpWarranty').value = p.warranty || '';
+  document.getElementById('lpPriceIDR').value = p.price_idr || '';
+  document.getElementById('lpRefPriceIDR').value = '';
+  document.getElementById('lpHasPromo').checked = !!p.has_promo;
+  document.getElementById('lpPromoOptions').style.display = p.has_promo ? 'block' : 'none';
+  document.getElementById('lpPromoPriceIDR').value = p.promo_price_idr || '';
+  document.getElementById('lpStockKeys').value = (p.stock_keys || []).join('\n');
+  updateLocalKeysCounter();
+  document.getElementById('lpDescription').value = p.description || '';
+  document.getElementById('lpTerms').value = p.terms || '';
+  document.getElementById('lpIsActive').checked = p.is_active;
+  document.getElementById('lpIsForceOut').checked = p.is_force_out_of_stock;
+
+  document.getElementById('localProductModal')?.classList.add('open');
+}
+
+function closeLocalProductModal() {
+  document.getElementById('localProductModal')?.classList.remove('open');
+  currentEditingLocalProductId = null;
+}
+
+function updateLocalKeysCounter() {
+  const val = document.getElementById('lpStockKeys')?.value || '';
+  const lines = val.split('\n').map(s => s.trim()).filter(Boolean);
+  const counterEl = document.getElementById('lpKeyCounter');
+  if (counterEl) {
+    counterEl.textContent = `${lines.length} / 10 key terisi`;
+    if (lines.length > 10) {
+      counterEl.style.color = '#f87171';
+      counterEl.textContent = `${lines.length} / 10 key (Maksimal 10! Baris lebih akan dipotong)`;
+    } else {
+      counterEl.style.color = '#818cf8';
+    }
+  }
+}
+
+async function saveLocalProduct() {
+  const btn = document.getElementById('btnSaveLocalProd');
+  const name = document.getElementById('lpName')?.value.trim();
+  const priceIDR = parseFloat(document.getElementById('lpPriceIDR')?.value);
+
+  if (!name) {
+    alert('Nama produk wajib diisi.');
+    document.getElementById('lpName')?.focus();
+    return;
+  }
+  if (isNaN(priceIDR) || priceIDR < 0) {
+    alert('Harga produk wajib diisi dengan angka valid.');
+    document.getElementById('lpPriceIDR')?.focus();
+    return;
+  }
+
+  const rawKeys = (document.getElementById('lpStockKeys')?.value || '')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (rawKeys.length > 10) {
+    if (!confirm(`Anda memasukkan ${rawKeys.length} serial key, sedangkan batas maksimal adalah 10 key. Lanjutkan dengan memotong 10 key pertama?`)) {
+      return;
+    }
+  }
+
+  const stockKeys = rawKeys.slice(0, 10);
+  const hasPromo = document.getElementById('lpHasPromo')?.checked || false;
+  let promoPrice = parseFloat(document.getElementById('lpPromoPriceIDR')?.value) || 0;
+  if (!hasPromo) promoPrice = 0;
+
+  const payload = {
+    name: name,
+    slug: document.getElementById('lpSlug')?.value.trim(),
+    type: document.getElementById('lpType')?.value.trim() || 'Digital',
+    logo: document.getElementById('lpLogo')?.value.trim(),
+    region: document.getElementById('lpRegion')?.value.trim() || 'Global',
+    warranty: document.getElementById('lpWarranty')?.value.trim() || 'Full Garansi',
+    description: document.getElementById('lpDescription')?.value.trim(),
+    terms: document.getElementById('lpTerms')?.value.trim(),
+    price_idr: priceIDR,
+    promo_price_idr: promoPrice,
+    has_promo: hasPromo,
+    is_active: document.getElementById('lpIsActive')?.checked ?? true,
+    is_force_out_of_stock: document.getElementById('lpIsForceOut')?.checked ?? false,
+    stock_keys: stockKeys
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const isEdit = !!currentEditingLocalProductId;
+    const url = isEdit ? `/api/admin/custom-products/${currentEditingLocalProductId}` : '/api/admin/custom-products';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await adminFetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res) return;
+    const json = await res.json();
+
+    if (json.success) {
+      showToast(isEdit ? 'Produk mandiri berhasil diperbarui! ✨' : 'Produk mandiri baru berhasil ditambahkan! 🚀');
+      closeLocalProductModal();
+      await loadLocalProducts();
+    } else {
+      alert('Gagal menyimpan produk: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Produk Mandiri';
+  }
+}
+
+async function deleteLocalProduct(id, name) {
+  if (!confirm(`Yakin ingin menghapus produk mandiri "${name}" secara permanen dari database? Seluruh sisa key untuk produk ini juga akan terhapus.`)) {
+    return;
+  }
+
+  try {
+    const res = await adminFetch(`/api/admin/custom-products/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Produk mandiri berhasil dihapus.');
+      await loadLocalProducts();
+    } else {
+      alert('Gagal menghapus produk: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  }
+}
+
+function openQuickKeysModal(productId) {
+  const p = allLocalProducts.find(item => item.id === productId);
+  if (!p) return;
+
+  currentQuickKeysProductId = productId;
+  document.getElementById('quickKeysModalTitle').textContent = `🔑 Kelola Key: ${p.name}`;
+  document.getElementById('quickKeysModalDesc').textContent = `Masukkan serial key / lisensi (maksimal 10). Saat ini ada ${(p.stock_keys || []).length} key tersimpan.`;
+  document.getElementById('quickKeysTextarea').value = (p.stock_keys || []).join('\n');
+  updateQuickKeysCounter();
+
+  document.getElementById('quickKeysModal')?.classList.add('open');
+}
+
+function closeQuickKeysModal() {
+  document.getElementById('quickKeysModal')?.classList.remove('open');
+  currentQuickKeysProductId = null;
+}
+
+function updateQuickKeysCounter() {
+  const lines = (document.getElementById('quickKeysTextarea')?.value || '')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+  const counterEl = document.getElementById('quickKeysCounter');
+  if (counterEl) {
+    counterEl.textContent = `${lines.length} / 10 key`;
+    if (lines.length > 10) {
+      counterEl.style.color = '#f87171';
+      counterEl.textContent = `${lines.length} / 10 key (Maksimal 10! Lebih akan dipotong)`;
+    } else {
+      counterEl.style.color = '#818cf8';
+    }
+  }
+}
+
+async function saveQuickKeys() {
+  if (!currentQuickKeysProductId) return;
+  const p = allLocalProducts.find(item => item.id === currentQuickKeysProductId);
+  if (!p) return;
+
+  const btn = document.getElementById('btnSaveQuickKeys');
+  const rawKeys = (document.getElementById('quickKeysTextarea')?.value || '')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (rawKeys.length > 10) {
+    if (!confirm(`Anda memasukkan ${rawKeys.length} key, melebihi kuota 10 key. Potong menjadi 10 key pertama?`)) return;
+  }
+
+  const stockKeys = rawKeys.slice(0, 10);
+
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const payload = {
+    name: p.name,
+    slug: p.slug,
+    type: p.type,
+    logo: p.logo,
+    region: p.region,
+    warranty: p.warranty,
+    description: p.description,
+    terms: p.terms,
+    price_idr: p.price_idr,
+    promo_price_idr: p.promo_price_idr,
+    has_promo: p.has_promo,
+    is_active: p.is_active,
+    is_force_out_of_stock: p.is_force_out_of_stock,
+    stock_keys: stockKeys
+  };
+
+  try {
+    const res = await adminFetch(`/api/admin/custom-products/${currentQuickKeysProductId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast(`Stok key untuk ${p.name} berhasil diperbarui (${stockKeys.length} key) ✨`);
+      closeQuickKeysModal();
+      await loadLocalProducts();
+    } else {
+      alert('Gagal menyimpan key: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Perubahan Key';
+  }
+}
+
+function setupLocalProductsUI() {
+  document.getElementById('btnOpenCreateLocalProd')?.addEventListener('click', openCreateLocalProductModal);
+  document.getElementById('closeLocalProdModalBtn')?.addEventListener('click', closeLocalProductModal);
+  document.getElementById('cancelLocalProdBtn')?.addEventListener('click', closeLocalProductModal);
+  document.getElementById('btnSaveLocalProd')?.addEventListener('click', saveLocalProduct);
+
+  document.getElementById('lpHasPromo')?.addEventListener('change', (e) => {
+    const opt = document.getElementById('lpPromoOptions');
+    if (opt) opt.style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  document.getElementById('lpStockKeys')?.addEventListener('input', updateLocalKeysCounter);
+
+  // Filter tag buttons
+  document.querySelectorAll('[data-lpfilter]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('[data-lpfilter]').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentLpFilter = e.target.dataset.lpfilter;
+      applyLocalProductFilter();
+    });
+  });
+
+  // Search input
+  document.getElementById('searchLocalProdInput')?.addEventListener('input', applyLocalProductFilter);
+
+  // Quick keys modal handlers
+  document.getElementById('closeQuickKeysModalBtn')?.addEventListener('click', closeQuickKeysModal);
+  document.getElementById('cancelQuickKeysBtn')?.addEventListener('click', closeQuickKeysModal);
+  document.getElementById('quickKeysTextarea')?.addEventListener('input', updateQuickKeysCounter);
+  document.getElementById('btnSaveQuickKeys')?.addEventListener('click', saveQuickKeys);
+
+  // Close modals on backdrop click
+  document.getElementById('localProductModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'localProductModal') closeLocalProductModal();
+  });
+  document.getElementById('quickKeysModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'quickKeysModal') closeQuickKeysModal();
+  });
+}
+
+// -------------------------------------------------------------
+// 8. MANUAL DELIVER KEYS MODAL LOGIC (UNTUK ORDER)
+// -------------------------------------------------------------
+let currentManualDeliverInvoice = '';
+
+function openManualDeliverModal(invoice) {
+  currentManualDeliverInvoice = invoice;
+  const invEl = document.getElementById('mdInvoiceText');
+  if (invEl) invEl.textContent = invoice;
+  const inputEl = document.getElementById('mdKeysInput');
+  if (inputEl) inputEl.value = '';
+
+  document.getElementById('manualDeliverModal')?.classList.add('open');
+}
+
+function closeManualDeliverModal() {
+  document.getElementById('manualDeliverModal')?.classList.remove('open');
+  currentManualDeliverInvoice = '';
+}
+
+async function submitManualDeliver() {
+  if (!currentManualDeliverInvoice) return;
+  const keys = (document.getElementById('mdKeysInput')?.value || '')
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (keys.length === 0) {
+    alert('Harap masukkan minimal 1 lisensi / serial key untuk dikirimkan ke pembeli.');
+    document.getElementById('mdKeysInput')?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitManualDeliver');
+  btn.disabled = true;
+  btn.textContent = 'Mengirimkan Lisensi...';
+
+  try {
+    const res = await adminFetch(`/api/admin/orders/${encodeURIComponent(currentManualDeliverInvoice)}/manual-deliver-keys`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keys: keys })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Lisensi berhasil dikirim dan pesanan diselesaikan! 🎉');
+      closeManualDeliverModal();
+      document.getElementById('orderDetailModal')?.classList.remove('open');
+      if (typeof loadOrders === 'function') await loadOrders();
+    } else {
+      alert('Gagal mengirimkan lisensi: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Kirim Lisensi Sekarang';
+  }
+}
+
+function setupManualDeliverUI() {
+  document.getElementById('closeManualDeliverModalBtn')?.addEventListener('click', closeManualDeliverModal);
+  document.getElementById('cancelManualDeliverBtn')?.addEventListener('click', closeManualDeliverModal);
+  document.getElementById('btnSubmitManualDeliver')?.addEventListener('click', submitManualDeliver);
+  document.getElementById('manualDeliverModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'manualDeliverModal') closeManualDeliverModal();
+  });
+}
+
 
 

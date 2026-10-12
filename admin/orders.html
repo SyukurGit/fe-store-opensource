@@ -41,7 +41,8 @@
     <!-- Admin Navigation Tabs -->
     <nav class="admin-nav-tabs">
       <a href="/admin" class="admin-nav-tab">📊 Ringkasan Dashboard</a>
-      <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk</a>
+      <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk Upstream</a>
+      <a href="/admin/custom-products" class="admin-nav-tab">✨ Produk Mandiri / Lokal</a>
       <a href="/admin/orders" class="admin-nav-tab active">📜 Riwayat Pesanan</a>
       <a href="/admin/vouchers" class="admin-nav-tab">🎟️ Kelola Voucher</a>
       <a href="/admin/security" class="admin-nav-tab">🛡️ Log Keamanan & Login</a>
@@ -114,6 +115,28 @@
         <button class="modal-close" id="closeDetailModalBtn">&times;</button>
       </div>
       <div id="modalDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal Kirim Serial Key Manual -->
+  <div class="modal-overlay" id="manualDeliverModal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔑 Kirim Lisensi / Key Manual</h3>
+        <button class="modal-close" id="closeManualDeliverModalBtn">&times;</button>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Kirim serial key langsung ke pembeli untuk pesanan: <strong id="mdInvoiceText" style="color: #60a5fa; font-family: var(--font-mono);">-</strong>
+      </div>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="mdKeysInput">Masukkan Lisensi / Serial Key (1 per baris)</label>
+        <textarea id="mdKeysInput" class="form-input" rows="5" placeholder="KEY-XXXX-YYYY-1234&#10;user@mail.com:pass" style="font-family: var(--font-mono); font-size: 0.82rem;"></textarea>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Setelah dikirim, status pesanan otomatis berubah jadi LUNAS (SUCCESS) dan email notifikasi lisensi dikirimkan ke pembeli jika email tersedia.</div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-nav" id="cancelManualDeliverBtn">Batal</button>
+        <button type="button" class="btn-buy" id="btnSubmitManualDeliver">Kirim Lisensi Sekarang</button>
+      </div>
     </div>
   </div>
 

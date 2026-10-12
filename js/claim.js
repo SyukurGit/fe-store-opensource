@@ -167,6 +167,23 @@ function renderClaimResult(data) {
           </a>
         </div>
       `;
+    } else if (data.fulfillment_status === 'PENDING_MANUAL_DELIVERY') {
+      if (statusBadge) {
+        statusBadge.className = 'badge badge-stock';
+        statusBadge.textContent = '● PEMBAYARAN LUNAS (MENUNGGU PENGIRIMAN KEY)';
+      }
+      itemsContainer.innerHTML = `
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">📦</div>
+          <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">Pembayaran Lunas! Lisensi Sedang Disiapkan</div>
+          <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+            Pembayaran Anda telah kami terima dengan sukses. Lisensi / serial key untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.
+          </p>
+          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
+            <span>Hubungi CS via Telegram</span> ➔
+          </a>
+        </div>
+      `;
     } else if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
       const isFailed = data.fulfillment_status === 'FAILED' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
       const title = isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual';
