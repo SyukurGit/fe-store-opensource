@@ -194,14 +194,6 @@ function renderClaimResult(data) {
 
   document.getElementById('resWarrantyText').textContent = data.warranty_info || 'Garansi toko resmi aktif.';
   document.getElementById('resCreatedAt').textContent = data.created_at;
-
-  const viewUrlWrap = document.getElementById('resViewUrlWrap');
-  if (data.digitalcore_view_url) {
-    viewUrlWrap.style.display = 'inline';
-    document.getElementById('resViewUrl').href = data.digitalcore_view_url;
-  } else {
-    viewUrlWrap.style.display = 'none';
-  }
 }
 
 function escapeHtml(str) {
