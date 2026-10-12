@@ -42,13 +42,15 @@
           <div id="invDisplay" style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: #fff;">...</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Kode Klaim Rahasia</div>
-          <div id="claimDisplay" style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: #a855f7;">...</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Status Transaksi</div>
+          <div id="statusBadgeDisplay" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">
+            ⏳ Menunggu Pembayaran
+          </div>
         </div>
       </div>
 
       <div id="emailNotice" style="display: none; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 1.25rem; font-size: 0.8rem; color: #a5b4fc; text-align: center;">
-        ✉️ Bukti pembayaran & kode klaim akan otomatis dikirim ke: <strong id="buyerEmailDisplay" style="color: #fff;"></strong>
+        ✉️ Bukti lunas & kode ambil pesanan otomatis dikirim ke: <strong id="buyerEmailDisplay" style="color: #fff;"></strong>
       </div>
 
       <!-- Pending QRIS State View -->
@@ -100,6 +102,30 @@
         <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
         <h2 style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">Pembayaran Sukses!</h2>
         <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Pesanan Anda telah dipenuhi seketika dari DigitalCore. Lisensi siap digunakan.</p>
+
+        <!-- KARTU KODE AMBIL PESANAN & DIRECT LINK KHUSUS -->
+        <div class="claim-info-card">
+          <div class="claim-card-title">🔑 KODE AMBIL PESANAN ANDA</div>
+          <div class="claim-code-row">
+            <span id="paidClaimCodeDisplay" class="claim-code-value">...</span>
+            <button type="button" id="btnCopyClaimCode" class="btn-copy-claim">
+              📋 Salin Kode
+            </button>
+          </div>
+          <p class="claim-card-hint">
+            Simpan kode di atas untuk mengambil atau mengecek lisensi pesanan Anda kapan saja di Digimest.
+          </p>
+          
+          <div class="claim-direct-wrap">
+            <div class="claim-direct-label">
+              🔗 Atau Anda bisa klik link di bawah ini untuk mengambil produk Anda:
+            </div>
+            <a id="paidDirectClaimLink" href="#" target="_blank" class="direct-claim-btn">
+              <span>Buka & Ambil Produk via Link Langsung ➔</span>
+            </a>
+            <div id="paidDirectClaimUrlText" class="claim-direct-url-text"></div>
+          </div>
+        </div>
 
         <div class="success-reveal-box">
           <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
@@ -184,8 +210,8 @@
     }
   </style>
 
-  <script src="/js/api-config.js?v=3.2"></script>
-  <script src="/js/order-history.js?v=3.2"></script>
-  <script src="/js/payment.js?v=3.2"></script>
+  <script src="/js/api-config.js?v=3.6"></script>
+  <script src="/js/order-history.js?v=3.6"></script>
+  <script src="/js/payment.js?v=3.6"></script>
 </body>
 </html>

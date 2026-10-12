@@ -79,15 +79,40 @@ async function checkStatus() {
     if (!json.success || !json.data) return;
 
     const order = json.data;
-    currentClaimCode = order.claim_code;
-    document.getElementById('claimDisplay').textContent = order.claim_code;
+    currentClaimCode = order.claim_code || '';
+
+    // Update status badge di header
+    const statusBadge = document.getElementById('statusBadgeDisplay');
+    if (statusBadge) {
+      if (order.payment_status === 'PAID') {
+        statusBadge.innerHTML = '● Lunas';
+        statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+        statusBadge.style.color = '#34d399';
+        statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+      } else if (order.payment_status === 'EXPIRED') {
+        statusBadge.innerHTML = '⌛ Kedaluwarsa';
+        statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+        statusBadge.style.color = '#f87171';
+        statusBadge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+      } else if (order.payment_status === 'CANCELLED') {
+        statusBadge.innerHTML = '✕ Dibatalkan';
+        statusBadge.style.background = 'rgba(148, 163, 184, 0.15)';
+        statusBadge.style.color = '#94a3b8';
+        statusBadge.style.borderColor = 'rgba(148, 163, 184, 0.35)';
+      } else {
+        statusBadge.innerHTML = '⏳ Menunggu Pembayaran';
+        statusBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+        statusBadge.style.color = '#fbbf24';
+        statusBadge.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+      }
+    }
 
     // Sync order state into browser's Pesanan Saya
     const handler = getOrderHandler();
     if (handler) {
       handler.saveOrder({
         invoice_number: order.invoice_number,
-        claim_code: order.claim_code,
+        claim_code: order.claim_code || '',
         product_name: order.product_name,
         quantity: order.quantity,
         total_amount: order.total_amount,
@@ -200,13 +225,40 @@ function showSuccessView(order) {
   document.getElementById('sProdName').textContent = order.product_name;
   document.getElementById('sProdWarranty').textContent = order.warranty_info ? `🛡️ ${order.warranty_info}` : '🛡️ Garansi Toko';
 
+  currentClaimCode = order.claim_code || '';
+
+  // Setup KARTU KODE AMBIL PESANAN & DIRECT LINK
+  const paidCodeEl = document.getElementById('paidClaimCodeDisplay');
+  if (paidCodeEl) {
+    paidCodeEl.textContent = currentClaimCode || '-';
+  }
+
+  const directLinkEl = document.getElementById('paidDirectClaimLink');
+  const directUrlTextEl = document.getElementById('paidDirectClaimUrlText');
+  if (currentClaimCode) {
+    const directUrl = `${window.location.origin}/claim?code=${encodeURIComponent(currentClaimCode)}`;
+    if (directLinkEl) {
+      directLinkEl.href = directUrl;
+    }
+    if (directUrlTextEl) {
+      directUrlTextEl.textContent = directUrl;
+    }
+  }
+
+  const copyClaimBtn = document.getElementById('btnCopyClaimCode');
+  if (copyClaimBtn && currentClaimCode) {
+    copyClaimBtn.onclick = () => {
+      copyText(currentClaimCode);
+    };
+  }
+
   if (order.customer_email) {
     const emailNotice = document.getElementById('emailNotice');
     if (emailNotice) {
       emailNotice.style.background = 'rgba(16, 185, 129, 0.12)';
       emailNotice.style.borderColor = 'rgba(16, 185, 129, 0.35)';
       emailNotice.style.color = '#34d399';
-      emailNotice.innerHTML = `✉️ Kode klaim & rincian pesanan telah dikirim ke email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`;
+      emailNotice.innerHTML = `✉️ Kode ambil pesanan & rincian telah dikirim ke email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`;
       emailNotice.style.display = 'block';
     }
   }
@@ -242,7 +294,7 @@ function showSuccessView(order) {
   if (deliveredKeys.length === 0) {
     itemsContainer.innerHTML = `
       <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; color: #fbbf24; font-size: 0.88rem;">
-        Pembayaran terverifikasi! Pesanan Anda sedang diproses oleh antrean sistem dalam 1-2 menit. Silakan tunggu sebentar atau simpan Kode Klaim: <strong>${order.claim_code}</strong>.
+        Pembayaran terverifikasi! Pesanan Anda sedang diproses oleh antrean sistem dalam 1-2 menit. Silakan tunggu sebentar atau simpan Kode Ambil Pesanan di atas.
       </div>
     `;
   } else {

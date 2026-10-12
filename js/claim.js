@@ -74,7 +74,9 @@ function renderClaimResult(data) {
   }
 
   document.getElementById('resProductName').textContent = `${data.product_name} (${data.quantity} item)`;
-  document.getElementById('resInvoice').textContent = `Invoice: ${data.invoice_number} | Kode Klaim: ${data.claim_code}`;
+  document.getElementById('resInvoice').textContent = data.claim_code
+    ? `Invoice: ${data.invoice_number} | Kode Klaim: ${data.claim_code}`
+    : `Invoice: ${data.invoice_number}`;
 
   const statusBadge = document.getElementById('resStatusBadge');
   const isRefunded = data.fulfillment_status === 'REFUNDED';
