@@ -1514,7 +1514,7 @@ body {
 }
 
 /* ============================================================== */
-/* FLOATING TELEGRAM CS BUTTON */
+/* FLOATING TELEGRAM CS BUTTON (KHUSUS HALAMAN UTAMA) */
 /* ============================================================== */
 .floating-telegram-btn {
   position: fixed;
@@ -1546,17 +1546,34 @@ body {
   flex-shrink: 0;
 }
 
+/* Di Mobile: tombol dikecilkan menjadi bulatan ringkas dengan ikon CS agen headset saja */
 @media (max-width: 860px) {
-  /* Di halaman detail produk, geser tombol telegram ke atas agar tidak menutupi mobile-sticky-buy-bar */
-  body.has-sticky-bar .floating-telegram-btn {
-    bottom: 85px;
-  }
   .floating-telegram-btn {
     bottom: 20px;
-    right: 16px;
-    padding: 9px 14px;
-    font-size: 0.82rem;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(34, 158, 217, 0.45);
   }
+  .floating-telegram-btn span {
+    display: none !important; /* Sembunyikan teks label di mobile agar berbentuk bulatan rapi */
+  }
+  .floating-telegram-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Proteksi: Pastikan tombol floating tidak pernah tampil di halaman detail produk */
+.detail-main .floating-telegram-btn,
+body.has-sticky-bar .floating-telegram-btn,
+.product-detail-view .floating-telegram-btn {
+  display: none !important;
 }
 
 /* ============================================================== */
