@@ -272,6 +272,11 @@ function renderProductDetail(p, stats, reviews) {
   if (isOut) stockBadge.classList.add('empty');
 
   document.getElementById('dStockNote').textContent = isOut ? 'Stok Habis' : `Tersedia: ${stockText}`;
+  const modalStock = document.getElementById('mModalStockNote');
+  if (modalStock) {
+    modalStock.textContent = isOut ? 'Stok Habis' : `Tersedia: ${stockText}`;
+    if (isOut) modalStock.style.color = '#f87171';
+  }
   if (isOut) {
     document.getElementById('dStockNote').style.color = '#f87171';
     const buyBtn = document.getElementById('btnOpenCheckoutFromDetail');
@@ -288,6 +293,12 @@ function renderProductDetail(p, stats, reviews) {
       stickyBtn.style.opacity = '0.6';
       stickyBtn.style.cursor = 'not-allowed';
     }
+    const modalInput = document.getElementById('modalQtyInput');
+    if (modalInput) modalInput.disabled = true;
+    const btnMMinus = document.getElementById('btnModalQtyMinus');
+    if (btnMMinus) btnMMinus.disabled = true;
+    const btnMPlus = document.getElementById('btnModalQtyPlus');
+    if (btnMPlus) btnMPlus.disabled = true;
   }
 
   // Promo Strikethrough & Badges
@@ -373,6 +384,11 @@ function updateCalculations() {
   document.getElementById('mUnitPrice').textContent = formatIDR(unitPrice);
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
   document.getElementById('mTotalPrice').textContent = formatIDR(finalTotal);
+
+  const modalQtyInput = document.getElementById('modalQtyInput');
+  if (modalQtyInput && parseInt(modalQtyInput.value, 10) !== currentQty) {
+    modalQtyInput.value = currentQty;
+  }
 }
 
 function setupEventListeners() {
@@ -402,6 +418,39 @@ function setupEventListeners() {
     if (val > 100) val = 100;
     currentQty = val;
     qtyInput.value = val;
+    updateCalculations();
+  });
+
+  // Modal checkout quantity stepper handlers
+  const modalQty = document.getElementById('modalQtyInput');
+  const btnModalMinus = document.getElementById('btnModalQtyMinus');
+  const btnModalPlus = document.getElementById('btnModalQtyPlus');
+
+  btnModalMinus?.addEventListener('click', () => {
+    if (currentQty > 1) {
+      currentQty--;
+      if (qtyInput) qtyInput.value = currentQty;
+      if (modalQty) modalQty.value = currentQty;
+      updateCalculations();
+    }
+  });
+
+  btnModalPlus?.addEventListener('click', () => {
+    if (currentQty < 100) {
+      currentQty++;
+      if (qtyInput) qtyInput.value = currentQty;
+      if (modalQty) modalQty.value = currentQty;
+      updateCalculations();
+    }
+  });
+
+  modalQty?.addEventListener('input', () => {
+    let val = parseInt(modalQty.value, 10) || 1;
+    if (val < 1) val = 1;
+    if (val > 100) val = 100;
+    currentQty = val;
+    modalQty.value = val;
+    if (qtyInput) qtyInput.value = val;
     updateCalculations();
   });
 
