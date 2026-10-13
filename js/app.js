@@ -61,7 +61,7 @@ function renderProducts(products) {
 
     return `
       <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')" style="cursor: pointer;">
-        <div>
+        <div class="prod-card-body">
           <div class="prod-header">
             <img src="${logoSrc}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.src='https://via.placeholder.com/46?text=DC'">
             <div class="prod-title-wrap">
