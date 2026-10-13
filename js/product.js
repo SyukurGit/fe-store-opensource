@@ -271,14 +271,21 @@ function renderProductDetail(p, stats, reviews) {
   stockBadge.textContent = `● ${stockText}`;
   if (isOut) stockBadge.classList.add('empty');
 
-  document.getElementById('dStockNote').textContent = isOut ? 'Stok Habis' : `Tersedia: ${stockText}`;
+  const dStockNoteEl = document.getElementById('dStockNote');
+  if (dStockNoteEl) {
+    dStockNoteEl.textContent = isOut ? '● Stok Habis' : `● Tersedia: ${stockText}`;
+    if (isOut) {
+      dStockNoteEl.classList.add('empty');
+    } else {
+      dStockNoteEl.classList.remove('empty');
+    }
+  }
   const modalStock = document.getElementById('mModalStockNote');
   if (modalStock) {
     modalStock.textContent = isOut ? 'Stok Habis' : `Tersedia: ${stockText}`;
     if (isOut) modalStock.style.color = '#f87171';
   }
   if (isOut) {
-    document.getElementById('dStockNote').style.color = '#f87171';
     const buyBtn = document.getElementById('btnOpenCheckoutFromDetail');
     if (buyBtn) {
       buyBtn.disabled = true;

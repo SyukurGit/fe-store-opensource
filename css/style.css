@@ -253,17 +253,18 @@ body {
 .lang-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 9px;
-  padding: 0.45rem 0.65rem;
+  padding: 0.42rem 0.65rem;
   color: #f1f5f9;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  line-height: 1;
 }
 
 .lang-btn:hover {
@@ -272,21 +273,30 @@ body {
   color: #fff;
 }
 
-.lang-flag {
-  font-size: 1rem;
-  line-height: 1;
+.svg-flag {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  overflow: hidden;
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+  vertical-align: middle;
 }
 
 .lang-code {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .lang-arrow {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--text-muted);
   transition: transform 0.2s ease;
+  line-height: 1;
 }
 
 .lang-dropdown-wrap.open .lang-arrow {
@@ -297,7 +307,7 @@ body {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 150px;
+  min-width: 175px;
   background: #111827;
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
@@ -318,14 +328,20 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
   color: #cbd5e1;
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 500;
-  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
   cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  line-height: 1;
+  box-sizing: border-box;
 }
 
 .lang-item:hover {
@@ -336,13 +352,34 @@ body {
 .lang-item.active {
   background: rgba(99, 102, 241, 0.15);
   color: #818cf8;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.lang-item-name {
+  flex: 1;
+  line-height: 1;
+}
+
+.lang-item-code {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.lang-item.active .lang-item-code {
+  color: #a5b4fc;
 }
 
 .lang-check {
-  margin-left: auto;
   font-size: 0.82rem;
   color: #10b981;
+  font-weight: 700;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 /* HAMBURGER BUTTON (HIDDEN ON DESKTOP) */
@@ -1301,7 +1338,61 @@ select.form-input option:checked {
   font-weight: 800;
   color: #10b981;
   font-family: var(--font-mono);
+  margin-bottom: 0;
+  line-height: 1.1;
+}
+
+.detail-action-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.15rem;
+}
+
+.detail-action-price-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-action-stock-box {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.detail-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: #93c5fd;
+  white-space: nowrap;
+}
+
+.detail-stock-badge.empty {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.detail-action-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 1.25rem;
+}
+
+.detail-action-qty-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin: 0;
 }
 
 .detail-action-price-qty-row {
@@ -1327,19 +1418,23 @@ select.form-input option:checked {
 }
 
 .qty-stepper {
-  display: flex;
-  align-items: center;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   overflow: hidden;
+  height: 38px;
 }
 
 .qty-stepper-btn {
   background: none;
   border: none;
   color: #fff;
-  width: 38px;
+  width: 36px;
   height: 38px;
   font-size: 1.2rem;
   font-weight: 700;
@@ -1348,6 +1443,8 @@ select.form-input option:checked {
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .qty-stepper-btn:hover {
@@ -1358,12 +1455,15 @@ select.form-input option:checked {
   background: none;
   border: none;
   color: #fff;
-  width: 50px;
+  width: 44px;
+  height: 38px;
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   font-family: var(--font-mono);
   -moz-appearance: textfield;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .qty-stepper-input::-webkit-outer-spin-button,
@@ -1560,38 +1660,76 @@ select.form-input option:checked {
   .detail-sidebar-card {
     order: 2 !important;
     position: static !important;
-    padding: 1rem 1.15rem !important;
+    padding: 1.1rem 1.25rem !important;
     border-radius: 16px !important;
   }
-  .detail-action-price-qty-row {
-    flex-direction: row !important;
+  .detail-action-top-row {
+    display: flex !important;
+    align-items: center !important;
     justify-content: space-between !important;
-    align-items: flex-end !important;
     gap: 12px !important;
     margin-bottom: 0.85rem !important;
+    padding-bottom: 0.75rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
   }
-  .detail-action-price-col {
-    flex: 1;
-    min-width: 0;
+  .detail-price-label {
+    margin-bottom: 2px !important;
+    font-size: 0.72rem !important;
   }
   .detail-unit-price-val {
-    font-size: 1.6rem !important;
+    font-size: 1.55rem !important;
     margin-bottom: 0 !important;
     line-height: 1.1 !important;
   }
-  .detail-action-qty-col {
-    margin-bottom: 0 !important;
-    flex-shrink: 0;
+  .detail-action-stock-box {
+    padding-top: 0 !important;
   }
-  .detail-action-qty-col .form-label {
-    margin-bottom: 4px !important;
-    font-size: 0.78rem !important;
+  .detail-stock-badge {
+    font-size: 0.74rem !important;
+    padding: 4px 8px !important;
+  }
+  .detail-action-qty-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    margin-bottom: 0.95rem !important;
+  }
+  .detail-action-qty-label {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #cbd5e1 !important;
+  }
+  .qty-stepper {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    height: 36px !important;
+  }
+  .qty-stepper-btn {
+    width: 34px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+    flex-shrink: 0 !important;
+  }
+  .qty-stepper-input {
+    width: 42px !important;
+    height: 36px !important;
+    font-size: 0.92rem !important;
+    flex-shrink: 0 !important;
   }
   .detail-action-subtotal-box {
     display: none !important;
   }
   .detail-guarantee-list {
     display: none !important;
+  }
+  .detail-buy-btn {
+    padding: 0.85rem !important;
+    font-size: 1rem !important;
+    border-radius: 12px !important;
   }
   .detail-card-content {
     order: 3 !important;
@@ -2075,15 +2213,23 @@ select.form-input option:checked {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 9px 11px;
     border-radius: 9px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border-subtle);
     color: #cbd5e1;
     text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
     transition: all 0.2s ease;
+    cursor: pointer;
+    line-height: 1;
+    user-select: none;
+  }
+  .drawer-lang-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
   }
   .drawer-lang-btn.active {
     background: rgba(99, 102, 241, 0.15);

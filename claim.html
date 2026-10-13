@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=5.7.0">
+  <link rel="stylesheet" href="/css/style.css?v=5.8.0">
 </head>
 <body>
 
@@ -41,20 +41,23 @@
         <!-- Language Dropdown (Desktop & Mobile) -->
         <div class="lang-dropdown-wrap">
           <button type="button" class="lang-btn" id="langDropdownBtn" aria-label="Pilih Bahasa">
-            <span class="lang-flag">🇮🇩</span>
+            <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
             <span class="lang-code">ID</span>
             <span class="lang-arrow">▾</span>
           </button>
           <div class="lang-menu" id="langMenu">
-            <a href="/" class="lang-item active" data-lang="id">
-              <span class="lang-item-flag">🇮🇩</span>
+            <button type="button" class="lang-item active" data-lang="id">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
               <span class="lang-item-name">Indonesia</span>
+              <span class="lang-item-code">ID</span>
               <span class="lang-check">✓</span>
-            </a>
-            <a href="/" class="lang-item" data-lang="en">
-              <span class="lang-item-flag">🇬🇧</span>
+            </button>
+            <button type="button" class="lang-item" data-lang="en">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
               <span class="lang-item-name">English</span>
-            </a>
+              <span class="lang-item-code">EN</span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
           </div>
         </div>
 
@@ -117,13 +120,20 @@
         <div class="drawer-nav-group">
           <div class="drawer-group-label">Pilihan Bahasa / Language</div>
           <div class="drawer-lang-grid">
-            <a href="/" class="drawer-lang-btn active" data-lang="id">
-              <span>🇮🇩 Indonesia</span>
+            <button type="button" class="drawer-lang-btn active" data-lang="id">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+                <span>Indonesia</span>
+              </span>
               <span class="lang-check">✓</span>
-            </a>
-            <a href="/" class="drawer-lang-btn" data-lang="en">
-              <span>🇬🇧 English</span>
-            </a>
+            </button>
+            <button type="button" class="drawer-lang-btn" data-lang="en">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+                <span>English</span>
+              </span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
           </div>
         </div>
       </div>
@@ -288,8 +298,8 @@
 
   <div id="toast" class="toast-notice"></div>
 
-  <script src="/js/api-config.js?v=5.7.0"></script>
-  <script src="/js/order-history.js?v=5.7.0"></script>
-  <script src="/js/claim.js?v=5.7.0"></script>
+  <script src="/js/api-config.js?v=5.8.0"></script>
+  <script src="/js/order-history.js?v=5.8.0"></script>
+  <script src="/js/claim.js?v=5.8.0"></script>
 </body>
 </html>
