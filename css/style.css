@@ -1430,6 +1430,13 @@ select.form-input option:checked {
     padding: 0 0.85rem;
     margin-bottom: 5.5rem; /* Space so content isn't covered by sticky buy bar */
   }
+  .detail-page-body .site-footer {
+    display: none !important;
+  }
+  .detail-page-body .detail-container {
+    padding: 0 0.85rem;
+    margin-bottom: 6.5rem !important; /* Ruang lega agar ulasan terbawah tidak tertutup floating sticky bar */
+  }
   .product-detail-grid {
     display: flex !important;
     flex-direction: column !important;
