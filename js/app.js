@@ -98,8 +98,8 @@ function renderProducts(products) {
               <span class="price-amount">${formatIDR(p.priceIDR)}</span>
             `}
           </div>
-          <button class="btn-buy" onclick="event.stopPropagation(); window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')">
-            ${isOut ? 'Lihat Detail' : 'Beli Sekarang ➔'}
+          <button class="btn-buy btn-buy-catalog" onclick="event.stopPropagation(); window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')">
+            ${isOut ? 'Habis' : 'Beli ➔'}
           </button>
         </div>
       </div>

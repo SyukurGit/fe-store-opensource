@@ -946,9 +946,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reviews & Etalase Page Handlers
   if (document.getElementById('reviewsPageWrap')) {
+    setupReviewsPageUI();
     loadEtalaseProducts();
     loadAdminReviews();
-    setupReviewsPageUI();
   }
 
   // Setup Manual Deliver UI (Orders & Dashboard)
@@ -2393,52 +2393,71 @@ async function loadEtalaseProducts() {
   tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Memuat produk etalase & lokal...</td></tr>`;
 
   try {
-    const [pRes, lpRes] = await Promise.all([
-      adminFetch('/api/admin/products'),
-      adminFetch('/api/admin/custom-products')
-    ]);
+    // 1. Fetch from unified etalase endpoint
+    const res = await adminFetch('/api/admin/etalase-products');
+    if (!res) return;
 
-    let combined = [];
-
-    if (pRes && pRes.ok) {
-      const pJson = await pRes.json();
-      if (pJson.success && pJson.data) {
-        pJson.data.forEach(p => {
-          combined.push({
-            slug: p.slug,
-            name: p.name || p.original_name,
-            original_name: p.original_name,
-            type: p.type || p.original_type,
-            logo: p.logo,
-            is_active: p.is_active,
-            display_order: p.display_order || 0,
-            sales_count: p.sales_count || 10,
-            source: 'DIGITALCORE'
-          });
-        });
+    let products = [];
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        products = json.data;
       }
     }
 
-    if (lpRes && lpRes.ok) {
-      const lpJson = await lpRes.json();
-      if (lpJson.success && lpJson.data) {
-        lpJson.data.forEach(lp => {
-          combined.push({
-            slug: lp.slug,
-            name: lp.name,
-            original_name: lp.name,
-            type: lp.type,
-            logo: lp.logo,
-            is_active: lp.is_active,
-            display_order: lp.display_order || 0,
-            sales_count: lp.sales_count || 10,
-            source: 'LOCAL'
-          });
-        });
+    // 2. Self-healing fallback: if unified endpoint returned empty or failed, fetch separately
+    if (!products || products.length === 0) {
+      try {
+        const [pRes, lpRes] = await Promise.all([
+          adminFetch('/api/admin/products').catch(() => null),
+          adminFetch('/api/admin/custom-products').catch(() => null)
+        ]);
+
+        if (lpRes && lpRes.ok) {
+          const lpJson = await lpRes.json();
+          if (lpJson.success && Array.isArray(lpJson.data)) {
+            lpJson.data.forEach(lp => {
+              products.push({
+                slug: lp.slug,
+                name: lp.name,
+                original_name: lp.name,
+                type: lp.type,
+                logo: lp.logo,
+                region: lp.region,
+                is_active: lp.is_active,
+                display_order: lp.display_order || 0,
+                sales_count: lp.sales_count || 10,
+                source: 'LOCAL'
+              });
+            });
+          }
+        }
+
+        if (pRes && pRes.ok) {
+          const pJson = await pRes.json();
+          if (pJson.success && Array.isArray(pJson.data)) {
+            pJson.data.forEach(p => {
+              products.push({
+                slug: p.slug,
+                name: p.name || p.original_name,
+                original_name: p.original_name,
+                type: p.type || p.original_type,
+                logo: p.logo,
+                region: p.region,
+                is_active: p.is_active,
+                display_order: p.display_order || 0,
+                sales_count: p.sales_count || 10,
+                source: 'DIGITALCORE'
+              });
+            });
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn('Fallback catalog fetch error:', fallbackErr);
       }
     }
 
-    allEtalaseProducts = combined;
+    allEtalaseProducts = products;
 
     // Update Product Select options in Create Review Modal & Review Filter
     populateProductSelectOptions(allEtalaseProducts);
@@ -2452,7 +2471,14 @@ async function loadEtalaseProducts() {
 
   } catch (err) {
     console.error('Failed to load etalase products:', err);
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: #f87171;">Gagal memuat produk: ${err.message}</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 2.5rem; color: #f87171;">
+          <div>Gagal memuat produk: ${escapeHtml(err.message)}</div>
+          <button class="btn-nav" onclick="loadEtalaseProducts()" style="margin-top: 10px; font-size: 0.8rem;">🔄 Coba Lagi</button>
+        </td>
+      </tr>
+    `;
   }
 }
 
@@ -2524,9 +2550,10 @@ function renderEtalaseTable() {
 
     const logoSrc = p.logo || 'https://via.placeholder.com/38?text=DC';
     const isPrio = (p.display_order || 0) > 0;
+    const currentSales = p.sales_count !== undefined ? p.sales_count : 10;
 
     return `
-      <tr>
+      <tr data-slug="${escapeHtml(p.slug)}">
         <td>
           <div style="display: flex; align-items: center; gap: 10px;">
             <img src="${logoSrc}" alt="" style="width: 38px; height: 38px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-subtle);" onerror="this.src='https://via.placeholder.com/38?text=DC'">
@@ -2542,15 +2569,15 @@ function renderEtalaseTable() {
         </td>
         <td>${statusBadge}</td>
         <td style="text-align: center;">
-          <input type="number" min="0" class="stat-input-num ${isPrio ? 'highlight-gold' : ''}" id="orderInput_${escapeHtml(p.slug)}" value="${p.display_order || 0}">
+          <input type="number" min="0" class="stat-input-num input-display-order ${isPrio ? 'highlight-gold' : ''}" value="${p.display_order || 0}">
           ${isPrio ? `<div style="font-size: 0.7rem; color: #fbbf24; font-weight: 600; margin-top: 2px;">★ Prioritas #${p.display_order}</div>` : `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Default (0)</div>`}
         </td>
         <td style="text-align: center;">
-          <input type="number" min="1" class="stat-input-num" id="salesInput_${escapeHtml(p.slug)}" value="${p.sales_count || 10}">
+          <input type="number" min="0" class="stat-input-num input-sales-count" value="${currentSales}">
           <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">terjual</div>
         </td>
         <td style="text-align: center;">
-          <button class="btn-buy" id="btnSaveEtalase_${escapeHtml(p.slug)}" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" onclick="saveProductEtalaseStats('${escapeHtml(p.slug)}')">
+          <button type="button" class="btn-buy btn-save-etalase" data-slug="${escapeHtml(p.slug)}" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
             💾 Simpan
           </button>
         </td>
@@ -2559,20 +2586,23 @@ function renderEtalaseTable() {
   }).join('');
 }
 
-async function saveProductEtalaseStats(slug) {
-  const orderEl = document.getElementById(`orderInput_${slug}`);
-  const salesEl = document.getElementById(`salesInput_${slug}`);
-  const btn = document.getElementById(`btnSaveEtalase_${slug}`);
-
-  if (!orderEl || !salesEl) return;
-
-  const displayOrder = parseInt(orderEl.value, 10) || 0;
-  const salesCount = parseInt(salesEl.value, 10) || 10;
-
-  if (salesCount < 0) {
-    alert('Jumlah terjual minimal 0');
+async function saveProductEtalaseStats(slug, rowEl, btn) {
+  if (!slug || !rowEl) {
+    alert('Elemen baris produk tidak ditemukan');
     return;
   }
+
+  const orderEl = rowEl.querySelector('.input-display-order');
+  const salesEl = rowEl.querySelector('.input-sales-count');
+
+  if (!orderEl || !salesEl) {
+    alert('Input data etalase tidak ditemukan');
+    return;
+  }
+
+  const displayOrder = parseInt(orderEl.value, 10) || 0;
+  const rawSales = parseInt(salesEl.value, 10);
+  const salesCount = isNaN(rawSales) || rawSales < 0 ? 0 : rawSales;
 
   if (btn) {
     btn.disabled = true;
@@ -2723,9 +2753,9 @@ function renderReviewsTable() {
         <td style="font-size: 0.78rem; color: var(--text-muted);">${formatDate(r.created_at)}</td>
         <td style="text-align: center;">
           <div style="display: flex; gap: 6px; justify-content: center;">
-            <button class="btn-table-action" title="Edit Ulasan" onclick="openEditReviewModal(${r.id})">✏️</button>
-            <button class="btn-table-action" title="${isVisible ? 'Sembunyikan' : 'Tampilkan'}" onclick="toggleReviewVisibility(${r.id})">${isVisible ? '👁️' : '🙈'}</button>
-            <button class="btn-table-action" style="color: #f87171;" title="Hapus Ulasan" onclick="deleteReview(${r.id})">🗑️</button>
+            <button type="button" class="btn-table-action btn-edit-review" title="Edit Ulasan" data-id="${r.id}">✏️</button>
+            <button type="button" class="btn-table-action btn-toggle-review" title="${isVisible ? 'Sembunyikan' : 'Tampilkan'}" data-id="${r.id}">${isVisible ? '👁️' : '🙈'}</button>
+            <button type="button" class="btn-table-action btn-del-review" style="color: #f87171;" title="Hapus Ulasan" data-id="${r.id}">🗑️</button>
           </div>
         </td>
       </tr>
@@ -2743,6 +2773,8 @@ function openCreateReviewModal() {
 function closeCreateReviewModal() {
   document.getElementById('createReviewModal')?.classList.remove('open');
 }
+window.openCreateReviewModal = openCreateReviewModal;
+window.closeCreateReviewModal = closeCreateReviewModal;
 
 async function submitCreateReview(e) {
   e.preventDefault();
@@ -2808,6 +2840,8 @@ function openEditReviewModal(id) {
 function closeEditReviewModal() {
   document.getElementById('editReviewModal')?.classList.remove('open');
 }
+window.openEditReviewModal = openEditReviewModal;
+window.closeEditReviewModal = closeEditReviewModal;
 
 async function submitEditReview(e) {
   e.preventDefault();
@@ -2933,6 +2967,34 @@ function setupReviewsPageUI() {
     loadEtalaseProducts();
     loadAdminReviews();
     showToast('Data ulasan & etalase diperbarui 🔄');
+  });
+
+  // Event Delegation for Etalase Save Button
+  document.getElementById('etalaseTableBody')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-save-etalase');
+    if (!btn) return;
+    const slug = btn.dataset.slug;
+    const row = btn.closest('tr');
+    saveProductEtalaseStats(slug, row, btn);
+  });
+
+  // Event Delegation for Reviews Action Buttons (Edit, Toggle, Delete)
+  document.getElementById('reviewsTableBody')?.addEventListener('click', (e) => {
+    const btnEdit = e.target.closest('.btn-edit-review');
+    if (btnEdit) {
+      openEditReviewModal(parseInt(btnEdit.dataset.id, 10));
+      return;
+    }
+    const btnToggle = e.target.closest('.btn-toggle-review');
+    if (btnToggle) {
+      toggleReviewVisibility(parseInt(btnToggle.dataset.id, 10));
+      return;
+    }
+    const btnDel = e.target.closest('.btn-del-review');
+    if (btnDel) {
+      deleteReview(parseInt(btnDel.dataset.id, 10));
+      return;
+    }
   });
 
   // Search etalase

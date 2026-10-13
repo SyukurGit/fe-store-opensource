@@ -189,7 +189,7 @@ function renderReviewsSection(stats, reviews) {
         </div>
       `;
     } else {
-      listWrap.innerHTML = reviews.map(r => {
+      const renderCard = (r) => {
         const initial = (r.author_name || 'U').charAt(0).toUpperCase();
         const dateStr = formatDate(r.created_at);
         const starStr = getStarString(r.rating);
@@ -207,7 +207,32 @@ function renderReviewsSection(stats, reviews) {
             <div class="review-date-val">${escapeHtml(dateStr)}</div>
           </div>
         `;
-      }).join('');
+      };
+
+      if (reviews.length <= 5) {
+        listWrap.innerHTML = reviews.map(renderCard).join('');
+      } else {
+        const firstBatch = reviews.slice(0, 5).map(renderCard).join('');
+        const remainingBatch = reviews.slice(5).map(renderCard).join('');
+        listWrap.innerHTML = `
+          ${firstBatch}
+          <div id="hiddenReviewsContainer" style="display: none;">
+            ${remainingBatch}
+          </div>
+          <div id="moreReviewsWrap" style="text-align: center; margin-top: 1.25rem;">
+            <button type="button" id="btnShowMoreReviews" class="btn-nav" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.55rem 1.25rem; font-size: 0.85rem; color: #fbbf24; border-color: rgba(251, 191, 36, 0.35);">
+              Lihat Seluruh Ulasan (${reviews.length}) ▾
+            </button>
+          </div>
+        `;
+
+        document.getElementById('btnShowMoreReviews')?.addEventListener('click', () => {
+          const hiddenCont = document.getElementById('hiddenReviewsContainer');
+          const btnMore = document.getElementById('btnShowMoreReviews');
+          if (hiddenCont) hiddenCont.style.display = 'block';
+          if (btnMore) btnMore.parentElement.style.display = 'none';
+        });
+      }
     }
   }
 }
@@ -398,6 +423,15 @@ function setupEventListeners() {
   // History Drawer
   document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryModal);
   document.getElementById('closeHistoryBtn')?.addEventListener('click', closeHistoryModal);
+
+  // Smooth scroll to customer reviews section
+  document.getElementById('dRatingLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.getElementById('customerReviewsSection');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 
   // Close modals on background click
   window.addEventListener('click', (e) => {

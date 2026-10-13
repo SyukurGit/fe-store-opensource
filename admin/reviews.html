@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/style.css?v=5.1.0">
+  <link rel="stylesheet" href="/css/admin.css?v=5.1.0">
   <style>
     .sub-tabs-bar {
       display: flex;
@@ -105,7 +105,7 @@
       </div>
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <button id="btnRefreshReviewsPage" class="btn-nav" style="padding: 0.5rem 1rem;">🔄 Refresh</button>
-        <button id="btnOpenCreateReviewModal" class="btn-buy" style="padding: 0.5rem 1.25rem;">+ Tambah Ulasan Manual</button>
+        <button id="btnOpenCreateReviewModal" class="btn-buy" style="padding: 0.5rem 1.25rem;" onclick="if(window.openCreateReviewModal) window.openCreateReviewModal();">+ Tambah Ulasan Manual</button>
       </div>
     </div>
 
@@ -236,7 +236,7 @@
       <form id="createReviewForm" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
         <div class="form-group">
           <label class="form-label">Pilih Produk *</label>
-          <select id="crProductSlug" class="form-input" required>
+          <select id="crProductSlug" class="form-input" style="background-color: #0f172a !important; color: #f8fafc !important;" required>
             <option value="">-- Pilih Produk --</option>
           </select>
         </div>
@@ -248,7 +248,7 @@
 
         <div class="form-group">
           <label class="form-label">Bintang Rating (1 - 5) *</label>
-          <select id="crRating" class="form-input" required>
+          <select id="crRating" class="form-input" style="background-color: #0f172a !important; color: #f8fafc !important;" required>
             <option value="5">⭐⭐⭐⭐⭐ (5 Bintang - Sangat Puas)</option>
             <option value="4">⭐⭐⭐⭐ (4 Bintang - Puas)</option>
             <option value="3">⭐⭐⭐ (3 Bintang - Cukup)</option>
@@ -298,7 +298,7 @@
 
         <div class="form-group">
           <label class="form-label">Bintang Rating (1 - 5) *</label>
-          <select id="erRating" class="form-input" required>
+          <select id="erRating" class="form-input" style="background-color: #0f172a !important; color: #f8fafc !important;" required>
             <option value="5">⭐⭐⭐⭐⭐ (5 Bintang)</option>
             <option value="4">⭐⭐⭐⭐ (4 Bintang)</option>
             <option value="3">⭐⭐⭐ (3 Bintang)</option>
@@ -327,7 +327,7 @@
 
   <div id="toast" class="toast-notice"></div>
 
-  <script src="/js/api-config.js?v=4.0"></script>
-  <script src="/js/admin.js?v=4.0"></script>
+  <script src="/js/api-config.js?v=5.1.0"></script>
+  <script src="/js/admin.js?v=5.1.0"></script>
 </body>
 </html>

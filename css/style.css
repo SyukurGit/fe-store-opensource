@@ -458,6 +458,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding-top: 0.85rem;
   border-top: 1px solid var(--border-subtle);
 }
@@ -465,6 +466,8 @@ body {
 .price-wrap {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .price-label {
@@ -542,6 +545,17 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* Compact Catalog Buy Button (Keeps price & button clean in 1 row) */
+.prod-footer .btn-buy,
+.btn-buy-catalog {
+  padding: 0.44rem 0.82rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
 }
 
 /* MODAL & DRAWER */
@@ -649,6 +663,20 @@ body {
 .form-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+select.form-input,
+select.form-input option,
+.modal-card select,
+.modal-card select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+select.form-input option:hover,
+select.form-input option:checked {
+  background-color: #1e293b !important;
+  color: #38bdf8 !important;
 }
 
 .tier-pills-wrap {
@@ -2154,6 +2182,57 @@ body.has-sticky-bar .floating-telegram-btn,
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Reviews Notice Banner */
+.reviews-notice-banner {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.reviews-notice-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.reviews-notice-text {
+  flex: 1;
+}
+
+.reviews-notice-link {
+  color: #818cf8;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.reviews-notice-link:hover {
+  color: #c7d2fe;
+}
+
+@media (max-width: 640px) {
+  .reviews-notice-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0.75rem 0.95rem;
+  }
 }
 
 .reviews-summary-grid {

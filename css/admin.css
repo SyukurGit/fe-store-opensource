@@ -616,5 +616,25 @@ input:checked + .slider:before {
   }
 }
 
+/* ==========================================================================
+   SOLID DARK SELECT & DROPDOWN OPTIONS FIX (CROSS-BROWSER CONTRAST)
+   ========================================================================== */
+select.form-input,
+select.form-input option,
+.modal-card select,
+.modal-card select option,
+#crProductSlug,
+#crProductSlug option,
+#crRating,
+#crRating option,
+#erRating,
+#erRating option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
 
-
+select.form-input option:hover,
+select.form-input option:checked {
+  background-color: #1e293b !important;
+  color: #38bdf8 !important;
+}

@@ -3,9 +3,12 @@
  * Production VPS Endpoint: https://digimest.syukurapi.online
  */
 (function() {
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const host = window.location.hostname;
+  const isLocalDev = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' ||
+                     host.endsWith('.test') || host.endsWith('.local') ||
+                     window.location.port === '8080' || window.location.port === '3000';
   // Default API VPS: https://digimest.syukurapi.online
-  const defaultApi = isLocalhost ? '' : 'https://digimest.syukurapi.online';
+  const defaultApi = isLocalDev ? '' : 'https://digimest.syukurapi.online';
   
   window.DIGIMEST_API_BASE = window.DIGIMEST_API_BASE || window.API_BASE || defaultApi;
 })();
