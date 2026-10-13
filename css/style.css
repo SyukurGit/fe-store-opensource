@@ -1237,53 +1237,47 @@ select.form-input option:checked {
   }
   .products-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.65rem !important;
-    align-items: stretch !important;
+    gap: 0.75rem !important;
   }
   .product-card {
-    padding: 0.75rem !important;
-    border-radius: 12px !important;
-    height: 100% !important;
+    padding: 0.85rem !important;
+    border-radius: 14px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     position: relative !important;
-  }
-  .prod-card-body {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
   }
   .prod-sold-badge {
     position: absolute !important;
-    top: 10px !important;
-    right: 10px !important;
-    font-size: 0.62rem !important;
-    padding: 2px 5px !important;
-    border-radius: 4px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 0.65rem !important;
+    font-weight: 500 !important;
     color: #94a3b8 !important;
-    z-index: 2 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 2px 6px !important;
+    border-radius: 5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     white-space: nowrap !important;
+    z-index: 2 !important;
   }
   .prod-header {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 0.55rem !important;
-    margin-bottom: 0.45rem !important;
-    padding-right: 55px !important; /* Space to prevent overlap with top-right sold badge */
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0.5rem !important;
   }
   .prod-logo {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 8px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 9px !important;
     flex-shrink: 0 !important;
   }
   .prod-title-wrap {
-    flex: 1 1 auto !important;
+    width: 100% !important;
     min-width: 0 !important;
   }
   .prod-header-meta {
@@ -1291,44 +1285,36 @@ select.form-input option:checked {
     margin-bottom: 2px !important;
   }
   .prod-category {
-    font-size: 0.64rem !important;
+    font-size: 0.68rem !important;
     color: var(--text-muted) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.02em !important;
+    margin-bottom: 3px !important;
     display: block !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
   .prod-title {
-    font-size: 0.82rem !important;
-    line-height: 1.25 !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
     color: #fff !important;
     white-space: normal !important;
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
-    min-height: 2.1em !important;
-    max-height: 2.1em !important;
     margin: 0 !important;
   }
   .prod-tags-row {
     display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow: hidden !important;
-    gap: 3px !important;
-    margin-bottom: 0.45rem !important;
-    height: 20px !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin-bottom: 0.65rem !important;
   }
   .prod-tags-row .badge {
-    font-size: 0.6rem !important;
-    padding: 1px 5px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    height: 18px !important;
-    display: inline-flex !important;
-    align-items: center !important;
+    font-size: 0.64rem !important;
+    padding: 2px 6px !important;
+    border-radius: 5px !important;
   }
   /* Pangkas deskripsi panjang di mobile */
   .prod-desc {
@@ -1336,53 +1322,59 @@ select.form-input option:checked {
   }
   .prod-footer {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.45rem !important;
     margin-top: auto !important;
-    padding-top: 0.45rem !important;
+    padding-top: 0.6rem !important;
     border-top: 1px solid var(--border-subtle) !important;
   }
   .price-wrap {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
     text-align: left !important;
-    overflow: hidden !important;
+    width: 100% !important;
   }
   .price-strike-wrap {
     display: flex !important;
     align-items: center !important;
-    gap: 3px !important;
-    margin-bottom: 1px !important;
+    gap: 4px !important;
+    margin-bottom: 2px !important;
   }
   .price-original-striked {
-    font-size: 0.6rem !important;
+    font-size: 0.68rem !important;
+    font-family: var(--font-mono) !important;
   }
   .badge-discount-mini {
-    font-size: 0.55rem !important;
-    padding: 0 2px !important;
+    font-size: 0.6rem !important;
+    padding: 1px 4px !important;
+    font-family: var(--font-mono) !important;
   }
   .price-label {
-    font-size: 0.58rem !important;
-    line-height: 1 !important;
+    font-size: 0.62rem !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase !important;
+    margin-bottom: 1px !important;
+    display: block !important;
   }
   .price-amount {
-    font-size: 0.88rem !important;
+    font-size: 1.05rem !important;
     font-weight: 800 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-family: var(--font-mono) !important;
+    color: #10b981 !important;
+  }
+  .price-amount.promo-highlight {
+    color: #fbbf24 !important;
   }
   .btn-buy,
   .btn-buy-catalog {
-    width: auto !important;
-    padding: 0.38rem 0.65rem !important;
-    font-size: 0.72rem !important;
-    border-radius: 7px !important;
+    width: 100% !important;
+    display: block !important;
+    text-align: center !important;
+    padding: 0.48rem 0.5rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
     white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    letter-spacing: 0.01em !important;
+    box-shadow: 0 3px 10px var(--primary-glow) !important;
   }
 }
 
