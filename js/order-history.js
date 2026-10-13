@@ -169,8 +169,12 @@ const DigimestOrders = (() => {
     const badges = document.querySelectorAll('#historyBadge, .history-badge-count');
     badges.forEach(badge => {
       if (list.length > 0) {
-        badge.textContent = list.length;
-        badge.style.display = 'inline-block';
+        if (badge.classList.contains('hamburger-badge-dot')) {
+          badge.style.display = 'block';
+        } else {
+          badge.textContent = list.length;
+          badge.style.display = 'inline-block';
+        }
       } else {
         badge.style.display = 'none';
       }
@@ -519,4 +523,100 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   } catch (e) {}
+})();
+
+// Mobile Navigation Drawer & Language Switcher Manager
+(() => {
+  function initMobileNav() {
+    const hamburgerBtn = document.getElementById('navHamburgerBtn');
+    const drawerOverlay = document.getElementById('mobileDrawerOverlay');
+    const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+    const drawerHistoryBtn = document.getElementById('drawerOpenHistoryBtn');
+    const langBtn = document.getElementById('langDropdownBtn');
+    const langWrap = langBtn?.closest('.lang-dropdown-wrap');
+
+    function openDrawer() {
+      hamburgerBtn?.classList.add('open');
+      drawerOverlay?.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer() {
+      hamburgerBtn?.classList.remove('open');
+      drawerOverlay?.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    hamburgerBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (drawerOverlay?.classList.contains('open')) {
+        closeDrawer();
+      } else {
+        openDrawer();
+      }
+    });
+
+    drawerCloseBtn?.addEventListener('click', closeDrawer);
+
+    drawerOverlay?.addEventListener('click', (e) => {
+      if (e.target === drawerOverlay) {
+        closeDrawer();
+      }
+    });
+
+    // Language Dropdown Toggle
+    langBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      langWrap?.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (langWrap && !langWrap.contains(e.target)) {
+        langWrap.classList.remove('open');
+      }
+    });
+
+    // Language item click
+    document.querySelectorAll('[data-lang]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const lang = el.getAttribute('data-lang');
+        if (lang === 'en') {
+          e.preventDefault();
+          if (window.showToast) {
+            window.showToast('English version is coming soon! Menampilkan katalog Indonesia.', 'info');
+          } else {
+            alert('English version is coming soon! Menampilkan katalog Indonesia.');
+          }
+          closeDrawer();
+          langWrap?.classList.remove('open');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 600);
+        } else if (lang === 'id') {
+          langWrap?.classList.remove('open');
+          closeDrawer();
+        }
+      });
+    });
+
+    // When drawer history button is clicked, close drawer and open history modal
+    drawerHistoryBtn?.addEventListener('click', () => {
+      closeDrawer();
+      setTimeout(() => {
+        const hModal = document.getElementById('historyModal');
+        if (hModal) {
+          hModal.classList.add('open');
+          if (window.DigimestOrders) {
+            window.DigimestOrders.renderHistoryUI();
+          }
+        }
+      }, 250);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileNav);
+  } else {
+    initMobileNav();
+  }
 })();
