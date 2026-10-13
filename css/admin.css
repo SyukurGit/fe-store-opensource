@@ -569,6 +569,10 @@ input:checked + .slider:before {
   gap: 12px;
 }
 
+.form-grid-2col > * {
+  min-width: 0;
+}
+
 .form-section-title {
   font-size: 0.82rem;
   font-weight: 700;
@@ -582,6 +586,15 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 640px) {
+  .form-grid-2col {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0;
+  }
+
+  .form-grid-2col .form-group {
+    margin-bottom: 0.9rem;
+  }
+
   .modal-card-large {
     width: 98vw !important;
     max-width: 98vw !important;
@@ -611,8 +624,8 @@ input:checked + .slider:before {
     flex: 1;
   }
   .form-grid-2col {
-    grid-template-columns: 1fr !important;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0;
   }
 }
 

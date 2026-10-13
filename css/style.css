@@ -690,14 +690,29 @@ body {
 
 .form-input {
   width: 100%;
+  min-height: 44px;
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   color: #fff;
   font-size: 0.95rem;
+  line-height: 1.4;
   outline: none;
   transition: border-color 0.2s;
+}
+
+.form-input::placeholder {
+  color: rgba(148, 163, 184, 0.72);
+}
+
+textarea.form-input {
+  min-height: 108px;
+  resize: vertical;
+}
+
+select.form-input {
+  appearance: auto;
 }
 
 .form-input:focus {
@@ -1533,6 +1548,25 @@ select.form-input option:checked {
 }
 
 @media (max-width: 640px) {
+  .form-group {
+    margin-bottom: 0.9rem;
+  }
+
+  .form-label {
+    margin-bottom: 0.45rem;
+    font-size: 0.75rem;
+  }
+
+  .form-input {
+    min-height: 46px;
+    padding: 0.75rem 0.85rem;
+    font-size: 16px;
+  }
+
+  textarea.form-input {
+    min-height: 116px;
+  }
+
   .site-footer {
     padding: 2.25rem 1rem 1.75rem;
     margin-top: 3.5rem;
