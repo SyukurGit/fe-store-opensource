@@ -833,6 +833,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof loadLocalProducts === 'function' && document.getElementById('localProductsTableBody')) {
       loadLocalProducts();
     }
+    if (document.getElementById('reviewsPageWrap')) {
+      loadEtalaseProducts();
+      loadAdminReviews();
+    }
     showToast('Data diperbarui 🔄');
   });
 
@@ -938,6 +942,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('localProductsTableBody')) {
     loadLocalProducts();
     setupLocalProductsUI();
+  }
+
+  // Reviews & Etalase Page Handlers
+  if (document.getElementById('reviewsPageWrap')) {
+    loadEtalaseProducts();
+    loadAdminReviews();
+    setupReviewsPageUI();
   }
 
   // Setup Manual Deliver UI (Orders & Dashboard)
@@ -2364,6 +2375,590 @@ function setupManualDeliverUI() {
   document.getElementById('btnSubmitManualDeliver')?.addEventListener('click', submitManualDeliver);
   document.getElementById('manualDeliverModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'manualDeliverModal') closeManualDeliverModal();
+  });
+}
+
+// -------------------------------------------------------------
+// 9. REVIEWS & ETALASE MANAGEMENT ENGINE (/admin/reviews)
+// -------------------------------------------------------------
+let allEtalaseProducts = [];
+let filteredEtalaseProducts = [];
+let allAdminReviews = [];
+let filteredAdminReviews = [];
+
+async function loadEtalaseProducts() {
+  const tbody = document.getElementById('etalaseTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Memuat produk etalase & lokal...</td></tr>`;
+
+  try {
+    const [pRes, lpRes] = await Promise.all([
+      adminFetch('/api/admin/products'),
+      adminFetch('/api/admin/custom-products')
+    ]);
+
+    let combined = [];
+
+    if (pRes && pRes.ok) {
+      const pJson = await pRes.json();
+      if (pJson.success && pJson.data) {
+        pJson.data.forEach(p => {
+          combined.push({
+            slug: p.slug,
+            name: p.name || p.original_name,
+            original_name: p.original_name,
+            type: p.type || p.original_type,
+            logo: p.logo,
+            is_active: p.is_active,
+            display_order: p.display_order || 0,
+            sales_count: p.sales_count || 10,
+            source: 'DIGITALCORE'
+          });
+        });
+      }
+    }
+
+    if (lpRes && lpRes.ok) {
+      const lpJson = await lpRes.json();
+      if (lpJson.success && lpJson.data) {
+        lpJson.data.forEach(lp => {
+          combined.push({
+            slug: lp.slug,
+            name: lp.name,
+            original_name: lp.name,
+            type: lp.type,
+            logo: lp.logo,
+            is_active: lp.is_active,
+            display_order: lp.display_order || 0,
+            sales_count: lp.sales_count || 10,
+            source: 'LOCAL'
+          });
+        });
+      }
+    }
+
+    allEtalaseProducts = combined;
+
+    // Update Product Select options in Create Review Modal & Review Filter
+    populateProductSelectOptions(allEtalaseProducts);
+
+    // Update stats
+    const prioritizedCount = allEtalaseProducts.filter(p => p.display_order > 0).length;
+    const prioEl = document.getElementById('cntPrioritizedProds');
+    if (prioEl) prioEl.textContent = prioritizedCount;
+
+    applyEtalaseFilter();
+
+  } catch (err) {
+    console.error('Failed to load etalase products:', err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: #f87171;">Gagal memuat produk: ${err.message}</td></tr>`;
+  }
+}
+
+function populateProductSelectOptions(products) {
+  const crSelect = document.getElementById('crProductSlug');
+  const filterSelect = document.getElementById('filterReviewProductSelect');
+
+  const currentCrVal = crSelect ? crSelect.value : '';
+  const currentFilterVal = filterSelect ? filterSelect.value : '';
+
+  if (crSelect) {
+    crSelect.innerHTML = `<option value="">-- Pilih Produk --</option>` +
+      products.map(p => `<option value="${escapeHtml(p.slug)}">${escapeHtml(p.name)} (${p.source === 'LOCAL' ? 'Lokal' : 'Upstream'})</option>`).join('');
+    if (currentCrVal) crSelect.value = currentCrVal;
+  }
+
+  if (filterSelect) {
+    filterSelect.innerHTML = `<option value="">Semua Produk</option>` +
+      products.map(p => `<option value="${escapeHtml(p.slug)}">${escapeHtml(p.name)}</option>`).join('');
+    if (currentFilterVal) filterSelect.value = currentFilterVal;
+  }
+}
+
+function applyEtalaseFilter() {
+  const query = (document.getElementById('searchEtalaseInput')?.value || '').trim().toLowerCase();
+
+  filteredEtalaseProducts = allEtalaseProducts.filter(p => {
+    return (p.name || '').toLowerCase().includes(query) ||
+           (p.slug || '').toLowerCase().includes(query) ||
+           (p.type || '').toLowerCase().includes(query);
+  });
+
+  // Sort: display_order > 0 ascending first, then display_order == 0, then by name
+  filteredEtalaseProducts.sort((a, b) => {
+    const aOrder = a.display_order || 0;
+    const bOrder = b.display_order || 0;
+    if (aOrder > 0 && bOrder > 0) return aOrder - bOrder;
+    if (aOrder > 0 && bOrder === 0) return -1;
+    if (aOrder === 0 && bOrder > 0) return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  renderEtalaseTable();
+}
+
+function renderEtalaseTable() {
+  const tbody = document.getElementById('etalaseTableBody');
+  const countText = document.getElementById('etalaseProdCountText');
+  if (!tbody) return;
+
+  if (countText) {
+    countText.textContent = `Menampilkan ${filteredEtalaseProducts.length} dari ${allEtalaseProducts.length} produk`;
+  }
+
+  if (filteredEtalaseProducts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Tidak ada produk yang cocok dengan pencarian.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredEtalaseProducts.map(p => {
+    const isLocal = p.source === 'LOCAL';
+    const sourceBadge = isLocal
+      ? `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">✨ Lokal Mandiri</span>`
+      : `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3);">🌐 Upstream DC</span>`;
+
+    const statusBadge = p.is_active
+      ? `<span class="badge badge-stock">● Aktif</span>`
+      : `<span class="badge badge-stock empty">● Nonaktif</span>`;
+
+    const logoSrc = p.logo || 'https://via.placeholder.com/38?text=DC';
+    const isPrio = (p.display_order || 0) > 0;
+
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${logoSrc}" alt="" style="width: 38px; height: 38px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-subtle);" onerror="this.src='https://via.placeholder.com/38?text=DC'">
+            <div style="min-width: 0;">
+              <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">${escapeHtml(p.name)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(p.slug)}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div>${sourceBadge}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">${escapeHtml(p.type || 'Digital')}</div>
+        </td>
+        <td>${statusBadge}</td>
+        <td style="text-align: center;">
+          <input type="number" min="0" class="stat-input-num ${isPrio ? 'highlight-gold' : ''}" id="orderInput_${escapeHtml(p.slug)}" value="${p.display_order || 0}">
+          ${isPrio ? `<div style="font-size: 0.7rem; color: #fbbf24; font-weight: 600; margin-top: 2px;">★ Prioritas #${p.display_order}</div>` : `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Default (0)</div>`}
+        </td>
+        <td style="text-align: center;">
+          <input type="number" min="1" class="stat-input-num" id="salesInput_${escapeHtml(p.slug)}" value="${p.sales_count || 10}">
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">terjual</div>
+        </td>
+        <td style="text-align: center;">
+          <button class="btn-buy" id="btnSaveEtalase_${escapeHtml(p.slug)}" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;" onclick="saveProductEtalaseStats('${escapeHtml(p.slug)}')">
+            💾 Simpan
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function saveProductEtalaseStats(slug) {
+  const orderEl = document.getElementById(`orderInput_${slug}`);
+  const salesEl = document.getElementById(`salesInput_${slug}`);
+  const btn = document.getElementById(`btnSaveEtalase_${slug}`);
+
+  if (!orderEl || !salesEl) return;
+
+  const displayOrder = parseInt(orderEl.value, 10) || 0;
+  const salesCount = parseInt(salesEl.value, 10) || 10;
+
+  if (salesCount < 0) {
+    alert('Jumlah terjual minimal 0');
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+  }
+
+  try {
+    const res = await adminFetch(`/api/admin/products/${encodeURIComponent(slug)}/display-stats`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        display_order: displayOrder,
+        sales_count: salesCount
+      })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Urutan etalase & terjual disimpan! 💾');
+
+      // Update in memory
+      const item = allEtalaseProducts.find(p => p.slug === slug);
+      if (item) {
+        item.display_order = displayOrder;
+        item.sales_count = salesCount;
+      }
+
+      const prioCount = allEtalaseProducts.filter(p => p.display_order > 0).length;
+      const prioEl = document.getElementById('cntPrioritizedProds');
+      if (prioEl) prioEl.textContent = prioCount;
+
+      applyEtalaseFilter();
+    } else {
+      alert('Gagal menyimpan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '💾 Simpan';
+    }
+  }
+}
+
+async function loadAdminReviews() {
+  const tbody = document.getElementById('reviewsTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Memuat data ulasan...</td></tr>`;
+
+  try {
+    const res = await adminFetch('/api/admin/reviews?limit=200');
+    if (!res) return;
+    const json = await res.json();
+    if (!json.success || !json.data) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: #f87171;">Gagal memuat ulasan: ${json.error || 'Server error'}</td></tr>`;
+      return;
+    }
+
+    allAdminReviews = json.data;
+
+    // Update stats
+    const total = allAdminReviews.length;
+    const visible = allAdminReviews.filter(r => r.is_visible).length;
+
+    const cntTotalEl = document.getElementById('cntTotalReviews');
+    if (cntTotalEl) cntTotalEl.textContent = total;
+
+    const cntVisEl = document.getElementById('cntVisibleReviews');
+    if (cntVisEl) cntVisEl.textContent = visible;
+
+    applyReviewFilter();
+
+  } catch (err) {
+    console.error('Failed to load reviews:', err);
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: #f87171;">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function applyReviewFilter() {
+  const query = (document.getElementById('searchReviewInput')?.value || '').trim().toLowerCase();
+  const slugFilter = document.getElementById('filterReviewProductSelect')?.value || '';
+
+  filteredAdminReviews = allAdminReviews.filter(r => {
+    if (slugFilter && r.product_slug !== slugFilter) return false;
+    if (!query) return true;
+    return (r.author_name || '').toLowerCase().includes(query) ||
+           (r.review_text || '').toLowerCase().includes(query) ||
+           (r.product_slug || '').toLowerCase().includes(query) ||
+           (r.order_invoice || '').toLowerCase().includes(query);
+  });
+
+  renderReviewsTable();
+}
+
+function renderReviewsTable() {
+  const tbody = document.getElementById('reviewsTableBody');
+  const countText = document.getElementById('reviewsCountText');
+  if (!tbody) return;
+
+  if (countText) {
+    countText.textContent = `Menampilkan ${filteredAdminReviews.length} dari ${allAdminReviews.length} ulasan`;
+  }
+
+  if (filteredAdminReviews.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">Tidak ada ulasan ditemukan.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredAdminReviews.map(r => {
+    const isVisible = !!r.is_visible;
+    const statusBadge = isVisible
+      ? `<span class="badge badge-stock">● Tampil</span>`
+      : `<span class="badge badge-stock empty">● Disembunyikan</span>`;
+
+    const isVerified = !!r.order_invoice;
+    const verifiedBadge = isVerified
+      ? `<span class="verified-buyer-badge" style="font-size: 0.65rem;" title="Invoice: ${escapeHtml(r.order_invoice)}">✓ Pembeli Lunas</span>`
+      : `<span class="badge" style="background: rgba(255,255,255,0.06); color: var(--text-muted); font-size: 0.65rem;">Manual Admin</span>`;
+
+    let starsStr = '';
+    for (let i = 1; i <= 5; i++) {
+      starsStr += i <= r.rating ? '★' : '☆';
+    }
+
+    return `
+      <tr>
+        <td style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem;">#${r.id}</td>
+        <td>
+          <div style="font-weight: 700; color: #fff; font-size: 0.88rem;">${escapeHtml(r.product_slug)}</div>
+        </td>
+        <td>
+          <div style="font-weight: 600; color: #fff; font-size: 0.85rem;">${escapeHtml(r.author_name || 'Anonim')}</div>
+          <div style="margin-top: 3px;">${verifiedBadge}</div>
+        </td>
+        <td>
+          <div style="color: #fbbf24; font-size: 0.95rem; letter-spacing: 1px;">${starsStr}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">${r.rating}.0 / 5.0</div>
+        </td>
+        <td>
+          <div style="font-size: 0.82rem; color: #cbd5e1; max-width: 280px; line-height: 1.45; max-height: 80px; overflow-y: auto;">
+            ${escapeHtml(r.review_text || '(Tidak ada teks ulasan)')}
+          </div>
+        </td>
+        <td>${statusBadge}</td>
+        <td style="font-size: 0.78rem; color: var(--text-muted);">${formatDate(r.created_at)}</td>
+        <td style="text-align: center;">
+          <div style="display: flex; gap: 6px; justify-content: center;">
+            <button class="btn-table-action" title="Edit Ulasan" onclick="openEditReviewModal(${r.id})">✏️</button>
+            <button class="btn-table-action" title="${isVisible ? 'Sembunyikan' : 'Tampilkan'}" onclick="toggleReviewVisibility(${r.id})">${isVisible ? '👁️' : '🙈'}</button>
+            <button class="btn-table-action" style="color: #f87171;" title="Hapus Ulasan" onclick="deleteReview(${r.id})">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openCreateReviewModal() {
+  document.getElementById('createReviewForm')?.reset();
+  const vis = document.getElementById('crIsVisible');
+  if (vis) vis.checked = true;
+  document.getElementById('createReviewModal')?.classList.add('open');
+}
+
+function closeCreateReviewModal() {
+  document.getElementById('createReviewModal')?.classList.remove('open');
+}
+
+async function submitCreateReview(e) {
+  e.preventDefault();
+  const slug = document.getElementById('crProductSlug')?.value;
+  if (!slug) {
+    alert('Pilih produk terlebih dahulu');
+    return;
+  }
+
+  const author = (document.getElementById('crAuthorName')?.value || '').trim() || 'Pelanggan Terverifikasi';
+  const rating = parseInt(document.getElementById('crRating')?.value, 10) || 5;
+  const text = (document.getElementById('crReviewText')?.value || '').trim();
+  const isVisible = !!document.getElementById('crIsVisible')?.checked;
+
+  const btn = document.getElementById('submitCreateReviewBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const res = await adminFetch('/api/admin/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_slug: slug,
+        author_name: author,
+        rating: rating,
+        review_text: text,
+        is_visible: isVisible
+      })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Ulasan berhasil ditambahkan! ⭐');
+      closeCreateReviewModal();
+      await loadAdminReviews();
+    } else {
+      alert('Gagal menambahkan ulasan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Ulasan';
+  }
+}
+
+function openEditReviewModal(id) {
+  const rev = allAdminReviews.find(r => r.id === id);
+  if (!rev) return;
+
+  document.getElementById('erReviewId').value = rev.id;
+  document.getElementById('erProductTitle').value = rev.product_slug;
+  document.getElementById('erAuthorName').value = rev.author_name || '';
+  document.getElementById('erRating').value = String(rev.rating || 5);
+  document.getElementById('erReviewText').value = rev.review_text || '';
+  document.getElementById('erIsVisible').checked = !!rev.is_visible;
+
+  document.getElementById('editReviewModal')?.classList.add('open');
+}
+
+function closeEditReviewModal() {
+  document.getElementById('editReviewModal')?.classList.remove('open');
+}
+
+async function submitEditReview(e) {
+  e.preventDefault();
+  const id = parseInt(document.getElementById('erReviewId')?.value, 10);
+  if (!id) return;
+
+  const author = (document.getElementById('erAuthorName')?.value || '').trim();
+  const rating = parseInt(document.getElementById('erRating')?.value, 10) || 5;
+  const text = (document.getElementById('erReviewText')?.value || '').trim();
+  const isVisible = !!document.getElementById('erIsVisible')?.checked;
+
+  const btn = document.getElementById('submitEditReviewBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const res = await adminFetch(`/api/admin/reviews/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        author_name: author,
+        rating: rating,
+        review_text: text,
+        is_visible: isVisible
+      })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Ulasan berhasil diperbarui! ✏️');
+      closeEditReviewModal();
+      await loadAdminReviews();
+    } else {
+      alert('Gagal memperbarui ulasan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Perubahan';
+  }
+}
+
+async function toggleReviewVisibility(id) {
+  const rev = allAdminReviews.find(r => r.id === id);
+  if (!rev) return;
+
+  const newVis = !rev.is_visible;
+  try {
+    const res = await adminFetch(`/api/admin/reviews/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        author_name: rev.author_name,
+        rating: rev.rating,
+        review_text: rev.review_text,
+        is_visible: newVis
+      })
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      rev.is_visible = newVis;
+      showToast(newVis ? 'Ulasan ditampilkan di etalase 👁️' : 'Ulasan disembunyikan 🙈');
+      renderReviewsTable();
+      const visCount = allAdminReviews.filter(r => r.is_visible).length;
+      const cntVisEl = document.getElementById('cntVisibleReviews');
+      if (cntVisEl) cntVisEl.textContent = visCount;
+    } else {
+      alert('Gagal mengubah status visibilitas: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  }
+}
+
+async function deleteReview(id) {
+  if (!confirm(`Hapus ulasan #${id} secara permanen? Tindakan ini tidak dapat dibatalkan.`)) return;
+
+  try {
+    const res = await adminFetch(`/api/admin/reviews/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Ulasan berhasil dihapus 🗑️');
+      await loadAdminReviews();
+    } else {
+      alert('Gagal menghapus ulasan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan: ' + err.message);
+  }
+}
+
+function setupReviewsPageUI() {
+  // Sub-tabs switching
+  const tabBtnEtalase = document.getElementById('tabBtnEtalase');
+  const tabBtnReviews = document.getElementById('tabBtnReviews');
+  const secEtalase = document.getElementById('sectionEtalase');
+  const secReviews = document.getElementById('sectionReviews');
+
+  tabBtnEtalase?.addEventListener('click', () => {
+    tabBtnEtalase.classList.add('active');
+    tabBtnReviews?.classList.remove('active');
+    if (secEtalase) secEtalase.style.display = 'block';
+    if (secReviews) secReviews.style.display = 'none';
+  });
+
+  tabBtnReviews?.addEventListener('click', () => {
+    tabBtnReviews.classList.add('active');
+    tabBtnEtalase?.classList.remove('active');
+    if (secReviews) secReviews.style.display = 'block';
+    if (secEtalase) secEtalase.style.display = 'none';
+  });
+
+  // Refresh button
+  document.getElementById('btnRefreshReviewsPage')?.addEventListener('click', () => {
+    loadEtalaseProducts();
+    loadAdminReviews();
+    showToast('Data ulasan & etalase diperbarui 🔄');
+  });
+
+  // Search etalase
+  document.getElementById('searchEtalaseInput')?.addEventListener('input', applyEtalaseFilter);
+
+  // Search & Filter reviews
+  document.getElementById('searchReviewInput')?.addEventListener('input', applyReviewFilter);
+  document.getElementById('filterReviewProductSelect')?.addEventListener('change', applyReviewFilter);
+
+  // Create review modal
+  document.getElementById('btnOpenCreateReviewModal')?.addEventListener('click', openCreateReviewModal);
+  document.getElementById('closeCreateReviewBtn')?.addEventListener('click', closeCreateReviewModal);
+  document.getElementById('cancelCreateReviewBtn')?.addEventListener('click', closeCreateReviewModal);
+  document.getElementById('createReviewForm')?.addEventListener('submit', submitCreateReview);
+
+  // Edit review modal
+  document.getElementById('closeEditReviewBtn')?.addEventListener('click', closeEditReviewModal);
+  document.getElementById('cancelEditReviewBtn')?.addEventListener('click', closeEditReviewModal);
+  document.getElementById('editReviewForm')?.addEventListener('submit', submitEditReview);
+
+  // Backdrop clicks
+  document.getElementById('createReviewModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'createReviewModal') closeCreateReviewModal();
+  });
+  document.getElementById('editReviewModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'editReviewModal') closeEditReviewModal();
   });
 }
 

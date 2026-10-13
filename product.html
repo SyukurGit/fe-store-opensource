@@ -84,6 +84,15 @@
               <span id="dProdStock" class="badge badge-stock"></span>
             </div>
             <h1 id="dProdTitle" class="detail-title"></h1>
+            <div class="detail-rating-sold-row" id="dRatingSoldRow">
+              <a href="#customerReviewsSection" class="detail-rating-link" id="dRatingLink" title="Klik untuk melihat ulasan pembeli">
+                <span class="detail-stars-inline">⭐</span>
+                <strong id="dRatingAvgText">5.0</strong>
+                <span id="dRatingCountText" class="detail-rating-count">(0 ulasan)</span>
+              </a>
+              <span class="detail-dot-sep">•</span>
+              <span class="detail-sold-text" id="dSoldText">10 terjual</span>
+            </div>
           </div>
         </div>
 
@@ -108,6 +117,34 @@
             ✓ Lisensi akun / serial key dikirim seketika setelah QRIS terverifikasi.<br>
             ✓ Salinan rincian & kode klaim otomatis dikirim ke email pembeli.<br>
             ✓ Pastikan akun atau data yang digunakan sesuai dengan region yang tertera.
+          </div>
+        </div>
+
+        <!-- Customer Reviews Section -->
+        <div class="detail-reviews-card" id="customerReviewsSection">
+          <div class="reviews-header">
+            <div class="reviews-header-title">
+              <span style="font-size: 1.35rem;">⭐</span>
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0;">Ulasan & Penilaian Pelanggan</h3>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin: 2px 0 0 0;">Pengalaman asli dari pembeli terverifikasi</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="reviews-summary-grid">
+            <div class="reviews-score-box">
+              <div class="reviews-score-big" id="revOverallScore">5.0</div>
+              <div class="reviews-stars-row" id="revOverallStars">⭐⭐⭐⭐⭐</div>
+              <div class="reviews-count-sub" id="revOverallCount">Berdasarkan 0 ulasan</div>
+            </div>
+            <div class="reviews-breakdown-bars" id="revBreakdownBars">
+              <!-- Injected dynamically via JS -->
+            </div>
+          </div>
+
+          <div class="reviews-list-wrap" id="reviewsListWrap">
+            <!-- Injected dynamically via JS -->
           </div>
         </div>
 

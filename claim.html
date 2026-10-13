@@ -91,6 +91,51 @@
             <span id="resViewUrlWrap" style="display: none;"><a id="resViewUrl" href="#" target="_blank" style="color: var(--primary);"></a></span>
           </div>
 
+          <!-- Card Beri Ulasan Produk (Hanya Muncul Jika Order LUNAS) -->
+          <div id="claimReviewCard" class="claim-review-box" style="display: none; margin-top: 1.25rem;">
+            <div class="claim-review-header">
+              <span style="font-size: 1.35rem;">⭐</span>
+              <div>
+                <strong style="color: #fff; font-size: 0.95rem;">Beri Ulasan & Penilaian Produk</strong>
+                <div style="color: var(--text-muted); font-size: 0.78rem;">Bagikan pengalaman belanja Anda di toko kami</div>
+              </div>
+            </div>
+
+            <!-- Review Form -->
+            <form id="claimReviewForm" style="margin-top: 1rem;">
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Pilih Rating Bintang *</label>
+                <div class="star-picker" id="starPicker">
+                  <span class="star-btn active" data-rating="1">★</span>
+                  <span class="star-btn active" data-rating="2">★</span>
+                  <span class="star-btn active" data-rating="3">★</span>
+                  <span class="star-btn active" data-rating="4">★</span>
+                  <span class="star-btn active" data-rating="5">★</span>
+                  <span class="star-label-badge" id="starPickerLabel">5.0 - Sangat Puas</span>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Nama Pengulas (Opsional)</label>
+                <input type="text" id="reviewAuthorInput" class="form-input" style="font-size: 0.85rem;" placeholder="Contoh: Budi Santoso (kosongkan untuk anonim)">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Ulasan / Testimoni Anda</label>
+                <textarea id="reviewTextInput" class="form-input" rows="3" style="font-size: 0.85rem;" placeholder="Tuliskan ulasan mengenai kecepatan pengiriman atau kualitas akun..."></textarea>
+              </div>
+
+              <button type="submit" id="btnSubmitReview" class="btn-submit" style="font-size: 0.85rem; padding: 0.65rem 1.25rem;">
+                ⭐ Kirim Ulasan
+              </button>
+            </form>
+
+            <!-- Already submitted state -->
+            <div id="claimReviewSuccessMsg" style="display: none; padding: 0.85rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #34d399; font-size: 0.85rem; margin-top: 0.85rem;">
+              ✓ Terima kasih! Ulasan Anda telah berhasil disimpan dan membantu pembeli lainnya.
+            </div>
+          </div>
+
         </div>
       </div>
 

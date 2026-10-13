@@ -65,8 +65,11 @@ function renderProducts(products) {
           <div class="prod-header">
             <img src="${logoSrc}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.src='https://via.placeholder.com/46?text=DC'">
             <div class="prod-title-wrap">
+              <div class="prod-header-meta">
+                <span class="prod-category">${escapeHtml(p.type || 'Digital License')}</span>
+                <span class="prod-sold-badge">${p.salesCount || 10} terjual</span>
+              </div>
               <h3 class="prod-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
-              <div class="prod-category">${escapeHtml(p.type || 'Digital License')}</div>
             </div>
           </div>
 

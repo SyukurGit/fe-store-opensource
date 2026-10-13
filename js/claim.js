@@ -255,6 +255,132 @@ function renderClaimResult(data) {
       viewUrlWrap.style.display = 'none';
     }
   }
+
+  // Setup review submission card
+  setupClaimReviewUI(data);
+}
+
+let selectedStarRating = 5;
+
+const starLabels = {
+  1: '1.0 - Kurang Puas',
+  2: '2.0 - Cukup',
+  3: '3.0 - Baik',
+  4: '4.0 - Puas',
+  5: '5.0 - Sangat Puas'
+};
+
+function setupClaimReviewUI(order) {
+  const card = document.getElementById('claimReviewCard');
+  if (!card) return;
+
+  if (order.payment_status !== 'PAID') {
+    card.style.display = 'none';
+    return;
+  }
+
+  // Check if locally marked as reviewed
+  const storageKey = `reviewed_${order.invoice_number}`;
+  if (localStorage.getItem(storageKey) === 'true') {
+    card.style.display = 'block';
+    const form = document.getElementById('claimReviewForm');
+    const succMsg = document.getElementById('claimReviewSuccessMsg');
+    if (form) form.style.display = 'none';
+    if (succMsg) succMsg.style.display = 'block';
+    return;
+  }
+
+  card.style.display = 'block';
+  const form = document.getElementById('claimReviewForm');
+  const succMsg = document.getElementById('claimReviewSuccessMsg');
+  if (form) form.style.display = 'block';
+  if (succMsg) succMsg.style.display = 'none';
+
+  selectedStarRating = 5;
+  updateStarPickerDisplay(5);
+
+  const starBtns = document.querySelectorAll('#starPicker .star-btn');
+  starBtns.forEach(btn => {
+    btn.onclick = () => {
+      const r = parseInt(btn.dataset.rating, 10);
+      selectedStarRating = r;
+      updateStarPickerDisplay(r);
+    };
+    btn.onmouseenter = () => {
+      const r = parseInt(btn.dataset.rating, 10);
+      previewStarPickerDisplay(r);
+    };
+  });
+
+  const pickerEl = document.getElementById('starPicker');
+  if (pickerEl) {
+    pickerEl.onmouseleave = () => {
+      updateStarPickerDisplay(selectedStarRating);
+    };
+  }
+
+  if (form) {
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitReview');
+      btn.disabled = true;
+      btn.textContent = 'Mengirimkan...';
+
+      const authorName = (document.getElementById('reviewAuthorInput')?.value || '').trim();
+      const reviewText = (document.getElementById('reviewTextInput')?.value || '').trim();
+
+      try {
+        const url = window.digimestApi ? window.digimestApi('/api/reviews') : '/api/reviews';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoice_number: order.invoice_number,
+            claim_code: order.claim_code,
+            rating: selectedStarRating,
+            author_name: authorName,
+            review_text: reviewText
+          })
+        });
+
+        const json = await res.json();
+        if (res.ok && json.success) {
+          localStorage.setItem(storageKey, 'true');
+          showToast('Ulasan Anda berhasil dikirim! ⭐');
+          form.style.display = 'none';
+          if (succMsg) succMsg.style.display = 'block';
+        } else {
+          showToast(json.error || 'Gagal mengirimkan ulasan');
+        }
+      } catch (err) {
+        showToast('Koneksi gagal: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⭐ Kirim Ulasan';
+      }
+    };
+  }
+}
+
+function updateStarPickerDisplay(rating) {
+  const btns = document.querySelectorAll('#starPicker .star-btn');
+  btns.forEach(btn => {
+    const val = parseInt(btn.dataset.rating, 10);
+    btn.classList.toggle('active', val <= rating);
+    btn.classList.remove('hovered');
+  });
+  const label = document.getElementById('starPickerLabel');
+  if (label) label.textContent = starLabels[rating] || `${rating}.0`;
+}
+
+function previewStarPickerDisplay(rating) {
+  const btns = document.querySelectorAll('#starPicker .star-btn');
+  btns.forEach(btn => {
+    const val = parseInt(btn.dataset.rating, 10);
+    btn.classList.toggle('hovered', val <= rating);
+  });
+  const label = document.getElementById('starPickerLabel');
+  if (label) label.textContent = starLabels[rating] || `${rating}.0`;
 }
 
 function escapeHtml(str) {

@@ -2062,3 +2062,312 @@ body.has-sticky-bar .floating-telegram-btn,
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
+/* ==========================================================================
+   Product Catalog Header Meta & Sold Badge
+   ========================================================================== */
+.prod-header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.prod-sold-badge {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   Product Detail Rating & Sold Row
+   ========================================================================== */
+.detail-rating-sold-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+.detail-rating-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fbbf24;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.detail-rating-link:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.detail-rating-count {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+  margin-left: 2px;
+}
+
+.detail-dot-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+}
+
+.detail-sold-text {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Product Detail Customer Reviews Section
+   ========================================================================== */
+.detail-reviews-card {
+  margin-top: 1.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.reviews-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reviews-summary-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 640px) {
+  .reviews-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+.reviews-score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviews-score-big {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+
+.reviews-stars-row {
+  color: #fbbf24;
+  font-size: 1.15rem;
+  margin: 6px 0;
+  letter-spacing: 2px;
+}
+
+.reviews-count-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.reviews-breakdown-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.bar-star-label {
+  width: 45px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #fbbf24;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.bar-count {
+  width: 30px;
+  flex-shrink: 0;
+  text-align: left;
+  font-family: var(--font-mono);
+}
+
+.reviews-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-item-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.1rem;
+}
+
+.review-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.review-author-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.review-author-name {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.88rem;
+}
+
+.verified-buyer-badge {
+  font-size: 0.68rem;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  font-weight: 600;
+}
+
+.review-stars-val {
+  color: #fbbf24;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.review-comment {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.review-date-val {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ==========================================================================
+   Claim Page Review Form
+   ========================================================================== */
+.claim-review-box {
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.claim-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.star-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.star-btn {
+  font-size: 1.75rem;
+  color: #475569;
+  transition: transform 0.15s, color 0.15s;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.star-btn.active, .star-btn.hovered {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-label-badge {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+

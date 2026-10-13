@@ -65,7 +65,7 @@ async function initProductPage() {
       const json = await res.json();
       if (json.success && json.data) {
         currentProduct = json.data;
-        renderProductDetail(currentProduct);
+        renderProductDetail(currentProduct, json.review_stats, json.reviews);
         return;
       }
     }
@@ -89,7 +89,17 @@ async function initProductPage() {
 
       if (found) {
         currentProduct = found;
-        renderProductDetail(currentProduct);
+        let rStats = null, rList = [];
+        try {
+          const revUrl = window.digimestApi ? window.digimestApi(`/api/products/${encodeURIComponent(found.slug)}/reviews`) : `/api/products/${encodeURIComponent(found.slug)}/reviews`;
+          const revRes = await fetch(revUrl);
+          if (revRes.ok) {
+            const revJson = await revRes.json();
+            rStats = revJson.stats;
+            rList = revJson.data;
+          }
+        } catch (e) {}
+        renderProductDetail(currentProduct, rStats, rList);
         return;
       }
     }
@@ -113,7 +123,96 @@ function showError(title, msg) {
   document.getElementById('errorMessage').textContent = msg;
 }
 
-function renderProductDetail(p) {
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function getStarString(rating) {
+  const rounded = Math.round(Number(rating || 5));
+  let stars = '';
+  for (let i = 1; i <= 5; i++) {
+    stars += i <= rounded ? '★' : '☆';
+  }
+  return stars;
+}
+
+function renderReviewsSection(stats, reviews) {
+  const avg = stats?.average_rating || 5.0;
+  const count = stats?.total_reviews || (reviews ? reviews.length : 0);
+
+  const avgEl = document.getElementById('dRatingAvgText');
+  if (avgEl) avgEl.textContent = avg.toFixed(1);
+
+  const countEl = document.getElementById('dRatingCountText');
+  if (countEl) countEl.textContent = `(${count} ulasan)`;
+
+  const scoreBig = document.getElementById('revOverallScore');
+  if (scoreBig) scoreBig.textContent = avg.toFixed(1);
+
+  const overallStars = document.getElementById('revOverallStars');
+  if (overallStars) overallStars.textContent = getStarString(avg);
+
+  const overallCount = document.getElementById('revOverallCount');
+  if (overallCount) overallCount.textContent = `Berdasarkan ${count} ulasan`;
+
+  // Star breakdown bars
+  const barsWrap = document.getElementById('revBreakdownBars');
+  if (barsWrap) {
+    const dist = stats?.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let html = '';
+    for (let star = 5; star >= 1; star--) {
+      const c = dist[star] || 0;
+      const pct = count > 0 ? Math.round((c / count) * 100) : 0;
+      html += `
+        <div class="bar-row">
+          <span class="bar-star-label">${star} ★</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${pct}%;"></div>
+          </div>
+          <span class="bar-count">${c}</span>
+        </div>
+      `;
+    }
+    barsWrap.innerHTML = html;
+  }
+
+  // Reviews List
+  const listWrap = document.getElementById('reviewsListWrap');
+  if (listWrap) {
+    if (!reviews || reviews.length === 0) {
+      listWrap.innerHTML = `
+        <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.88rem; background: rgba(255,255,255,0.015); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.08);">
+          Belum ada ulasan untuk produk ini.<br>
+          <span style="font-size: 0.8rem; opacity: 0.8;">Jadilah pembeli pertama yang memberikan penilaian setelah pesanan Anda lunas!</span>
+        </div>
+      `;
+    } else {
+      listWrap.innerHTML = reviews.map(r => {
+        const initial = (r.author_name || 'U').charAt(0).toUpperCase();
+        const dateStr = formatDate(r.created_at);
+        const starStr = getStarString(r.rating);
+        return `
+          <div class="review-item-card">
+            <div class="review-item-top">
+              <div class="review-author-wrap">
+                <div class="review-avatar">${escapeHtml(initial)}</div>
+                <div class="review-author-name">${escapeHtml(r.author_name || 'Pelanggan Terverifikasi')}</div>
+                <span class="verified-buyer-badge">✓ Terverifikasi</span>
+              </div>
+              <div class="review-stars-val">${starStr}</div>
+            </div>
+            ${r.review_text ? `<div class="review-comment">${escapeHtml(r.review_text)}</div>` : ''}
+            <div class="review-date-val">${escapeHtml(dateStr)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+function renderProductDetail(p, stats, reviews) {
   document.getElementById('productLoading').style.display = 'none';
   document.getElementById('productDetailContent').style.display = 'grid';
 
@@ -127,6 +226,11 @@ function renderProductDetail(p) {
   if (titleEl) titleEl.textContent = p.name;
   const slugEl = document.getElementById('dProdSlug');
   if (slugEl) slugEl.textContent = p.slug;
+
+  // Sold count & Reviews
+  const soldEl = document.getElementById('dSoldText');
+  if (soldEl) soldEl.textContent = `${p.salesCount || 10} terjual`;
+  renderReviewsSection(stats, reviews);
 
   // Badges
   document.getElementById('dProdCategory').textContent = p.type || 'Digital License';
