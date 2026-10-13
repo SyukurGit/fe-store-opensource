@@ -1088,32 +1088,38 @@ select.form-input option:checked {
 .product-detail-grid {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 2.5rem;
+  grid-template-areas:
+    "header action"
+    "content action";
+  column-gap: 2rem;
+  row-gap: 1.25rem;
   align-items: start;
-}
-
-@media (max-width: 960px) {
-  .product-detail-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
 }
 
 .detail-card-main {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 20px;
-  padding: 2rem;
   backdrop-filter: blur(8px);
+}
+
+.detail-card-header {
+  grid-area: header;
+  padding: 1.75rem 2rem;
+}
+
+.detail-card-content {
+  grid-area: content;
+  padding: 2rem;
 }
 
 .detail-header-flex {
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .detail-big-logo {
@@ -1161,6 +1167,7 @@ select.form-input option:checked {
 }
 
 .detail-sidebar-card {
+  grid-area: action;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 20px;
@@ -1387,23 +1394,33 @@ select.form-input option:checked {
   .product-detail-grid {
     display: flex !important;
     flex-direction: column !important;
-    gap: 1.25rem !important;
+    gap: 1rem !important;
   }
-  .detail-card-main {
-    padding: 1.25rem !important;
-    border-radius: 16px !important;
+  .detail-card-header {
     order: 1 !important;
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 16px !important;
   }
   .detail-sidebar-card {
-    position: static !important;
-    padding: 1.25rem !important;
-    border-radius: 16px !important;
     order: 2 !important;
+    position: static !important;
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 16px !important;
+  }
+  .detail-sidebar-card #dUnitPriceDisplay {
+    font-size: 1.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+  .detail-card-content {
+    order: 3 !important;
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 16px !important;
   }
   .detail-header-flex {
-    gap: 1rem !important;
-    margin-bottom: 1rem !important;
-    padding-bottom: 1rem !important;
+    gap: 0.85rem !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
   }
   .detail-big-logo {
     width: 52px !important;

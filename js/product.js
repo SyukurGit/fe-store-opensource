@@ -239,7 +239,10 @@ function renderReviewsSection(stats, reviews) {
 
 function renderProductDetail(p, stats, reviews) {
   document.getElementById('productLoading').style.display = 'none';
-  document.getElementById('productDetailContent').style.display = 'grid';
+  const detailGrid = document.getElementById('productDetailContent');
+  if (detailGrid) {
+    detailGrid.style.display = window.innerWidth <= 860 ? 'flex' : 'grid';
+  }
 
   // Page title & Breadcrumb
   document.title = `${p.name} - Digimest`;
