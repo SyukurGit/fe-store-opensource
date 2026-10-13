@@ -366,6 +366,28 @@ body {
   box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.5);
 }
 
+/* Out of Stock Card State: Darker background, muted contrast, subtle border */
+.product-card.out-of-stock {
+  background: rgba(13, 17, 28, 0.75);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.78;
+}
+
+.product-card.out-of-stock:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.45);
+  opacity: 0.92;
+}
+
+.product-card.out-of-stock .prod-logo {
+  filter: grayscale(35%) opacity(0.85);
+}
+
+.product-card.out-of-stock .price-amount {
+  color: #94a3b8;
+}
+
 .prod-header {
   display: flex;
   align-items: center;
@@ -556,6 +578,24 @@ body {
   white-space: nowrap;
   flex-shrink: 0;
   letter-spacing: 0.01em;
+}
+
+/* Out of Stock Buy Button: Darkened glass, muted text, subtle border */
+.btn-buy.btn-buy-out,
+.btn-buy-catalog.btn-buy-out {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.btn-buy.btn-buy-out:hover,
+.btn-buy-catalog.btn-buy-out:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
 }
 
 /* MODAL & DRAWER */

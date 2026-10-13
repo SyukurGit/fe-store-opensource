@@ -60,7 +60,7 @@ function renderProducts(products) {
     const logoSrc = p.logo || 'https://via.placeholder.com/46?text=DC';
 
     return `
-      <div class="product-card" onclick="window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')" style="cursor: pointer;">
+      <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')" style="cursor: pointer;">
         <div>
           <div class="prod-header">
             <img src="${logoSrc}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.src='https://via.placeholder.com/46?text=DC'">
@@ -98,7 +98,7 @@ function renderProducts(products) {
               <span class="price-amount">${formatIDR(p.priceIDR)}</span>
             `}
           </div>
-          <button class="btn-buy btn-buy-catalog" onclick="event.stopPropagation(); window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')">
+          <button class="btn-buy btn-buy-catalog ${isOut ? 'btn-buy-out' : ''}" onclick="event.stopPropagation(); window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')">
             ${isOut ? 'Habis' : 'Beli ➔'}
           </button>
         </div>
