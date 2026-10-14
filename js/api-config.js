@@ -23,3 +23,52 @@ window.digimestApi = function(endpoint) {
   const path = '/' + (endpoint || '').replace(/^\/+/, '');
   return base ? base + path : path;
 };
+
+// Current App Build Version
+window.STOREKU_BUILD_VERSION = '5.8.1';
+
+// Background Auto-Reload Checker when user returns to tab
+(function initVersionWatcher() {
+  if (typeof window === 'undefined' || !window.addEventListener) return;
+  
+  let isChecking = false;
+  let lastCheckedTime = 0;
+  
+  function checkLatestVersion() {
+    const now = Date.now();
+    // Throttle check to at most once per 60 seconds
+    if (isChecking || (now - lastCheckedTime < 60000)) return;
+    
+    isChecking = true;
+    lastCheckedTime = now;
+    
+    fetch('/version.json?t=' + now, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('version check failed');
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.version && data.version !== window.STOREKU_BUILD_VERSION) {
+          console.log('[Storeku] Versi baru terdeteksi:', data.version, '(Versi saat ini:', window.STOREKU_BUILD_VERSION, ')');
+          window.location.reload(true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        isChecking = false;
+      });
+  }
+
+  // Check when tab becomes visible again
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkLatestVersion();
+    }
+  });
+
+  // Check on window focus
+  window.addEventListener('focus', checkLatestVersion);
+})();

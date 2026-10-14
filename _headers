@@ -1,19 +1,27 @@
 # ==============================================================
-# Cloudflare Pages: Cache-Control & Security Headers
+# Cloudflare Pages: Anti-Cache Policy (Selalu Fresh pada Setiap Deploy)
 # ==============================================================
 
-# Static Assets Caching
+# 1. Seluruh Dokumen HTML (termasuk /, /product, /claim, /about, dll.)
+/*
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# 2. File Statis CSS & JS (Menggunakan Cache-Buster ?v=...)
 /css/*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache, no-store, must-revalidate
 /js/*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# 3. Version Manifest
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# 4. Logo & Aset Gambar (Boleh di-cache karena jarang berubah)
 /logo/*
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# Public HTML Pages: Revalidate untuk update konten terkini
-/*.html
-  Cache-Control: public, max-age=0, must-revalidate
-
-# Admin Panel: No-cache demi keamanan
+# 5. Admin Panel: No-cache demi keamanan
 /admin/*
   Cache-Control: no-cache, no-store, must-revalidate

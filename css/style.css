@@ -1650,18 +1650,26 @@ select.form-input option:checked {
   .product-detail-grid {
     display: flex !important;
     flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
     gap: 1rem !important;
+  }
+  .detail-card-header,
+  .detail-sidebar-card,
+  .detail-card-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-radius: 16px !important;
   }
   .detail-card-header {
     order: 1 !important;
     padding: 1.15rem 1.25rem !important;
-    border-radius: 16px !important;
   }
   .detail-sidebar-card {
     order: 2 !important;
     position: static !important;
-    padding: 1.1rem 1.25rem !important;
-    border-radius: 16px !important;
+    padding: 1.15rem 1.25rem !important;
   }
   .detail-action-top-row {
     display: flex !important;
