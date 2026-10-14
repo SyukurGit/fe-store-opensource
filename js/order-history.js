@@ -298,9 +298,13 @@ const DigimestOrders = (() => {
   }
 
   // Render modal list
-  function renderHistoryList(containerId, skipSync = false) {
-    const container = document.getElementById(containerId);
+  function renderHistoryList(containerId = 'historyListContainer', skipSync = false) {
+    const targetId = containerId || 'historyListContainer';
+    const container = document.getElementById(targetId);
     if (!container) return;
+
+    const isEn = (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang === 'en') ||
+                 (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/en'));
 
     let list = getOrders();
 
@@ -318,13 +322,20 @@ const DigimestOrders = (() => {
     }
 
     if (list.length === 0) {
+      const emptyTitle = isEn ? 'No Order History Yet' : 'Belum Ada Riwayat Pesanan';
+      const emptyDesc = isEn 
+        ? 'Orders you place will be automatically recorded in this browser without needing an account.'
+        : 'Pesanan yang Anda buat akan otomatis tercatat di browser ini tanpa perlu registrasi akun.';
+      const exploreBtnText = isEn ? 'Explore Store Catalog ➔' : 'Jelajahi Katalog Toko ➔';
+      const catalogHref = isEn ? '/en/' : '/';
+
       container.innerHTML = `
         <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
           <div style="font-size: 2.2rem; margin-bottom: 0.5rem; opacity: 0.7;">📦</div>
-          <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Belum Ada Riwayat Pesanan</div>
-          <div style="font-size: 0.82rem; margin-bottom: 1.25rem;">Pesanan yang Anda buat akan otomatis tercatat di browser ini tanpa perlu registrasi akun.</div>
-          <a href="/" class="btn-buy" style="display: inline-block; padding: 0.55rem 1.4rem; font-size: 0.85rem; text-decoration: none;" onclick="document.getElementById('historyModal')?.classList.remove('open');">
-            Jelajahi Katalog Toko ➔
+          <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">${emptyTitle}</div>
+          <div style="font-size: 0.82rem; margin-bottom: 1.25rem;">${emptyDesc}</div>
+          <a href="${catalogHref}" class="btn-buy" style="display: inline-block; padding: 0.55rem 1.4rem; font-size: 0.85rem; text-decoration: none;" onclick="document.getElementById('historyModal')?.classList.remove('open'); document.body.style.overflow = '';">
+            ${exploreBtnText}
           </a>
         </div>
       `;
@@ -336,10 +347,12 @@ const DigimestOrders = (() => {
     
     let html = '';
     if (hasExpiredOrCancelled) {
+      const bannerText = isEn ? '⚠️ Expired / cancelled orders found' : '⚠️ Ditemukan pesanan kadaluarsa / dibatalkan';
+      const clearBtnText = isEn ? 'Clear Expired Orders' : 'Bersihkan Riwayat Kadaluarsa';
       html += `
         <div class="history-clear-bar">
-          <span>⚠️ Ditemukan pesanan kadaluarsa / dibatalkan</span>
-          <button type="button" class="btn-clear-expired" onclick="DigimestOrders.clearExpiredOrders('${escapeHtml(containerId)}')">Bersihkan Riwayat Kadaluarsa</button>
+          <span>${bannerText}</span>
+          <button type="button" class="btn-clear-expired" onclick="DigimestOrders.clearExpiredOrders('${escapeHtml(targetId)}')">${clearBtnText}</button>
         </div>
       `;
     }
@@ -356,12 +369,17 @@ const DigimestOrders = (() => {
 
       if (effectiveStatus === 'PAID') {
         // Paid item (clickable to claim)
+        const claimUrl = isEn ? `/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}&lang=en` : `/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}`;
+        const paidBadge = isEn ? '● Paid' : '● Lunas';
+        const claimLabel = isEn ? 'Claim Code:' : 'Kode Klaim:';
+        const claimBtn = isEn ? 'View License 🔑' : 'Buka Lisensi 🔑';
+
         return `
-          <div class="order-history-card active-card" onclick="window.location.href='/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}'">
+          <div class="order-history-card active-card" onclick="window.location.href='${claimUrl}'">
             <div class="order-card-main">
               <div class="order-card-header">
                 <span class="order-card-title">${name}</span>
-                <span class="badge-history badge-history-paid">● Lunas</span>
+                <span class="badge-history badge-history-paid">${paidBadge}</span>
               </div>
               <div class="order-card-meta">
                 <span>${inv}</span>
@@ -371,24 +389,28 @@ const DigimestOrders = (() => {
                 <strong style="color: #10b981;">${amountStr}</strong>
               </div>
               <div class="order-card-sub" style="color: #a855f7;">
-                Kode Klaim: <code style="color: #c084fc; font-weight: 700;">${claim || '-'}</code>
+                ${claimLabel} <code style="color: #c084fc; font-weight: 700;">${claim || '-'}</code>
               </div>
             </div>
             <div class="order-card-action">
-              <a href="/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}" class="btn-history-action btn-history-claim" onclick="event.stopPropagation();">
-                Buka Lisensi 🔑
+              <a href="${claimUrl}" class="btn-history-action btn-history-claim" onclick="event.stopPropagation();">
+                ${claimBtn}
               </a>
             </div>
           </div>
         `;
       } else if (effectiveStatus === 'CANCELLED') {
         // Cancelled order (DISABLED, 100% non-clickable with delete button)
+        const cancelledBadge = isEn ? '✕ Cancelled' : '✕ Dibatalkan';
+        const cancelledSub = isEn ? 'Order was cancelled by buyer' : 'Pesanan telah dibatalkan oleh pembeli';
+        const deleteTitle = isEn ? 'Remove from history' : 'Hapus dari riwayat';
+
         return `
           <div class="order-history-card order-card-disabled">
             <div class="order-card-main">
               <div class="order-card-header">
                 <span class="order-card-title" style="color: #9ca3af;">${name}</span>
-                <span class="badge-history badge-history-cancelled">✕ Dibatalkan</span>
+                <span class="badge-history badge-history-cancelled">${cancelledBadge}</span>
               </div>
               <div class="order-card-meta">
                 <span>${inv}</span>
@@ -398,23 +420,27 @@ const DigimestOrders = (() => {
                 <span>${amountStr}</span>
               </div>
               <div class="order-card-sub" style="color: #6b7280;">
-                Pesanan telah dibatalkan oleh pembeli
+                ${cancelledSub}
               </div>
             </div>
             <div class="order-card-action">
-              <span class="btn-history-disabled">Dibatalkan</span>
-              <button type="button" class="btn-history-delete" title="Hapus dari riwayat" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(containerId)}');">✕</button>
+              <span class="btn-history-disabled">${cancelledBadge}</span>
+              <button type="button" class="btn-history-delete" title="${deleteTitle}" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(targetId)}');">✕</button>
             </div>
           </div>
         `;
       } else if (effectiveStatus === 'EXPIRED' || expiredByTime) {
         // Expired order (DISABLED, 100% non-clickable with delete button)
+        const expiredBadge = isEn ? '⌛ Expired' : '⌛ Kadaluarsa';
+        const expiredSub = isEn ? '15-minute payment window has expired' : 'Batas waktu bayar 15 menit telah habis';
+        const deleteTitle = isEn ? 'Remove from history' : 'Hapus dari riwayat';
+
         return `
           <div class="order-history-card order-card-disabled">
             <div class="order-card-main">
               <div class="order-card-header">
                 <span class="order-card-title" style="color: #9ca3af;">${name}</span>
-                <span class="badge-history badge-history-expired">⌛ Kadaluarsa</span>
+                <span class="badge-history badge-history-expired">${expiredBadge}</span>
               </div>
               <div class="order-card-meta">
                 <span>${inv}</span>
@@ -424,23 +450,28 @@ const DigimestOrders = (() => {
                 <span>${amountStr}</span>
               </div>
               <div class="order-card-sub" style="color: #6b7280;">
-                Batas waktu bayar 15 menit telah habis
+                ${expiredSub}
               </div>
             </div>
             <div class="order-card-action">
-              <span class="btn-history-disabled">Kadaluarsa</span>
-              <button type="button" class="btn-history-delete" title="Hapus dari riwayat" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(containerId)}');">✕</button>
+              <span class="btn-history-disabled">${expiredBadge}</span>
+              <button type="button" class="btn-history-delete" title="${deleteTitle}" onclick="event.stopPropagation(); DigimestOrders.removeOrder('${inv}', '${escapeHtml(targetId)}');">✕</button>
             </div>
           </div>
         `;
       } else {
         // Unpaid pending order (CLICKABLE to pay QRIS)
+        const payUrl = isEn ? `/en/payment?inv=${encodeURIComponent(item.invoice_number)}` : `/payment?inv=${encodeURIComponent(item.invoice_number)}`;
+        const pendingBadge = isEn ? '⏳ Unpaid' : '⏳ Belum Bayar';
+        const pendingSub = isEn ? 'Click to scan & pay QRIS now ➔' : 'Klik untuk scan & bayar QRIS sekarang ➔';
+        const payBtn = isEn ? 'Pay QRIS ➔' : 'Bayar QRIS ➔';
+
         return `
-          <div class="order-history-card active-card highlight-unpaid" onclick="window.location.href='/payment?inv=${encodeURIComponent(item.invoice_number)}'">
+          <div class="order-history-card active-card highlight-unpaid" onclick="window.location.href='${payUrl}'">
             <div class="order-card-main">
               <div class="order-card-header">
                 <span class="order-card-title">${name}</span>
-                <span class="badge-history badge-history-unpaid">⏳ Belum Bayar</span>
+                <span class="badge-history badge-history-unpaid">${pendingBadge}</span>
               </div>
               <div class="order-card-meta">
                 <span>${inv}</span>
@@ -450,12 +481,12 @@ const DigimestOrders = (() => {
                 <strong style="color: #fbbf24;">${amountStr}</strong>
               </div>
               <div class="order-card-sub" style="color: #fbbf24;">
-                Klik untuk scan & bayar QRIS sekarang ➔
+                ${pendingSub}
               </div>
             </div>
             <div class="order-card-action">
-              <a href="/payment?inv=${encodeURIComponent(item.invoice_number)}" class="btn-history-action btn-history-pay" onclick="event.stopPropagation();">
-                Bayar QRIS ➔
+              <a href="${payUrl}" class="btn-history-action btn-history-pay" onclick="event.stopPropagation();">
+                ${payBtn}
               </a>
             </div>
           </div>
@@ -467,7 +498,28 @@ const DigimestOrders = (() => {
 
     // Trigger background sync if not skipped
     if (!skipSync) {
-      syncPendingOrders(containerId);
+      syncPendingOrders(targetId);
+    }
+  }
+
+  // Unified modal openers & closers
+  function openHistoryModal(containerId = 'historyListContainer', modalId = 'historyModal') {
+    const targetContainerId = containerId || 'historyListContainer';
+    const targetModalId = modalId || 'historyModal';
+    renderHistoryList(targetContainerId);
+    const modal = document.getElementById(targetModalId);
+    if (modal) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeHistoryModal(modalId = 'historyModal') {
+    const targetModalId = modalId || 'historyModal';
+    const modal = document.getElementById(targetModalId);
+    if (modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
     }
   }
 
@@ -481,7 +533,10 @@ const DigimestOrders = (() => {
     clearExpiredOrders,
     syncPendingOrders,
     updateBadge,
-    renderHistoryList
+    renderHistoryList,
+    renderHistoryUI: (containerId = 'historyListContainer') => renderHistoryList(containerId || 'historyListContainer'),
+    openModal: openHistoryModal,
+    closeModal: closeHistoryModal
   };
 })();
 
@@ -659,17 +714,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // When drawer history button is clicked, close drawer and open history modal
-    drawerHistoryBtn?.addEventListener('click', () => {
+    drawerHistoryBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
       closeDrawer();
       setTimeout(() => {
-        const hModal = document.getElementById('historyModal');
-        if (hModal) {
-          hModal.classList.add('open');
-          if (window.DigimestOrders) {
-            window.DigimestOrders.renderHistoryUI();
-          }
+        if (window.DigimestOrders && typeof window.DigimestOrders.openModal === 'function') {
+          window.DigimestOrders.openModal('historyListContainer', 'historyModal');
+        } else if (typeof openHistoryModal === 'function') {
+          openHistoryModal('historyListContainer', 'historyModal');
         }
-      }, 250);
+      }, 150);
+    });
+
+    // Central modal close listeners
+    document.getElementById('closeHistoryBtn')?.addEventListener('click', () => {
+      if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
+        window.DigimestOrders.closeModal('historyModal');
+      } else if (typeof closeHistoryModal === 'function') {
+        closeHistoryModal('historyModal');
+      }
+    });
+
+    document.getElementById('historyModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'historyModal') {
+        if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
+          window.DigimestOrders.closeModal('historyModal');
+        } else if (typeof closeHistoryModal === 'function') {
+          closeHistoryModal('historyModal');
+        }
+      }
     });
   }
 
