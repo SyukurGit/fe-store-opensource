@@ -53,21 +53,26 @@ function renderProducts(products) {
 
   if (empty) empty.style.display = 'none';
   if (grid) grid.style.display = 'grid';
+  const isEn = document.documentElement.lang === 'en' || window.location.pathname.startsWith('/en');
+  const prodBaseUrl = isEn ? '/en/product?slug=' : '/product?slug=';
 
   grid.innerHTML = products.map(p => {
     const isOut = p.stock <= 0 || !!p.isForceOutOfStock;
-    const stockDisplay = isOut ? 'Habis' : (p.stockCapped ? '>1000 Stok' : `${p.stock} Stok`);
+    const stockDisplay = isOut
+      ? (isEn ? 'Out of Stock' : 'Habis')
+      : (p.stockCapped ? (isEn ? '>1000 In Stock' : '>1000 Stok') : (isEn ? `${p.stock} In Stock` : `${p.stock} Stok`));
     const logoSrc = p.logo || 'https://via.placeholder.com/46?text=DC';
+    const prodLink = prodBaseUrl + encodeURIComponent(p.slug);
 
     return `
-      <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')" style="cursor: pointer;">
+      <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='${prodLink}'" style="cursor: pointer;">
         <div class="prod-card-body">
           <div class="prod-header">
             <img src="${logoSrc}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.src='https://via.placeholder.com/46?text=DC'">
             <div class="prod-title-wrap">
               <div class="prod-header-meta">
                 <span class="prod-category">${escapeHtml(p.type || 'Digital License')}</span>
-                <span class="prod-sold-badge">${p.salesCount || 10} terjual</span>
+                <span class="prod-sold-badge">${p.salesCount || 10} ${isEn ? 'sold' : 'terjual'}</span>
               </div>
               <h3 class="prod-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
             </div>
@@ -82,7 +87,7 @@ function renderProducts(products) {
             ${p.region ? `<span class="badge badge-region">🌐 ${escapeHtml(p.region)}</span>` : ''}
           </div>
 
-          <div class="prod-desc">${escapeHtml(p.description || 'Lisensi akun premium langsung aktif.')}</div>
+          <div class="prod-desc">${escapeHtml(p.description || (isEn ? 'Instant premium digital license delivered.' : 'Lisensi akun premium langsung aktif.'))}</div>
         </div>
 
         <div class="prod-footer">
@@ -94,12 +99,12 @@ function renderProducts(products) {
               </div>
               <span class="price-amount promo-highlight">${formatIDR(p.priceIDR)}</span>
             ` : `
-              <span class="price-label">Mulai Dari</span>
+              <span class="price-label">${isEn ? 'Starting From' : 'Mulai Dari'}</span>
               <span class="price-amount">${formatIDR(p.priceIDR)}</span>
             `}
           </div>
-          <button class="btn-buy btn-buy-catalog ${isOut ? 'btn-buy-out' : ''}" onclick="event.stopPropagation(); window.location.href='/product?slug=' + encodeURIComponent('${escapeHtml(p.slug)}')">
-            ${isOut ? 'Habis' : 'Beli ➔'}
+          <button class="btn-buy btn-buy-catalog ${isOut ? 'btn-buy-out' : ''}" onclick="event.stopPropagation(); window.location.href='${prodLink}'">
+            ${isOut ? (isEn ? 'Sold Out' : 'Habis') : (isEn ? 'Buy ➔' : 'Beli ➔')}
           </button>
         </div>
       </div>

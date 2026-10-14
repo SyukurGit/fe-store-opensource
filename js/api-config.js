@@ -20,12 +20,24 @@
  */
 window.digimestApi = function(endpoint) {
   const base = (window.DIGIMEST_API_BASE || '').replace(/\/+$/, '');
-  const path = '/' + (endpoint || '').replace(/^\/+/, '');
+  let path = '/' + (endpoint || '').replace(/^\/+/, '');
+
+  // Auto-detect English language context
+  const isEn = (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang === 'en') ||
+               (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/en'));
+
+  if (isEn && (path.startsWith('/api/products') || path.startsWith('/api/public/products'))) {
+    if (!path.includes('lang=')) {
+      const sep = path.includes('?') ? '&' : '?';
+      path = path + sep + 'lang=en';
+    }
+  }
+
   return base ? base + path : path;
 };
 
 // Current App Build Version
-window.STOREKU_BUILD_VERSION = '5.8.1';
+window.STOREKU_BUILD_VERSION = '5.9.1';
 
 // Background Auto-Reload Checker when user returns to tab
 (function initVersionWatcher() {

@@ -19,8 +19,9 @@ function showToast(msg) {
 }
 
 function copyText(text) {
+  const isEn = document.documentElement.lang === 'en';
   navigator.clipboard.writeText(text).then(() => {
-    showToast('Berhasil disalin ke clipboard! 📋');
+    showToast(isEn ? 'Copied to clipboard! 📋' : 'Berhasil disalin ke clipboard! 📋');
   }).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -28,7 +29,7 @@ function copyText(text) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('Berhasil disalin!');
+    showToast(isEn ? 'Copied to clipboard!' : 'Berhasil disalin!');
   });
 }
 
@@ -83,24 +84,25 @@ async function checkStatus() {
 
     // Update status badge di header
     const statusBadge = document.getElementById('statusBadgeDisplay');
+    const isEn = document.documentElement.lang === 'en';
     if (statusBadge) {
       if (order.payment_status === 'PAID') {
-        statusBadge.innerHTML = '● Lunas';
+        statusBadge.innerHTML = isEn ? '● Paid' : '● Lunas';
         statusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
         statusBadge.style.color = '#34d399';
         statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
       } else if (order.payment_status === 'EXPIRED') {
-        statusBadge.innerHTML = '⌛ Kedaluwarsa';
+        statusBadge.innerHTML = isEn ? '⌛ Expired' : '⌛ Kedaluwarsa';
         statusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
         statusBadge.style.color = '#f87171';
         statusBadge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
       } else if (order.payment_status === 'CANCELLED') {
-        statusBadge.innerHTML = '✕ Dibatalkan';
+        statusBadge.innerHTML = isEn ? '✕ Cancelled' : '✕ Dibatalkan';
         statusBadge.style.background = 'rgba(148, 163, 184, 0.15)';
         statusBadge.style.color = '#94a3b8';
         statusBadge.style.borderColor = 'rgba(148, 163, 184, 0.35)';
       } else {
-        statusBadge.innerHTML = '⏳ Menunggu Pembayaran';
+        statusBadge.innerHTML = isEn ? '⏳ Awaiting Payment' : '⏳ Menunggu Pembayaran';
         statusBadge.style.background = 'rgba(245, 158, 11, 0.15)';
         statusBadge.style.color = '#fbbf24';
         statusBadge.style.borderColor = 'rgba(245, 158, 11, 0.35)';
@@ -222,8 +224,9 @@ function showSuccessView(order) {
   const successView = document.getElementById('successView');
   successView.style.display = 'block';
 
+  const isEn = document.documentElement.lang === 'en';
   document.getElementById('sProdName').textContent = order.product_name;
-  document.getElementById('sProdWarranty').textContent = order.warranty_info ? `🛡️ ${order.warranty_info}` : '🛡️ Garansi Toko';
+  document.getElementById('sProdWarranty').textContent = order.warranty_info ? `🛡️ ${order.warranty_info}` : (isEn ? '🛡️ Store Warranty' : '🛡️ Garansi Toko');
 
   currentClaimCode = order.claim_code || '';
 
@@ -236,7 +239,8 @@ function showSuccessView(order) {
   const directLinkEl = document.getElementById('paidDirectClaimLink');
   const directUrlTextEl = document.getElementById('paidDirectClaimUrlText');
   if (currentClaimCode) {
-    const directUrl = `${window.location.origin}/claim?code=${encodeURIComponent(currentClaimCode)}`;
+    const claimPath = isEn ? '/en/claim' : '/claim';
+    const directUrl = `${window.location.origin}${claimPath}?code=${encodeURIComponent(currentClaimCode)}`;
     if (directLinkEl) {
       directLinkEl.href = directUrl;
     }
@@ -258,7 +262,9 @@ function showSuccessView(order) {
       emailNotice.style.background = 'rgba(16, 185, 129, 0.12)';
       emailNotice.style.borderColor = 'rgba(16, 185, 129, 0.35)';
       emailNotice.style.color = '#34d399';
-      emailNotice.innerHTML = `✉️ Kode ambil pesanan & rincian telah dikirim ke email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`;
+      emailNotice.innerHTML = isEn 
+        ? `✉️ Order pickup code & details have been sent to email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`
+        : `✉️ Kode ambil pesanan & rincian telah dikirim ke email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`;
       emailNotice.style.display = 'block';
     }
   }
@@ -270,10 +276,16 @@ function showSuccessView(order) {
   if (order.is_quota_out || order.fulfillment_status === 'HOLD_PRICE_SPIKE' || order.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || order.fulfillment_status === 'FAILED') {
     if (copyAllBtn) copyAllBtn.style.display = 'none';
     const isFailed = order.fulfillment_status === 'FAILED' || order.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
-    const title = isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual';
-    const defaultMsg = isFailed
-      ? "Pembayaran Anda terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan klik tombol di bawah untuk chat CS Telegram kami."
-      : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.";
+    const title = isEn 
+      ? (isFailed ? 'Upstream Stock Delivery Issue' : 'Product Quota Sold Out')
+      : (isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual');
+    const defaultMsg = isEn
+      ? (isFailed
+        ? "Your payment is verified, but an automatic fulfillment issue occurred with the server provider (momentarily empty stock/bot balance). Your funds are 100% safe! Please contact our Telegram CS below."
+        : "Sorry, this product quota is currently sold out. Your funds are 100% safe. For refund or assistance, please contact our Telegram Customer Service.")
+      : (isFailed
+        ? "Pembayaran Anda terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan klik tombol di bawah untuk chat CS Telegram kami."
+        : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.");
 
     itemsContainer.innerHTML = `
       <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
@@ -283,18 +295,20 @@ function showSuccessView(order) {
           ${escapeHtml(order.quota_out_message || defaultMsg)}
         </p>
         <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-          <span>Hubungi CS via Telegram</span> ➔
+          <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
         </a>
       </div>
     `;
-    showToast(isFailed ? 'Kendala Stok Upstream' : 'Pembayaran Diterima (Kuota Habis)');
+    showToast(isEn ? (isFailed ? 'Upstream Stock Issue' : 'Payment Received (Sold Out)') : (isFailed ? 'Kendala Stok Upstream' : 'Pembayaran Diterima (Kuota Habis)'));
     return;
   }
 
   if (deliveredKeys.length === 0) {
     itemsContainer.innerHTML = `
       <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; color: #fbbf24; font-size: 0.88rem;">
-        Pembayaran terverifikasi! Pesanan Anda sedang diproses oleh antrean sistem dalam 1-2 menit. Silakan tunggu sebentar atau simpan Kode Ambil Pesanan di atas.
+        ${isEn
+          ? 'Payment verified! Your order is being processed by the system queue in 1-2 minutes. Please wait a moment or save the Pickup Code above.'
+          : 'Pembayaran terverifikasi! Pesanan Anda sedang diproses oleh antrean sistem dalam 1-2 menit. Silakan tunggu sebentar atau simpan Kode Ambil Pesanan di atas.'}
       </div>
     `;
   } else {
@@ -302,12 +316,12 @@ function showSuccessView(order) {
     itemsContainer.innerHTML = deliveredKeys.map((item, idx) => `
       <div class="license-item-box">
         <span>${escapeHtml(item)}</span>
-        <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">Salin</button>
+        <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">${isEn ? 'Copy' : 'Salin'}</button>
       </div>
     `).join('');
   }
 
-  showToast('Pembayaran Berhasil! 🎉');
+  showToast(isEn ? 'Payment Successful! 🎉' : 'Pembayaran Berhasil! 🎉');
 }
 
 
@@ -340,10 +354,11 @@ function closeCancelModal() {
 }
 
 async function confirmCancelOrder() {
+  const isEn = document.documentElement.lang === 'en';
   const btn = document.getElementById('btnConfirmCancelAction');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Membatalkan...';
+    btn.textContent = isEn ? 'Cancelling...' : 'Membatalkan...';
   }
 
   try {
@@ -354,10 +369,10 @@ async function confirmCancelOrder() {
     const json = await res.json();
 
     if (!json.success) {
-      showToast(json.error || 'Gagal membatalkan pesanan.');
+      showToast(json.error || (isEn ? 'Failed to cancel order.' : 'Gagal membatalkan pesanan.'));
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Ya, Batalkan';
+        btn.textContent = isEn ? 'Yes, Cancel' : 'Ya, Batalkan';
       }
       return;
     }
@@ -372,25 +387,26 @@ async function confirmCancelOrder() {
     }
 
     showCancelledView();
-    showToast('Pesanan berhasil dibatalkan. ✕');
+    showToast(isEn ? 'Order cancelled successfully. ✕' : 'Pesanan berhasil dibatalkan. ✕');
   } catch (err) {
-    showToast('Koneksi terputus: ' + err.message);
+    showToast((isEn ? 'Connection error: ' : 'Koneksi terputus: ') + err.message);
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Ya, Batalkan';
+      btn.textContent = isEn ? 'Yes, Cancel' : 'Ya, Batalkan';
     }
   }
 }
 
 // "Saya Sudah Bayar" instant trigger (dynamically handles either pending or expired late button)
 async function triggerManualCheck(e) {
+  const isEn = document.documentElement.lang === 'en';
   const targetBtn = (e && e.currentTarget) ? e.currentTarget : null;
   if (!currentInvoice) return;
 
-  const originalText = targetBtn ? targetBtn.innerText : '⚡ Periksa Status';
+  const originalText = targetBtn ? targetBtn.innerText : (isEn ? '⚡ Check Status' : '⚡ Periksa Status');
   if (targetBtn) {
     targetBtn.disabled = true;
-    targetBtn.innerText = 'Memeriksa mutasi ShopeePay...';
+    targetBtn.innerText = isEn ? 'Checking payment mutation...' : 'Memeriksa mutasi ShopeePay...';
   }
 
   try {
@@ -407,9 +423,9 @@ async function triggerManualCheck(e) {
         return;
       }
     }
-    showToast(json.message || 'Mutasi belum terdeteksi. Silakan tunggu 10-30 detik.');
+    showToast(json.message || (isEn ? 'Payment not detected yet. Please wait 10-30 seconds.' : 'Mutasi belum terdeteksi. Silakan tunggu 10-30 detik.'));
   } catch (e) {
-    showToast('Gagal memeriksa mutasi: ' + e.message);
+    showToast((isEn ? 'Failed to check payment: ' : 'Gagal memeriksa mutasi: ') + e.message);
   } finally {
     setTimeout(() => {
       if (targetBtn) {

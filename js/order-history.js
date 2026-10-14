@@ -576,25 +576,84 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Language item click
+    // Sync Language Switcher UI with current page language
+    const isEnPage = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
+    // Update navbar button label & flag if English
+    if (isEnPage && langBtn) {
+      langBtn.innerHTML = `
+        <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+        <span class="lang-code">EN</span>
+        <span class="lang-arrow">▾</span>
+      `;
+    }
+
+    // Update active checkmarks in menu & drawer
+    document.querySelectorAll('[data-lang]').forEach(el => {
+      const lang = el.getAttribute('data-lang');
+      const check = el.querySelector('.lang-check');
+      if (lang === 'en') {
+        if (isEnPage) {
+          el.classList.add('active');
+          if (check) check.style.visibility = 'visible';
+        } else {
+          el.classList.remove('active');
+          if (check) check.style.visibility = 'hidden';
+        }
+      } else if (lang === 'id') {
+        if (!isEnPage) {
+          el.classList.add('active');
+          if (check) check.style.visibility = 'visible';
+        } else {
+          el.classList.remove('active');
+          if (check) check.style.visibility = 'hidden';
+        }
+      }
+    });
+
+    // Language item click with intelligent path mapping
     document.querySelectorAll('[data-lang]').forEach(el => {
       el.addEventListener('click', (e) => {
-        const lang = el.getAttribute('data-lang');
-        if (lang === 'en') {
-          e.preventDefault();
-          if (window.showToast) {
-            window.showToast('English version is coming soon! Menampilkan katalog Indonesia.', 'info');
+        e.preventDefault();
+        const targetLang = el.getAttribute('data-lang');
+        const currentPath = window.location.pathname;
+        const currentSearch = window.location.search;
+        const currentHash = window.location.hash;
+
+        closeDrawer();
+        langWrap?.classList.remove('open');
+
+        if (targetLang === 'en') {
+          if (isEnPage) return;
+          let targetPath = '/en/';
+          if (currentPath === '/' || currentPath === '/index.html') {
+            targetPath = '/en/';
+          } else if (currentPath.startsWith('/product')) {
+            targetPath = '/en/product' + currentSearch + currentHash;
+          } else if (currentPath.startsWith('/payment')) {
+            targetPath = '/en/payment' + currentSearch + currentHash;
+          } else if (currentPath.startsWith('/about')) {
+            targetPath = '/en/about' + currentSearch + currentHash;
           } else {
-            alert('English version is coming soon! Menampilkan katalog Indonesia.');
+            targetPath = '/en' + currentPath + currentSearch + currentHash;
           }
-          closeDrawer();
-          langWrap?.classList.remove('open');
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 600);
-        } else if (lang === 'id') {
-          langWrap?.classList.remove('open');
-          closeDrawer();
+          window.location.href = targetPath;
+        } else if (targetLang === 'id') {
+          if (!isEnPage) return;
+          let targetPath = '/';
+          if (currentPath === '/en' || currentPath === '/en/' || currentPath === '/en/index.html') {
+            targetPath = '/';
+          } else if (currentPath.startsWith('/en/product')) {
+            targetPath = '/product' + currentSearch + currentHash;
+          } else if (currentPath.startsWith('/en/payment')) {
+            targetPath = '/payment' + currentSearch + currentHash;
+          } else if (currentPath.startsWith('/en/about')) {
+            targetPath = '/about' + currentSearch + currentHash;
+          } else {
+            targetPath = currentPath.replace(/^\/en/, '') || '/';
+            targetPath = targetPath + currentSearch + currentHash;
+          }
+          window.location.href = targetPath;
         }
       });
     });

@@ -927,13 +927,72 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-sec-filter]').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         currentSecFilter = e.target.dataset.secFilter;
+        secCurrentPage = 1;
         loadSecurityLogs();
       });
+    });
+
+    // Sort buttons
+    const btnDesc = document.getElementById('btnSecOrderDesc');
+    const btnAsc = document.getElementById('btnSecOrderAsc');
+    if (btnDesc && btnAsc) {
+      btnDesc.addEventListener('click', () => {
+        if (secCurrentOrder === 'desc') return;
+        secCurrentOrder = 'desc';
+        btnDesc.style.background = 'rgba(99, 102, 241, 0.3)';
+        btnDesc.style.color = '#fff';
+        btnDesc.style.fontWeight = '600';
+        btnAsc.style.background = 'transparent';
+        btnAsc.style.color = 'var(--text-muted)';
+        btnAsc.style.fontWeight = '500';
+        secCurrentPage = 1;
+        loadSecurityLogs();
+      });
+
+      btnAsc.addEventListener('click', () => {
+        if (secCurrentOrder === 'asc') return;
+        secCurrentOrder = 'asc';
+        btnAsc.style.background = 'rgba(99, 102, 241, 0.3)';
+        btnAsc.style.color = '#fff';
+        btnAsc.style.fontWeight = '600';
+        btnDesc.style.background = 'transparent';
+        btnDesc.style.color = 'var(--text-muted)';
+        btnDesc.style.fontWeight = '500';
+        secCurrentPage = 1;
+        loadSecurityLogs();
+      });
+    }
+
+    // Limit select handler
+    document.getElementById('secLimitSelect')?.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val) && val > 0) {
+        secCurrentLimit = val;
+        secCurrentPage = 1;
+        loadSecurityLogs();
+      }
+    });
+
+    // Pagination buttons
+    document.getElementById('btnSecPrev')?.addEventListener('click', () => {
+      if (secCurrentPage > 1) {
+        secCurrentPage--;
+        loadSecurityLogs();
+      }
+    });
+
+    document.getElementById('btnSecNext')?.addEventListener('click', () => {
+      const totalPages = Math.max(1, Math.ceil(secTotalCount / secCurrentLimit));
+      if (secCurrentPage < totalPages) {
+        secCurrentPage++;
+        loadSecurityLogs();
+      }
     });
 
     let secSearchTimer = null;
     document.getElementById('secSearchInput')?.addEventListener('input', () => {
       clearTimeout(secSearchTimer);
+      secCurrentPage = 1;
       secSearchTimer = setTimeout(loadSecurityLogs, 300);
     });
   }
@@ -951,6 +1010,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAdminReviews();
   }
 
+  // Multilingual Translations Page Handlers
+  if (document.getElementById('translationsTableBody')) {
+    loadTranslations();
+    setupTranslationsUI();
+  }
+
   // Setup Manual Deliver UI (Orders & Dashboard)
   setupManualDeliverUI();
 
@@ -965,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('localProductModal')?.classList.remove('open');
       document.getElementById('quickKeysModal')?.classList.remove('open');
       document.getElementById('manualDeliverModal')?.classList.remove('open');
+      document.getElementById('editTransModal')?.classList.remove('open');
     }
   });
 });
@@ -1209,6 +1275,10 @@ async function openLoginHistoryModal() {
 // -------------------------------------------------------------
 let allSecurityLogs = [];
 let currentSecFilter = 'ALL';
+let secCurrentPage = 1;
+let secCurrentLimit = 50;
+let secCurrentOrder = 'desc';
+let secTotalCount = 0;
 
 async function loadSecurityStats() {
   try {
@@ -1222,6 +1292,15 @@ async function loadSecurityStats() {
 
       const elFailed = document.getElementById('secStatFailed');
       if (elFailed) elFailed.textContent = s.total_failed || 0;
+
+      const elAll = document.getElementById('countAllLogs');
+      if (elAll) elAll.textContent = (s.total_success || 0) + (s.total_failed || 0);
+
+      const elSucc = document.getElementById('countSuccessLogs');
+      if (elSucc) elSucc.textContent = s.total_success || 0;
+
+      const elFail = document.getElementById('countFailedLogs');
+      if (elFail) elFail.textContent = s.total_failed || 0;
 
       const elLastFailedIP = document.getElementById('secStatLastFailedIP');
       const elLastFailedMeta = document.getElementById('secStatLastFailedMeta');
@@ -1257,7 +1336,8 @@ async function loadSecurityLogs() {
 
   try {
     const search = (document.getElementById('secSearchInput')?.value || '').trim();
-    let url = `/api/admin/security/logs?status=${encodeURIComponent(currentSecFilter)}&limit=200`;
+    const offset = (secCurrentPage - 1) * secCurrentLimit;
+    let url = `/api/admin/security/logs?status=${encodeURIComponent(currentSecFilter)}&limit=${secCurrentLimit}&offset=${offset}&order=${secCurrentOrder}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
 
     const res = await adminFetch(url);
@@ -1265,26 +1345,48 @@ async function loadSecurityLogs() {
     const json = await res.json();
     if (json.success && json.data) {
       allSecurityLogs = json.data.logs || [];
+      secTotalCount = json.data.total !== undefined ? json.data.total : allSecurityLogs.length;
       renderSecurityTable();
-      updateSecurityCounts(json.data.total);
+      renderSecurityPagination();
     }
   } catch (err) {
     if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #f87171; padding: 2rem;">Gagal memuat log: ${escapeHtml(err.message)}</td></tr>`;
   }
 }
 
-function updateSecurityCounts(total) {
-  const elAll = document.getElementById('countAllLogs');
-  if (elAll && currentSecFilter === 'ALL') elAll.textContent = total !== undefined ? total : allSecurityLogs.length;
+function renderSecurityPagination() {
+  const infoEl = document.getElementById('secPaginationInfo');
+  const prevBtn = document.getElementById('btnSecPrev');
+  const nextBtn = document.getElementById('btnSecNext');
+  const pageIndicator = document.getElementById('secPageIndicator');
 
-  const countSuccess = allSecurityLogs.filter(l => l.status === 'SUCCESS').length;
-  const countFailed = allSecurityLogs.filter(l => l.status === 'FAILED').length;
+  const totalPages = Math.max(1, Math.ceil(secTotalCount / secCurrentLimit));
+  if (secCurrentPage > totalPages) {
+    secCurrentPage = totalPages;
+  }
 
-  const elSucc = document.getElementById('countSuccessLogs');
-  if (elSucc && currentSecFilter === 'ALL') elSucc.textContent = countSuccess;
+  const start = secTotalCount === 0 ? 0 : (secCurrentPage - 1) * secCurrentLimit + 1;
+  const end = Math.min(secCurrentPage * secCurrentLimit, secTotalCount);
 
-  const elFail = document.getElementById('countFailedLogs');
-  if (elFail && currentSecFilter === 'ALL') elFail.textContent = countFailed;
+  if (infoEl) {
+    infoEl.textContent = `Menampilkan ${start} - ${end} dari ${secTotalCount} log`;
+  }
+
+  if (pageIndicator) {
+    pageIndicator.textContent = `Halaman ${secCurrentPage} / ${totalPages}`;
+  }
+
+  if (prevBtn) {
+    prevBtn.disabled = secCurrentPage <= 1;
+    prevBtn.style.opacity = secCurrentPage <= 1 ? '0.4' : '1';
+    prevBtn.style.cursor = secCurrentPage <= 1 ? 'not-allowed' : 'pointer';
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = secCurrentPage >= totalPages;
+    nextBtn.style.opacity = secCurrentPage >= totalPages ? '0.4' : '1';
+    nextBtn.style.cursor = secCurrentPage >= totalPages ? 'not-allowed' : 'pointer';
+  }
 }
 
 function renderSecurityTable() {
@@ -1311,8 +1413,28 @@ function renderSecurityTable() {
     const ipClass = isSuccess ? 'ip-success-badge' : 'ip-failed-badge';
     const reasonText = l.failure_reason || (isSuccess ? 'Login berhasil' : 'Ditolak');
 
+    let reasonHtml = `<span style="font-size: 0.8rem; color: ${isSuccess ? '#34d399' : '#f87171'}; font-weight: 500;">${escapeHtml(reasonText)}</span>`;
+
+    // Highlight raw password attempted if present in failure_reason
+    if (!isSuccess && reasonText.includes(' • Password dicoba: ')) {
+      const parts = reasonText.split(' • Password dicoba: ');
+      const mainReason = parts[0];
+      const rawPassword = parts.slice(1).join(' • Password dicoba: ');
+      let cleanPass = rawPassword;
+      if (cleanPass.startsWith("'") && cleanPass.endsWith("'") && cleanPass.length >= 2) {
+        cleanPass = cleanPass.substring(1, cleanPass.length - 1);
+      }
+      reasonHtml = `
+        <div style="font-size: 0.8rem; color: #f87171; font-weight: 500; margin-bottom: 4px;">${escapeHtml(mainReason)}</div>
+        <div style="display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 0.76rem; color: #fbbf24; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.25); padding: 2px 6px; border-radius: 4px; word-break: break-all;">
+          <span style="opacity: 0.85;">🔑 Password dicoba:</span>
+          <strong style="color: #fff; font-weight: 700;">${escapeHtml(cleanPass)}</strong>
+        </div>
+      `;
+    }
+
     return `
-      <tr style="${isSuccess ? '' : 'background: rgba(239, 68, 68, 0.05);'}">
+      <tr style="${isSuccess ? '' : 'background: rgba(239, 68, 68, 0.04);'}">
         <td>
           <div style="font-weight: 700; color: #fff; font-family: var(--font-mono); font-size: 0.82rem;">${formatLoginTime(l.login_at)}</div>
         </td>
@@ -1332,9 +1454,7 @@ function renderSecurityTable() {
           <div style="color: #cbd5e1; font-size: 0.78rem;">${escapeHtml(l.device_info || l.user_agent || '-')}</div>
         </td>
         <td>
-          <span style="font-size: 0.8rem; color: ${isSuccess ? '#34d399' : '#f87171'}; font-weight: 600;">
-            ${escapeHtml(reasonText)}
-          </span>
+          ${reasonHtml}
         </td>
       </tr>
     `;
@@ -3024,5 +3144,294 @@ function setupReviewsPageUI() {
   });
 }
 
+// -------------------------------------------------------------
+// 11. MULTILINGUAL TRANSLATIONS MANAGEMENT LOGIC
+// -------------------------------------------------------------
+let allTranslations = [];
+let currentTransFilter = 'ALL';
 
+async function loadTranslations() {
+  const tbody = document.getElementById('translationsTableBody');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Memuat data terjemahan produk...</td></tr>`;
+  }
 
+  try {
+    const res = await adminFetch('/api/admin/translations');
+    if (!res) return;
+
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      allTranslations = json.data;
+      updateTranslationCounters();
+      renderTranslationsTable();
+    } else {
+      throw new Error(json.error || 'Respon API tidak valid');
+    }
+  } catch (err) {
+    console.error('Failed to load translations:', err);
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #f87171;">✕ ${escapeHtml(err.message || 'Gagal memuat data')}</td></tr>`;
+    }
+  }
+}
+
+function updateTranslationCounters() {
+  const total = allTranslations.length;
+  const translated = allTranslations.filter(t => t.is_translated).length;
+  const pending = total - translated;
+
+  const elTotal = document.getElementById('cntTotalProds');
+  if (elTotal) elTotal.textContent = total;
+  const elTrans = document.getElementById('cntTranslatedProds');
+  if (elTrans) elTrans.textContent = translated;
+  const elPending = document.getElementById('cntPendingProds');
+  if (elPending) elPending.textContent = pending;
+}
+
+function renderTranslationsTable() {
+  const tbody = document.getElementById('translationsTableBody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('searchTransInput')?.value || '').toLowerCase().trim();
+
+  const filtered = allTranslations.filter(t => {
+    if (currentTransFilter === 'TRANSLATED' && !t.is_translated) return false;
+    if (currentTransFilter === 'PENDING' && t.is_translated) return false;
+
+    if (q) {
+      const matchName = (t.name_id || '').toLowerCase().includes(q) || (t.name_en || '').toLowerCase().includes(q);
+      const matchSlug = (t.slug || '').toLowerCase().includes(q);
+      const matchType = (t.type_id || '').toLowerCase().includes(q);
+      return matchName || matchSlug || matchType;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+          Tidak ada data produk yang cocok dengan pencarian / filter ini.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((t, idx) => {
+    const badge = t.is_translated
+      ? `<span class="trans-status-badge badge-trans-yes">✓ Sudah di-set (EN)</span>`
+      : `<span class="trans-status-badge badge-trans-no">⚠️ Belum di-set</span>`;
+
+    const enPreview = (t.name_en && t.name_en.trim())
+      ? `<span style="color: #cbd5e1; font-weight: 500;">${escapeHtml(t.name_en)}</span>`
+      : `<span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Belum di-set (Pakai Teks Indo)</span>`;
+
+    const sourceBadge = t.source === 'LOCAL'
+      ? `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(59,130,246,0.15); color: #60a5fa; margin-left: 6px;">Lokal</span>`
+      : `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(168,85,247,0.15); color: #c084fc; margin-left: 6px;">Upstream</span>`;
+
+    return `
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.85rem;">${idx + 1}</td>
+        <td>
+          <div style="font-weight: 600; color: #fff; display: flex; align-items: center;">
+            <span>${escapeHtml(t.name_id)}</span>
+            ${sourceBadge}
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">slug: ${escapeHtml(t.slug)}</div>
+        </td>
+        <td style="font-size: 0.88rem; color: var(--text-muted);">${escapeHtml(t.type_id || 'Digital License')}</td>
+        <td>${badge}</td>
+        <td>${enPreview}</td>
+        <td style="text-align: right;">
+          <button type="button" class="btn-nav" style="padding: 0.35rem 0.75rem; font-size: 0.82rem; border-color: rgba(99,102,241,0.4); color: #a5b4fc;" onclick="openTransModal('${escapeHtml(t.slug)}')">
+            ✏️ Edit EN
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openTransModal(slug) {
+  const item = allTranslations.find(t => t.slug === slug);
+  if (!item) return;
+
+  const slugInput = document.getElementById('transProductSlug');
+  if (slugInput) slugInput.value = item.slug;
+
+  const badgeEl = document.getElementById('modalProductSlugBadge');
+  if (badgeEl) badgeEl.textContent = 'slug: ' + item.slug + ' (' + item.source + ')';
+
+  // Original ID
+  const elOrigName = document.getElementById('origNameID');
+  if (elOrigName) elOrigName.value = item.name_id || '';
+  const elOrigType = document.getElementById('origTypeID');
+  if (elOrigType) elOrigType.value = item.type_id || '';
+  const elOrigReg = document.getElementById('origRegionID');
+  if (elOrigReg) elOrigReg.value = item.region_id || '';
+  const elOrigWar = document.getElementById('origWarrantyID');
+  if (elOrigWar) elOrigWar.value = item.warranty_id || '';
+  const elOrigDesc = document.getElementById('origDescID');
+  if (elOrigDesc) elOrigDesc.value = item.description_id || '';
+  const elOrigTerms = document.getElementById('origTermsID');
+  if (elOrigTerms) elOrigTerms.value = item.terms_id || '';
+
+  // English Fields
+  const elTransName = document.getElementById('transNameEN');
+  if (elTransName) elTransName.value = item.name_en || '';
+  const elTransType = document.getElementById('transTypeEN');
+  if (elTransType) elTransType.value = item.type_en || '';
+  const elTransReg = document.getElementById('transRegionEN');
+  if (elTransReg) elTransReg.value = item.region_en || '';
+  const elTransWar = document.getElementById('transWarrantyEN');
+  if (elTransWar) elTransWar.value = item.warranty_en || '';
+  const elTransDesc = document.getElementById('transDescEN');
+  if (elTransDesc) elTransDesc.value = item.description_en || '';
+  const elTransTerms = document.getElementById('transTermsEN');
+  if (elTransTerms) elTransTerms.value = item.terms_en || '';
+
+  const modal = document.getElementById('editTransModal');
+  modal?.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    document.getElementById('transNameEN')?.focus();
+  }, 100);
+}
+
+function closeTransModal() {
+  const modal = document.getElementById('editTransModal');
+  modal?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function handleAutoDraft() {
+  const btn = document.getElementById('btnAutoDraft');
+  if (!btn) return;
+  const origText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span>⏳ Menerjemahkan...</span>`;
+
+  try {
+    const payload = {
+      texts: {
+        name: document.getElementById('origNameID')?.value || '',
+        type: document.getElementById('origTypeID')?.value || '',
+        region: document.getElementById('origRegionID')?.value || '',
+        warranty: document.getElementById('origWarrantyID')?.value || '',
+        description: document.getElementById('origDescID')?.value || '',
+        terms: document.getElementById('origTermsID')?.value || '',
+      }
+    };
+
+    const res = await adminFetch('/api/admin/translations/auto-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res) return;
+
+    const json = await res.json();
+    if (json.success && json.data) {
+      if (json.data.name && document.getElementById('transNameEN')) document.getElementById('transNameEN').value = json.data.name;
+      if (json.data.type && document.getElementById('transTypeEN')) document.getElementById('transTypeEN').value = json.data.type;
+      if (json.data.region && document.getElementById('transRegionEN')) document.getElementById('transRegionEN').value = json.data.region;
+      if (json.data.warranty && document.getElementById('transWarrantyEN')) document.getElementById('transWarrantyEN').value = json.data.warranty;
+      if (json.data.description && document.getElementById('transDescEN')) document.getElementById('transDescEN').value = json.data.description;
+      if (json.data.terms && document.getElementById('transTermsEN')) document.getElementById('transTermsEN').value = json.data.terms;
+
+      showToast('✨ Draft terjemahan Bahasa Inggris berhasil digenerate!');
+    } else {
+      alert('Gagal generate draft terjemahan: ' + (json.error || 'Terjadi kesalahan'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan jaringan saat auto-draft: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+async function handleSaveTranslation(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const slug = document.getElementById('transProductSlug')?.value;
+  if (!slug) return;
+
+  const btn = document.getElementById('btnSaveTranslation');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+  }
+
+  const payload = {
+    name_en: (document.getElementById('transNameEN')?.value || '').trim(),
+    type_en: (document.getElementById('transTypeEN')?.value || '').trim(),
+    region_en: (document.getElementById('transRegionEN')?.value || '').trim(),
+    warranty_en: (document.getElementById('transWarrantyEN')?.value || '').trim(),
+    description_en: (document.getElementById('transDescEN')?.value || '').trim(),
+    terms_en: (document.getElementById('transTermsEN')?.value || '').trim()
+  };
+
+  try {
+    const res = await adminFetch('/api/admin/translations/' + encodeURIComponent(slug), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res) return;
+
+    const json = await res.json();
+    if (json.success) {
+      closeTransModal();
+      await loadTranslations();
+      showToast('✅ Terjemahan bahasa Inggris untuk "' + slug + '" berhasil disimpan!');
+    } else {
+      alert('✕ Gagal menyimpan terjemahan: ' + (json.error || 'Terjadi kesalahan'));
+    }
+  } catch (err) {
+    alert('✕ Kesalahan jaringan: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '💾 Simpan Terjemahan';
+    }
+  }
+}
+
+function setupTranslationsUI() {
+  document.getElementById('btnRefreshTranslations')?.addEventListener('click', () => {
+    loadTranslations();
+    showToast('Data terjemahan diperbarui 🔄');
+  });
+
+  document.getElementById('searchTransInput')?.addEventListener('input', renderTranslationsTable);
+
+  document.querySelectorAll('#transFilterGroup button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#transFilterGroup button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTransFilter = btn.getAttribute('data-tfilter') || 'ALL';
+      renderTranslationsTable();
+    });
+  });
+
+  // Modal events
+  document.getElementById('btnCloseEditTransModal')?.addEventListener('click', closeTransModal);
+  document.getElementById('btnCancelTransModal')?.addEventListener('click', closeTransModal);
+  document.getElementById('editTransModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'editTransModal') closeTransModal();
+  });
+
+  // Form submit
+  document.getElementById('transForm')?.addEventListener('submit', handleSaveTranslation);
+
+  // Auto Draft button
+  document.getElementById('btnAutoDraft')?.addEventListener('click', handleAutoDraft);
+}
+
+// Expose modal handlers to global scope for HTML onclick attributes
+window.openTransModal = openTransModal;
+window.closeTransModal = closeTransModal;

@@ -180,12 +180,13 @@ function renderReviewsSection(stats, reviews) {
 
   // Reviews List
   const listWrap = document.getElementById('reviewsListWrap');
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
   if (listWrap) {
     if (!reviews || reviews.length === 0) {
       listWrap.innerHTML = `
         <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.88rem; background: rgba(255,255,255,0.015); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.08);">
-          Belum ada ulasan untuk produk ini.<br>
-          <span style="font-size: 0.8rem; opacity: 0.8;">Jadilah pembeli pertama yang memberikan penilaian setelah pesanan Anda lunas!</span>
+          ${isEn ? 'No customer reviews yet for this product.<br><span style="font-size: 0.8rem; opacity: 0.8;">Be the first buyer to review this product after completion!</span>' : 'Belum ada ulasan untuk produk ini.<br><span style="font-size: 0.8rem; opacity: 0.8;">Jadilah pembeli pertama yang memberikan penilaian setelah pesanan Anda lunas!</span>'}
         </div>
       `;
     } else {
@@ -193,13 +194,15 @@ function renderReviewsSection(stats, reviews) {
         const initial = (r.author_name || 'U').charAt(0).toUpperCase();
         const dateStr = formatDate(r.created_at);
         const starStr = getStarString(r.rating);
+        const verifiedText = isEn ? '✓ Verified Buyer' : '✓ Terverifikasi';
+        const defaultAuthor = isEn ? 'Verified Customer' : 'Pelanggan Terverifikasi';
         return `
           <div class="review-item-card">
             <div class="review-item-top">
               <div class="review-author-wrap">
                 <div class="review-avatar">${escapeHtml(initial)}</div>
-                <div class="review-author-name">${escapeHtml(r.author_name || 'Pelanggan Terverifikasi')}</div>
-                <span class="verified-buyer-badge">✓ Terverifikasi</span>
+                <div class="review-author-name">${escapeHtml(r.author_name || defaultAuthor)}</div>
+                <span class="verified-buyer-badge">${verifiedText}</span>
               </div>
               <div class="review-stars-val">${starStr}</div>
             </div>
@@ -214,6 +217,7 @@ function renderReviewsSection(stats, reviews) {
       } else {
         const firstBatch = reviews.slice(0, 5).map(renderCard).join('');
         const remainingBatch = reviews.slice(5).map(renderCard).join('');
+        const btnMoreText = isEn ? `View All Reviews (${reviews.length}) ▾` : `Lihat Seluruh Ulasan (${reviews.length}) ▾`;
         listWrap.innerHTML = `
           ${firstBatch}
           <div id="hiddenReviewsContainer" style="display: none;">
@@ -221,7 +225,7 @@ function renderReviewsSection(stats, reviews) {
           </div>
           <div id="moreReviewsWrap" style="text-align: center; margin-top: 1.25rem;">
             <button type="button" id="btnShowMoreReviews" class="btn-nav" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.55rem 1.25rem; font-size: 0.85rem; color: #fbbf24; border-color: rgba(251, 191, 36, 0.35);">
-              Lihat Seluruh Ulasan (${reviews.length}) ▾
+              ${btnMoreText}
             </button>
           </div>
         `;
@@ -244,6 +248,8 @@ function renderProductDetail(p, stats, reviews) {
     detailGrid.style.display = window.innerWidth <= 860 ? 'flex' : 'grid';
   }
 
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
   // Page title & Breadcrumb
   document.title = `${p.name} - Digimest`;
   document.getElementById('bcProductName').textContent = p.name;
@@ -257,23 +263,25 @@ function renderProductDetail(p, stats, reviews) {
 
   // Sold count & Reviews
   const soldEl = document.getElementById('dSoldText');
-  if (soldEl) soldEl.textContent = `${p.salesCount || 10} terjual`;
+  if (soldEl) soldEl.textContent = `${p.salesCount || 10} ${isEn ? 'sold' : 'terjual'}`;
   renderReviewsSection(stats, reviews);
 
   // Badges
   document.getElementById('dProdCategory').textContent = p.type || 'Digital License';
   document.getElementById('dProdRegion').textContent = p.region ? `🌐 ${p.region}` : '🌐 Global';
-  document.getElementById('dProdWarranty').textContent = p.warranty ? `🛡️ ${p.warranty}` : '🛡️ Garansi Toko';
+  document.getElementById('dProdWarranty').textContent = p.warranty ? `🛡️ ${p.warranty}` : (isEn ? '🛡️ Store Warranty' : '🛡️ Garansi Toko');
 
   const isOut = p.stock <= 0 || !!p.isForceOutOfStock;
-  const stockText = isOut ? 'Habis' : (p.stockCapped ? '>1000 Stok' : `${p.stock} Stok`);
+  const stockText = isOut
+    ? (isEn ? 'Out of Stock' : 'Habis')
+    : (p.stockCapped ? (isEn ? '>1000 In Stock' : '>1000 Stok') : (isEn ? `${p.stock} In Stock` : `${p.stock} Stok`));
   const stockBadge = document.getElementById('dProdStock');
   stockBadge.textContent = `● ${stockText}`;
   if (isOut) stockBadge.classList.add('empty');
 
   const dStockNoteEl = document.getElementById('dStockNote');
   if (dStockNoteEl) {
-    dStockNoteEl.textContent = isOut ? '● Stok Habis' : `● Tersedia: ${stockText}`;
+    dStockNoteEl.textContent = isOut ? (isEn ? '● Out of Stock' : '● Stok Habis') : (isEn ? `● Available: ${stockText}` : `● Tersedia: ${stockText}`);
     if (isOut) {
       dStockNoteEl.classList.add('empty');
     } else {
@@ -282,21 +290,21 @@ function renderProductDetail(p, stats, reviews) {
   }
   const modalStock = document.getElementById('mModalStockNote');
   if (modalStock) {
-    modalStock.textContent = isOut ? 'Stok Habis' : `Tersedia: ${stockText}`;
+    modalStock.textContent = isOut ? (isEn ? 'Out of Stock' : 'Stok Habis') : (isEn ? `Available: ${stockText}` : `Tersedia: ${stockText}`);
     if (isOut) modalStock.style.color = '#f87171';
   }
   if (isOut) {
     const buyBtn = document.getElementById('btnOpenCheckoutFromDetail');
     if (buyBtn) {
       buyBtn.disabled = true;
-      buyBtn.textContent = 'Stok Produk Habis';
+      buyBtn.textContent = isEn ? 'Product Out of Stock' : 'Stok Produk Habis';
       buyBtn.style.opacity = '0.6';
       buyBtn.style.cursor = 'not-allowed';
     }
     const stickyBtn = document.getElementById('btnStickyBuy');
     if (stickyBtn) {
       stickyBtn.disabled = true;
-      stickyBtn.textContent = 'Stok Habis';
+      stickyBtn.textContent = isEn ? 'Out of Stock' : 'Stok Habis';
       stickyBtn.style.opacity = '0.6';
       stickyBtn.style.cursor = 'not-allowed';
     }
@@ -605,8 +613,10 @@ function handleCancelVoucher() {
 
 function openCheckoutModal() {
   if (!currentProduct) return;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
   if (currentProduct.stock <= 0 || currentProduct.isForceOutOfStock) {
-    alert('Mohon maaf, stok produk ini sedang habis atau dinonaktifkan sementara.');
+    alert(isEn ? 'Sorry, this product is currently out of stock.' : 'Mohon maaf, stok produk ini sedang habis atau dinonaktifkan sementara.');
     return;
   }
   const modal = document.getElementById('checkoutModal');
@@ -634,19 +644,20 @@ function closeCheckoutModal() {
 
 async function submitCheckout() {
   if (!currentProduct) return;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
   const btn = document.getElementById('btnConfirmCheckout');
   const email = (document.getElementById('emailInput')?.value || '').trim();
   const contact = (document.getElementById('contactInput')?.value || '').trim();
 
   if (!email || !email.includes('@') || !email.includes('.')) {
-    alert('Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!');
+    alert(isEn ? 'Please enter a valid email address for digital license delivery!' : 'Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!');
     document.getElementById('emailInput')?.focus();
     return;
   }
 
   btn.disabled = true;
-  btn.innerText = 'Menyiapkan QRIS ShopeePay...';
+  btn.innerText = isEn ? 'Preparing Instant QRIS...' : 'Menyiapkan QRIS ShopeePay...';
 
   try {
     const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
@@ -664,9 +675,9 @@ async function submitCheckout() {
 
     const data = await res.json();
     if (!data.success) {
-      alert('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan'));
+      alert(isEn ? ('Failed to create order: ' + (data.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan')));
       btn.disabled = false;
-      btn.innerText = 'Bayar Sekarang via QRIS ➔';
+      btn.innerText = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
       return;
     }
 
@@ -689,14 +700,15 @@ async function submitCheckout() {
       });
     }
 
-    // Redirect to Payment Screen (Clean URL)
-    window.location.href = `/payment?inv=${encodeURIComponent(order.invoice_number)}`;
+    // Redirect to Payment Screen (Clean URL, matching current language)
+    const paymentPath = isEn ? '/en/payment' : '/payment';
+    window.location.href = `${paymentPath}?inv=${encodeURIComponent(order.invoice_number)}`;
 
   } catch (err) {
     console.error('Checkout error:', err);
-    alert('Terjadi kesalahan jaringan saat checkout.');
+    alert(isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
     btn.disabled = false;
-    btn.innerText = 'Bayar Sekarang via QRIS ➔';
+    btn.innerText = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
   }
 }
 

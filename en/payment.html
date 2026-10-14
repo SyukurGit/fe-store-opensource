@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRIS Payment - Digimest</title>
+  <link rel="icon" type="image/png" href="/logo/digimest_icon.png">
+  <link rel="apple-touch-icon" href="/logo/digimest_icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/en/" class="logo-wrap" title="Digimest - Home">
+        <img src="/logo/digimest.png" alt="Digimest" class="logo-navbar-img">
+      </a>
+      <div class="nav-actions">
+        <a href="/en/" class="btn-nav">
+          <span class="nav-text-desktop">← Back to Store</span>
+          <span class="nav-text-mobile">← Store</span>
+        </a>
+        <a href="/claim" class="btn-nav">
+          <span class="nav-text-desktop">🔑 Claim Product</span>
+          <span class="nav-text-mobile">🔑 Claim</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="payment-container">
+    <div class="payment-card" id="paymentCard">
+      
+      <!-- Top Meta Details -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem;">
+        <div style="text-align: left;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Invoice Number</div>
+          <div id="invDisplay" style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: #fff;">...</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Transaction Status</div>
+          <div id="statusBadgeDisplay" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">
+            ⏳ Awaiting Payment
+          </div>
+        </div>
+      </div>
+
+      <div id="emailNotice" style="display: none; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 1.25rem; font-size: 0.8rem; color: #a5b4fc; text-align: center;">
+        ✉️ Payment receipt & pickup code automatically sent to: <strong id="buyerEmailDisplay" style="color: #fff;"></strong>
+      </div>
+
+      <!-- Pending QRIS State View -->
+      <div id="pendingView">
+        <div class="timer-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Payment Time Left: </span>
+          <strong id="timerText" style="color: #fff;">15:00</strong>
+        </div>
+
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">Scan QRIS</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Open your banking or e-wallet app (ShopeePay, BCA, GoPay, OVO, Dana, etc.) and scan the QR code below.</p>
+
+        <!-- QRIS Image Box -->
+        <div class="qris-box">
+          <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
+        </div>
+
+        <!-- Highlight Nominal Wajib Bayar -->
+        <div class="highlight-amount-box">
+          <div style="font-size: 0.78rem; text-transform: uppercase; color: #fbbf24; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">
+            ⚠️ Exact Transfer Amount Required
+          </div>
+          <div id="totalAmountText" class="amount-huge">Rp 0</div>
+          <div id="uniqueCodeNote" style="font-size: 0.82rem; color: #d1d5db; margin-top: 6px;">
+            Includes 3-digit unique code. <strong>Do not round up the transfer amount</strong> for automatic instant verification!
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite;"></span>
+            System automatically checks payment status every 3 seconds...
+          </div>
+          <button type="button" id="btnCancelOrder" class="btn-cancel-order">
+            ✕ Cancel This Order
+          </button>
+          <a href="/en/" style="display: block; text-align: center; font-size: 0.8rem; color: #94a3b8; text-decoration: none; margin-top: 4px; padding: 4px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+            ← Continue Shopping in Catalog (Order remains saved in 'My Orders')
+          </a>
+        </div>
+      </div>
+
+      <!-- Paid & License Delivered View (Auto-Revealed!) -->
+      <div id="successView" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">Payment Successful!</h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Your order has been fulfilled instantly by Digimest automatic system. Your license is ready to use.</p>
+
+        <!-- KARTU KODE AMBIL PESANAN & DIRECT LINK KHUSUS -->
+        <div class="claim-info-card">
+          <div class="claim-card-title">🔑 YOUR ORDER PICKUP CODE</div>
+          <div class="claim-code-row">
+            <span id="paidClaimCodeDisplay" class="claim-code-value">...</span>
+            <button type="button" id="btnCopyClaimCode" class="btn-copy-claim">
+              📋 Copy Code
+            </button>
+          </div>
+          <p class="claim-card-hint">
+            Save the code above to retrieve or check your order licenses anytime on Digimest.
+          </p>
+          
+          <div class="claim-direct-wrap">
+            <div class="claim-direct-label">
+              🔗 Or you can click the link below to retrieve your product directly:
+            </div>
+            <a id="paidDirectClaimLink" href="#" target="_blank" class="direct-claim-btn">
+              <span>Open & Claim via Direct Link ➔</span>
+            </a>
+            <div id="paidDirectClaimUrlText" class="claim-direct-url-text"></div>
+          </div>
+        </div>
+
+        <div class="success-reveal-box">
+          <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>Product: <span id="sProdName" style="color: #60a5fa;"></span></span>
+            <span id="sProdWarranty" class="badge badge-warranty"></span>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">YOUR LICENSE / ACTIVATION DETAILS:</div>
+          <div id="itemsContainer">
+            <!-- License items rendered here -->
+          </div>
+
+          <div id="warrantyAlert" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 0.85rem; margin-top: 1rem; font-size: 0.82rem; color: #fbbf24;">
+            💡 <strong>Activation Guide:</strong> Please claim/activate your license before the warranty period above expires.
+          </div>
+        </div>
+
+        <div style="margin-top: 1.75rem; display: flex; gap: 0.75rem;">
+          <a href="/en/" class="btn-submit" style="text-decoration: none; text-align: center; flex: 1;">Shop Again</a>
+          <button id="copyAllKeysBtn" class="btn-nav" style="padding: 0.75rem 1rem;">Copy All</button>
+        </div>
+      </div>
+
+      <!-- Expired View -->
+      <div id="expiredView" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">⌛</div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #f87171; margin-bottom: 0.5rem;">QRIS Invoice Expired</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">The 15-minute time limit has expired. If you just transferred or experienced a delay, check your order status.</p>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button type="button" id="btnCheckExpiredLate" class="btn-submit" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; cursor: pointer;">
+            ⚡ I Already Transferred (Recheck Status)
+          </button>
+          <a href="/en/" class="btn-nav" style="text-decoration: none; text-align: center; display: block; padding: 10px;">Create New Order</a>
+        </div>
+      </div>
+
+      <!-- Cancelled View -->
+      <div id="cancelledView" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">✕</div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: #94a3b8; margin-bottom: 0.5rem;">Order Cancelled</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">This transaction has been cancelled. The QRIS invoice is no longer valid and cannot be paid.</p>
+        <a href="/en/" class="btn-submit" style="text-decoration: none; display: block;">Back to Store Catalog</a>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); font-size: 0.82rem; color: var(--text-muted); text-align: center;">
+        Trouble scanning or paying? <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 600; text-decoration: underline;" data-tele-cs>Contact Telegram Support 24/7</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Batal Pesanan -->
+  <div class="modal-overlay" id="cancelConfirmModal">
+    <div class="modal-card cancel-modal-card">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">⚠️</div>
+      <h3 class="cancel-modal-title">Cancel This Order?</h3>
+      <p class="cancel-modal-desc">
+        This QRIS invoice will be deactivated. You can create a new order anytime if you change your mind.
+      </p>
+      <div class="cancel-modal-actions">
+        <button type="button" id="btnDismissCancelModal" class="btn-modal-back">Back</button>
+        <button type="button" id="btnConfirmCancelAction" class="btn-modal-confirm-cancel">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-notice"></div>
+
+  <style>
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+  </style>
+
+  <script src="/js/api-config.js?v=5.9.0"></script>
+  <script src="/js/order-history.js?v=5.9.0"></script>
+  <script src="/js/payment.js?v=5.9.0"></script>
+</body>
+</html>

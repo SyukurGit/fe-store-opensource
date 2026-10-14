@@ -42,6 +42,7 @@
       <a href="/admin" class="admin-nav-tab">📊 Ringkasan Dashboard</a>
       <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk</a>
       <a href="/admin/custom-products" class="admin-nav-tab">✨ Produk Mandiri / Lokal</a>
+      <a href="/admin/translations" class="admin-nav-tab">🌐 Terjemahan (EN)</a>
       <a href="/admin/reviews" class="admin-nav-tab">⭐ Ulasan & Etalase</a>
       <a href="/admin/orders" class="admin-nav-tab">📜 Riwayat Pesanan</a>
       <a href="/admin/vouchers" class="admin-nav-tab">🎟️ Kelola Voucher</a>
@@ -102,14 +103,36 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="orders-filter-bar" style="margin-bottom: 1.5rem;">
-      <div class="filter-tabs">
+    <div class="orders-filter-bar" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+      <div class="filter-tabs" style="display: flex; gap: 6px; flex-wrap: wrap;">
         <button class="filter-tab active" data-sec-filter="ALL">Semua Log (<span id="countAllLogs">0</span>)</button>
         <button class="filter-tab" data-sec-filter="SUCCESS" style="color: #34d399;">🟢 Hanya Berhasil (<span id="countSuccessLogs">0</span>)</button>
         <button class="filter-tab" data-sec-filter="FAILED" style="color: #f87171;">🔴 Percobaan Gagal (<span id="countFailedLogs">0</span>)</button>
       </div>
-      <div style="flex: 1; max-width: 400px;">
-        <input type="text" id="secSearchInput" class="form-input" placeholder="🔍 Cari IP address, username, atau lokasi..." style="font-size: 0.85rem; padding: 0.5rem 0.85rem;">
+
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <!-- Sort Buttons -->
+        <div style="display: inline-flex; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 2px;">
+          <button id="btnSecOrderDesc" type="button" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 6px; background: rgba(99, 102, 241, 0.3); color: #fff; font-weight: 600; cursor: pointer;" title="Urutkan dari yang terbaru">⬇️ Terbaru</button>
+          <button id="btnSecOrderAsc" type="button" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 6px; background: transparent; color: var(--text-muted); font-weight: 500; cursor: pointer;" title="Urutkan dari yang paling lama">⬆️ Terlama</button>
+        </div>
+
+        <!-- Per Page Limit Selector -->
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-muted);">
+          <span>Per hal:</span>
+          <select id="secLimitSelect" class="form-input" style="padding: 4px 8px; font-size: 0.82rem; width: auto; background: #0f172a; color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; cursor: pointer;">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+
+        <!-- Search Input -->
+        <div style="min-width: 220px;">
+          <input type="text" id="secSearchInput" class="form-input" placeholder="🔍 Cari IP, username, lokasi..." style="font-size: 0.82rem; padding: 0.45rem 0.75rem;">
+        </div>
       </div>
     </div>
 
@@ -125,7 +148,7 @@
               <th style="min-width: 150px;">IP Address</th>
               <th style="min-width: 180px;">Estimasi Lokasi</th>
               <th style="min-width: 200px;">Perangkat & Browser</th>
-              <th style="min-width: 220px;">Keterangan / Alasan</th>
+              <th style="min-width: 260px;">Keterangan / Alasan</th>
             </tr>
           </thead>
           <tbody id="secLogsTableBody">
@@ -136,6 +159,18 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div id="secPaginationContainer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;">
+      <div id="secPaginationInfo" style="font-size: 0.82rem; color: var(--text-muted);">
+        Menampilkan 0 - 0 dari 0 log
+      </div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <button id="btnSecPrev" type="button" class="btn-nav" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px;" disabled>◀ Sebelumnya</button>
+        <span id="secPageIndicator" style="font-size: 0.82rem; font-weight: 600; color: #fff; padding: 0 8px;">Halaman 1 / 1</span>
+        <button id="btnSecNext" type="button" class="btn-nav" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 6px;" disabled>Selanjutnya ▶</button>
       </div>
     </div>
 
