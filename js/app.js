@@ -160,13 +160,15 @@ function openCheckoutModal(slug) {
 
   // Render wholesale tiers if available (only if no custom price or promo override)
   const tierContainer = document.getElementById('tierPillsContainer');
-  if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
-    tierContainer.innerHTML = selectedProduct.tiers.map(t => {
-      const range = t.maxQty ? `${t.minQty}–${t.maxQty} pcs` : `${t.minQty}+ pcs`;
-      return `<span class="tier-pill">${range}: ${formatIDR(t.priceIDR)}</span>`;
-    }).join(' ');
-  } else {
-    tierContainer.innerHTML = '';
+  if (tierContainer) {
+    if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
+      tierContainer.innerHTML = selectedProduct.tiers.map(t => {
+        const range = t.maxQty ? `${t.minQty}–${t.maxQty} pcs` : `${t.minQty}+ pcs`;
+        return `<span class="tier-pill">${range}: ${formatIDR(t.priceIDR)}</span>`;
+      }).join(' ');
+    } else {
+      tierContainer.innerHTML = '';
+    }
   }
 
   updateCheckoutCalculations();
@@ -263,7 +265,9 @@ async function submitCheckout() {
     }
 
     // REDIRECT TO PAYMENT PAGE
-    window.location.href = `/payment?inv=${order.invoice_number}`;
+    const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+    const paymentPath = isEn ? '/en/payment' : '/payment';
+    window.location.href = `${paymentPath}?inv=${encodeURIComponent(order.invoice_number)}`;
   } catch (err) {
     alert('Koneksi terputus: ' + err.message);
     btn.disabled = false;

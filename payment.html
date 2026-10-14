@@ -35,15 +35,15 @@
   <div class="payment-container">
     <div class="payment-card" id="paymentCard">
       
-      <!-- Top Meta Details -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem;">
-        <div style="text-align: left;">
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Nomor Invoice</div>
-          <div id="invDisplay" style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: #fff;">...</div>
+      <!-- Top Meta Details (Clean Parallel Header) -->
+      <div class="payment-meta-header">
+        <div class="payment-meta-col col-invoice">
+          <div class="payment-meta-label">Nomor Invoice</div>
+          <div id="invDisplay" class="payment-meta-inv">...</div>
         </div>
-        <div style="text-align: right;">
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Status Transaksi</div>
-          <div id="statusBadgeDisplay" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">
+        <div class="payment-meta-col col-status">
+          <div class="payment-meta-label">Status Transaksi</div>
+          <div id="statusBadgeDisplay" class="payment-meta-badge">
             ⏳ Menunggu Pembayaran
           </div>
         </div>
@@ -83,7 +83,14 @@
           </div>
         </div>
 
-        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <!-- Tombol Cek Sudah Bayar (Manual Instant Polling) -->
+        <button type="button" id="btnManualCheck" class="btn-check-paid">
+          <span class="btn-check-spinner" id="manualCheckSpinner" style="display: none;">🔄</span>
+          <span class="btn-check-icon" id="manualCheckIcon">⚡</span>
+          <span id="manualCheckText">Saya Sudah Bayar (Cek Mutasi Sekarang)</span>
+        </button>
+
+        <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
           <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite;"></span>
             Sistem otomatis mengecek status mutasi setiap 3 detik...
@@ -202,8 +209,8 @@
     }
   </style>
 
-  <script src="/js/api-config.js?v=5.9.2"></script>
-  <script src="/js/order-history.js?v=5.9.2"></script>
-  <script src="/js/payment.js?v=5.9.2"></script>
+  <script src="/js/api-config.js?v=5.9.3"></script>
+  <script src="/js/order-history.js?v=5.9.3"></script>
+  <script src="/js/payment.js?v=5.9.3"></script>
 </body>
 </html>

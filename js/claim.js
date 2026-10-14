@@ -407,14 +407,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // History modal handlers
   document.getElementById('btnOpenHistory')?.addEventListener('click', () => {
-    const handler = window.DigimestOrders || window.StoreKuOrders;
-    if (handler) handler.renderHistoryList('historyListContainer');
-    document.getElementById('historyModal')?.classList.add('open');
+    if (window.DigimestOrders && typeof window.DigimestOrders.openModal === 'function') {
+      window.DigimestOrders.openModal('historyListContainer', 'historyModal');
+    } else {
+      const handler = window.DigimestOrders || window.StoreKuOrders;
+      if (handler) handler.renderHistoryList('historyListContainer');
+      document.getElementById('historyModal')?.classList.add('open');
+    }
   });
   document.getElementById('closeHistoryBtn')?.addEventListener('click', () => {
-    document.getElementById('historyModal')?.classList.remove('open');
+    if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
+      window.DigimestOrders.closeModal('historyModal');
+    } else {
+      document.getElementById('historyModal')?.classList.remove('open');
+    }
   });
   document.getElementById('historyModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'historyModal') document.getElementById('historyModal')?.classList.remove('open');
+    if (e.target.id === 'historyModal') {
+      if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
+        window.DigimestOrders.closeModal('historyModal');
+      } else {
+        document.getElementById('historyModal')?.classList.remove('open');
+      }
+    }
   });
 });

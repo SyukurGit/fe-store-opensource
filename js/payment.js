@@ -400,13 +400,23 @@ async function confirmCancelOrder() {
 // "Saya Sudah Bayar" instant trigger (dynamically handles either pending or expired late button)
 async function triggerManualCheck(e) {
   const isEn = document.documentElement.lang === 'en';
-  const targetBtn = (e && e.currentTarget) ? e.currentTarget : null;
+  const targetBtn = (e && e.currentTarget) ? e.currentTarget : document.getElementById('btnManualCheck');
   if (!currentInvoice) return;
 
-  const originalText = targetBtn ? targetBtn.innerText : (isEn ? '⚡ Check Status' : '⚡ Periksa Status');
+  const spinner = document.getElementById('manualCheckSpinner');
+  const icon = document.getElementById('manualCheckIcon');
+  const textEl = document.getElementById('manualCheckText');
+
+  if (spinner) spinner.style.display = 'inline-block';
+  if (icon) icon.style.display = 'none';
+  if (textEl) {
+    textEl.textContent = isEn ? 'Checking payment mutation...' : 'Memeriksa mutasi pembayaran...';
+  } else if (targetBtn) {
+    targetBtn.innerText = isEn ? 'Checking payment mutation...' : 'Memeriksa mutasi pembayaran...';
+  }
+
   if (targetBtn) {
     targetBtn.disabled = true;
-    targetBtn.innerText = isEn ? 'Checking payment mutation...' : 'Memeriksa mutasi ShopeePay...';
   }
 
   try {
@@ -423,14 +433,23 @@ async function triggerManualCheck(e) {
         return;
       }
     }
+    // Perform full status poll update
+    await checkStatus();
     showToast(json.message || (isEn ? 'Payment not detected yet. Please wait 10-30 seconds.' : 'Mutasi belum terdeteksi. Silakan tunggu 10-30 detik.'));
-  } catch (e) {
-    showToast((isEn ? 'Failed to check payment: ' : 'Gagal memeriksa mutasi: ') + e.message);
+  } catch (err) {
+    showToast((isEn ? 'Failed to check payment: ' : 'Gagal memeriksa mutasi: ') + err.message);
   } finally {
+    // Cooldown 4 seconds to match server throttle
     setTimeout(() => {
+      if (spinner) spinner.style.display = 'none';
+      if (icon) icon.style.display = 'inline-block';
+      if (textEl) {
+        textEl.textContent = isEn ? 'I Have Paid (Check Status Now)' : 'Saya Sudah Bayar (Cek Mutasi Sekarang)';
+      } else if (targetBtn) {
+        targetBtn.innerText = isEn ? '⚡ Check Status' : '⚡ Periksa Status';
+      }
       if (targetBtn) {
         targetBtn.disabled = false;
-        targetBtn.innerText = originalText;
       }
     }, 4000);
   }
@@ -451,6 +470,7 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
   loadPaymentDetails();
 
+  document.getElementById('btnManualCheck')?.addEventListener('click', triggerManualCheck);
   document.getElementById('btnCheckExpiredLate')?.addEventListener('click', triggerManualCheck);
   document.getElementById('copyAllKeysBtn')?.addEventListener('click', copyAllKeys);
 

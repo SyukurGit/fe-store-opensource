@@ -1022,6 +1022,153 @@ select.form-input option:checked {
   margin-bottom: 1.25rem;
 }
 
+/* PAYMENT PAGE: PARALLEL INVOICE & STATUS HEADER */
+.payment-meta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  gap: 12px;
+}
+
+.payment-meta-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-meta-col.col-invoice {
+  text-align: left;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-meta-col.col-status {
+  text-align: right;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.payment-meta-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.payment-meta-inv {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.payment-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  white-space: nowrap;
+}
+
+/* TOMBOL CEK SUDAH BAYAR (MANUAL POLLING) */
+.btn-check-paid {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff !important;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 12px;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+  margin-top: 1rem;
+}
+
+.btn-check-paid:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  filter: brightness(1.08);
+}
+
+.btn-check-paid:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.2);
+}
+
+.btn-check-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* MOBILE ADAPTATION FOR PAYMENT PAGE */
+@media (max-width: 600px) {
+  .payment-container {
+    padding: 0 0.85rem;
+    margin: 1.25rem auto;
+  }
+  .payment-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+  .payment-meta-header {
+    padding: 0.75rem 0.85rem;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  .payment-meta-label {
+    font-size: 0.68rem;
+    margin-bottom: 2px;
+  }
+  .payment-meta-inv {
+    font-size: 0.82rem;
+  }
+  .payment-meta-badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+  .qris-img {
+    width: 210px;
+    height: 210px;
+  }
+  .amount-huge {
+    font-size: 1.65rem;
+  }
+  .btn-check-paid {
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+  }
+}
+
 /* CLAIM CODE & DIRECT LINK CARD IN PAYMENT SUCCESS */
 .claim-info-card {
   background: linear-gradient(145deg, rgba(168, 85, 247, 0.12), rgba(59, 130, 246, 0.08));
