@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=5.9.4">
 </head>
 <body>
 
@@ -20,20 +20,127 @@
         <img src="/logo/digimest.png" alt="Digimest" class="logo-navbar-img">
       </a>
       <div class="nav-actions">
-        <a href="/" class="btn-nav">
+        <a href="/" class="btn-nav nav-desktop-item">
           <span class="nav-text-desktop">← Katalog Toko</span>
-          <span class="nav-text-mobile">← Katalog</span>
         </a>
         <a href="https://t.me/Digimestsupport?text=Halo%20Digimest%2C%20saya%20tertarik%20join%20Reseller%20(Harga%20Lebih%20Murah)" target="_blank" rel="noopener noreferrer" class="btn-nav btn-reseller" data-tele-nav-reseller>
           🤝 Join Reseller <span class="reseller-tag">Harga Lebih Murah</span>
         </a>
-        <a href="/claim" class="btn-nav">
+        <button id="btnOpenHistory" class="btn-nav nav-desktop-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="nav-text-desktop">Pesanan Saya</span>
+          <span id="historyBadge" class="badge-counter" style="display:none;">0</span>
+        </button>
+        <a href="/claim" class="btn-nav nav-desktop-item">
           <span class="nav-text-desktop">🔑 Klaim Produk</span>
-          <span class="nav-text-mobile">🔑 Klaim</span>
         </a>
+
+        <!-- Language Dropdown (Desktop & Mobile) -->
+        <div class="lang-dropdown-wrap">
+          <button type="button" class="lang-btn" id="langDropdownBtn" aria-label="Pilih Bahasa">
+            <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+            <span class="lang-code">ID</span>
+            <span class="lang-arrow">▾</span>
+          </button>
+          <div class="lang-menu" id="langMenu">
+            <button type="button" class="lang-item active" data-lang="id">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+              <span class="lang-item-name">Indonesia</span>
+              <span class="lang-check">✓</span>
+            </button>
+            <button type="button" class="lang-item" data-lang="en">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+              <span class="lang-item-name">English</span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Animated Hamburger Button -->
+        <button type="button" class="nav-hamburger-btn" id="navHamburgerBtn" aria-label="Buka Menu">
+          <span class="hamburger-line line-1"></span>
+          <span class="hamburger-line line-2"></span>
+          <span class="hamburger-line line-3"></span>
+          <span id="hamburgerHistoryBadge" class="hamburger-badge-dot history-badge-count" style="display:none;"></span>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Slide-Over Glass Navigation Drawer -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay">
+    <div class="mobile-drawer-panel" id="mobileDrawerPanel">
+      <div class="drawer-header">
+        <a href="/" class="drawer-logo-wrap">
+          <img src="/logo/digimest.png" alt="Digimest" style="height: 28px; width: auto; object-fit: contain;">
+        </a>
+        <button type="button" class="drawer-close-btn" id="drawerCloseBtn" aria-label="Tutup Menu">
+          ✕
+        </button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Navigasi Utama</div>
+          <a href="/" class="drawer-nav-item">
+            <span class="drawer-item-icon">🛍️</span>
+            <span class="drawer-item-text">Katalog Produk</span>
+          </a>
+          <a href="/claim" class="drawer-nav-item">
+            <span class="drawer-item-icon">🔑</span>
+            <span class="drawer-item-text">Ambil / Klaim Lisensi</span>
+          </a>
+          <button type="button" class="drawer-nav-item" id="drawerOpenHistoryBtn">
+            <span class="drawer-item-icon">📦</span>
+            <span class="drawer-item-text">Riwayat Pesanan Saya</span>
+            <span id="drawerHistoryBadge" class="badge-counter history-badge-count" style="display:none; margin-left: auto;">0</span>
+          </button>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Kemitraan & Bantuan</div>
+          <a href="https://t.me/Digimestsupport?text=Halo%20Digimest%2C%20saya%20tertarik%20join%20Reseller%20(Harga%20Lebih%20Murah)" target="_blank" rel="noopener noreferrer" class="drawer-nav-item drawer-item-reseller" data-tele-drawer-reseller>
+            <span class="drawer-item-icon">🤝</span>
+            <div style="display: flex; flex-direction: column;">
+              <span class="drawer-item-text">Join Reseller</span>
+              <span style="font-size: 0.72rem; color: #fbbf24;">Harga Khusus Jauh Lebih Murah ➔</span>
+            </div>
+          </a>
+          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener noreferrer" class="drawer-nav-item" data-tele-drawer-cs>
+            <span class="drawer-item-icon">💬</span>
+            <span class="drawer-item-text">Chat CS Telegram</span>
+          </a>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Pilihan Bahasa / Language</div>
+          <div class="drawer-lang-grid">
+            <button type="button" class="drawer-lang-btn active" data-lang="id">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+                <span>Indonesia</span>
+              </span>
+              <span class="lang-check">✓</span>
+            </button>
+            <button type="button" class="drawer-lang-btn" data-lang="en">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+                <span>English</span>
+              </span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <div>&copy; 2026 Digimest. Lisensi Digital 24/7.</div>
+      </div>
+    </div>
+  </div>
 
   <main class="info-container">
     <div class="info-header">
@@ -45,22 +152,22 @@
     <div class="info-card">
       <h2>📜 1. Ketentuan Umum Transaksi</h2>
       <p>
-        Dengan melakukan pemesanan di StoreKu, Anda menyetujui seluruh ketentuan layanan yang tercantum pada halaman ini. Anda menyatakan bahwa data yang Anda berikan (termasuk alamat email) adalah benar dan valid.
+        Dengan melakukan pemesanan di Digimest, Anda menyetujui seluruh ketentuan layanan yang tercantum pada halaman ini. Anda menyatakan bahwa data yang Anda berikan (termasuk alamat email) adalah benar dan valid.
       </p>
       <p>
-        StoreKu berhak menolak atau membatalkan pesanan yang dicurigai sebagai transaksi mencurigakan, melanggar hukum, atau aktivitas otomatisasi yang tidak wajar.
+        Digimest berhak menolak atau membatalkan pesanan yang dicurigai sebagai transaksi mencurigakan, melanggar hukum, atau aktivitas otomatisasi yang tidak wajar.
       </p>
     </div>
 
     <div class="info-card">
       <h2>🔑 2. Sifat Produk Digital & Pengiriman</h2>
       <p>
-        Semua produk yang dijual di StoreKu berupa <strong>lisensi digital, serial key, akun akses, atau voucher elektronik</strong> (tidak ada pengiriman barang fisik).
+        Semua produk yang dijual di Digimest berupa <strong>lisensi digital, serial key, akun akses, atau voucher elektronik</strong> (tidak ada pengiriman barang fisik).
       </p>
       <ul>
         <li>Pengiriman dilakukan secara instan setelah pembayaran QRIS diverifikasi sistem gateway.</li>
         <li>Serial key yang sudah terbuka di layar dan terkirim ke email pembeli bersifat rahasia dan menjadi tanggung jawab penuh pembeli.</li>
-        <li>StoreKu tidak bertanggung jawab atas kebocoran lisensi akibat kelalaian pembeli membagikan kunci kepada pihak lain.</li>
+        <li>Digimest tidak bertanggung jawab atas kebocoran lisensi akibat kelalaian pembeli membagikan kunci kepada pihak lain.</li>
       </ul>
     </div>
 
@@ -87,11 +194,26 @@
     </div>
   </main>
 
+  <!-- Drawer / Modal Riwayat Pesanan Saya (LocalStorage) -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Riwayat Pesanan Saya</h3>
+        <button class="modal-close" id="closeHistoryBtn">&times;</button>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Riwayat ini tersimpan otomatis di browser Anda tanpa perlu akun login. Anda dapat membuka atau mengklaim kembali lisensi kapan saja.
+      </div>
+      <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
   <!-- Site Footer -->
   <footer class="site-footer">
     <div class="footer-container">
       <div class="footer-streamlined-grid">
-        <!-- Kolom 1: Navigasi Toko (Teks Bersih Profesional, Tanpa Emoji) -->
         <div class="footer-col-links">
           <h5>Navigasi Toko</h5>
           <div class="footer-nav-links">
@@ -105,7 +227,6 @@
           </div>
         </div>
 
-        <!-- Kolom 2: Kemitraan Reseller & Bantuan CS -->
         <div class="footer-col-action">
           <h5>Kemitraan & CS</h5>
           <a href="https://t.me/Digimestsupport?text=Halo%20Digimest%2C%20saya%20tertarik%20join%20Reseller%20(Harga%20Lebih%20Murah)" target="_blank" rel="noopener noreferrer" class="footer-reseller-card" data-tele-reseller>
@@ -125,5 +246,7 @@
     </div>
   </footer>
 
+  <script src="/js/api-config.js?v=5.9.4"></script>
+  <script src="/js/order-history.js?v=5.9.4"></script>
 </body>
 </html>

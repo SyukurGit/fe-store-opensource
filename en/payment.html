@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -24,10 +24,31 @@
           <span class="nav-text-desktop">← Back to Store</span>
           <span class="nav-text-mobile">← Store</span>
         </a>
-        <a href="/claim" class="btn-nav">
+        <a href="/en/claim" class="btn-nav">
           <span class="nav-text-desktop">🔑 Claim Product</span>
           <span class="nav-text-mobile">🔑 Claim</span>
         </a>
+
+        <!-- Language Dropdown -->
+        <div class="lang-dropdown-wrap">
+          <button type="button" class="lang-btn" id="langDropdownBtn" aria-label="Select Language">
+            <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+            <span class="lang-code">EN</span>
+            <span class="lang-arrow">▾</span>
+          </button>
+          <div class="lang-menu" id="langMenu">
+            <button type="button" class="lang-item" data-lang="id">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+              <span class="lang-item-name">Indonesia</span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
+            <button type="button" class="lang-item active" data-lang="en">
+              <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+              <span class="lang-item-name">English</span>
+              <span class="lang-check">✓</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -209,8 +230,8 @@
     }
   </style>
 
-  <script src="/js/api-config.js?v=5.9.3"></script>
-  <script src="/js/order-history.js?v=5.9.3"></script>
-  <script src="/js/payment.js?v=5.9.3"></script>
+  <script src="/js/api-config.js?v=5.9.4"></script>
+  <script src="/js/order-history.js?v=5.9.4"></script>
+  <script src="/js/payment.js?v=5.9.4"></script>
 </body>
 </html>

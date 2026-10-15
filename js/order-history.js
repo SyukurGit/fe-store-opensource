@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Language item click with intelligent path mapping
+    // Language item click with intelligent path mapping (stays on exact same page!)
     document.querySelectorAll('[data-lang]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -678,35 +678,23 @@ document.addEventListener('DOMContentLoaded', () => {
         closeDrawer();
         langWrap?.classList.remove('open');
 
+        // Extract clean route (e.g. '/product', '/en/how-to-buy.html' -> 'how-to-buy')
+        let cleanRoute = currentPath.replace(/^\/+/, '').replace(/\.html$/, '');
+        let isEnCurrent = cleanRoute === 'en' || cleanRoute.startsWith('en/');
+        let baseRoute = isEnCurrent ? cleanRoute.replace(/^en\/?/, '') : cleanRoute;
+
         if (targetLang === 'en') {
-          if (isEnPage) return;
+          if (isEnCurrent) return;
           let targetPath = '/en/';
-          if (currentPath === '/' || currentPath === '/index.html') {
-            targetPath = '/en/';
-          } else if (currentPath.startsWith('/product')) {
-            targetPath = '/en/product' + currentSearch + currentHash;
-          } else if (currentPath.startsWith('/payment')) {
-            targetPath = '/en/payment' + currentSearch + currentHash;
-          } else if (currentPath.startsWith('/about')) {
-            targetPath = '/en/about' + currentSearch + currentHash;
-          } else {
-            targetPath = '/en' + currentPath + currentSearch + currentHash;
+          if (baseRoute && baseRoute !== 'index') {
+            targetPath = '/en/' + baseRoute + currentSearch + currentHash;
           }
           window.location.href = targetPath;
         } else if (targetLang === 'id') {
-          if (!isEnPage) return;
+          if (!isEnCurrent) return;
           let targetPath = '/';
-          if (currentPath === '/en' || currentPath === '/en/' || currentPath === '/en/index.html') {
-            targetPath = '/';
-          } else if (currentPath.startsWith('/en/product')) {
-            targetPath = '/product' + currentSearch + currentHash;
-          } else if (currentPath.startsWith('/en/payment')) {
-            targetPath = '/payment' + currentSearch + currentHash;
-          } else if (currentPath.startsWith('/en/about')) {
-            targetPath = '/about' + currentSearch + currentHash;
-          } else {
-            targetPath = currentPath.replace(/^\/en/, '') || '/';
-            targetPath = targetPath + currentSearch + currentHash;
+          if (baseRoute && baseRoute !== 'index') {
+            targetPath = '/' + baseRoute + currentSearch + currentHash;
           }
           window.location.href = targetPath;
         }
