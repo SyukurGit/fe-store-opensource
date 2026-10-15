@@ -87,9 +87,14 @@ function renderClaimResult(data) {
   }
 
   const invoiceEl = document.getElementById('resInvoice');
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') ||
+               (window.location.pathname.startsWith('/en'));
+  const catalogUrl = isEn ? '/en/' : '/';
+  const paymentPath = isEn ? '/en/payment' : '/payment';
+
   if (invoiceEl) {
     invoiceEl.textContent = data.claim_code
-      ? `Invoice: ${data.invoice_number} | Kode Klaim: ${data.claim_code}`
+      ? `Invoice: ${data.invoice_number} | ${isEn ? 'Claim Code' : 'Kode Klaim'}: ${data.claim_code}`
       : `Invoice: ${data.invoice_number}`;
   }
 
@@ -107,19 +112,19 @@ function renderClaimResult(data) {
       statusBadge.className = 'badge badge-region';
       statusBadge.style.color = '#94a3b8';
       statusBadge.style.borderColor = 'rgba(148, 163, 184, 0.4)';
-      statusBadge.textContent = '● DANA DIREFUND';
+      statusBadge.textContent = isEn ? '● REFUNDED' : '● DANA DIREFUND';
     } else if (isExpired) {
       statusBadge.className = 'badge badge-stock empty';
-      statusBadge.textContent = '● TAGIHAN KADALUARSA';
+      statusBadge.textContent = isEn ? '● INVOICE EXPIRED' : '● TAGIHAN KADALUARSA';
     } else if (isCancelled) {
       statusBadge.className = 'badge badge-stock empty';
-      statusBadge.textContent = '● ORDER DIBATALKAN';
+      statusBadge.textContent = isEn ? '● ORDER CANCELLED' : '● ORDER DIBATALKAN';
     } else if (data.payment_status === 'PAID') {
       statusBadge.className = 'badge badge-stock';
-      statusBadge.textContent = '● PEMBAYARAN LUNAS';
+      statusBadge.textContent = isEn ? '● PAYMENT COMPLETED' : '● PEMBAYARAN LUNAS';
     } else {
       statusBadge.className = 'badge badge-region';
-      statusBadge.textContent = '● MENUNGGU PEMBAYARAN';
+      statusBadge.textContent = isEn ? '● AWAITING PAYMENT' : '● MENUNGGU PEMBAYARAN';
     }
   }
 
@@ -131,13 +136,13 @@ function renderClaimResult(data) {
       itemsContainer.innerHTML = `
         <div style="background: rgba(148, 163, 184, 0.08); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
           <div style="font-size: 1.8rem; margin-bottom: 6px;">💸</div>
-          <div style="font-weight: 700; color: #cbd5e1; font-size: 1rem; margin-bottom: 6px;">Dana Transaksi Telah Direfund</div>
+          <div style="font-weight: 700; color: #cbd5e1; font-size: 1rem; margin-bottom: 6px;">${isEn ? 'Transaction Refunded' : 'Dana Transaksi Telah Direfund'}</div>
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
-            Pesanan ini telah diselesaikan dengan pengembalian dana (refund) oleh admin. Jika ada pertanyaan, hubungi CS kami.
+            ${isEn ? 'This order was resolved with a refund by admin. If you have questions, please contact our support.' : 'Pesanan ini telah diselesaikan dengan pengembalian dana (refund) oleh admin. Jika ada pertanyaan, hubungi CS kami.'}
           </p>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-            <a href="/" class="btn-buy" style="text-decoration: none; padding: 6px 16px; font-size: 0.82rem;">Katalog Toko ➔</a>
-            <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn-nav" style="text-decoration: none; padding: 6px 14px; font-size: 0.82rem;" data-tele-cs>Hubungi CS Telegram</a>
+            <a href="${catalogUrl}" class="btn-buy" style="text-decoration: none; padding: 6px 16px; font-size: 0.82rem;">${isEn ? 'Store Catalog ➔' : 'Katalog Toko ➔'}</a>
+            <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn-nav" style="text-decoration: none; padding: 6px 14px; font-size: 0.82rem;" data-tele-cs>${isEn ? 'Telegram Support' : 'Hubungi CS Telegram'}</a>
           </div>
         </div>
       `;
@@ -145,12 +150,12 @@ function renderClaimResult(data) {
       itemsContainer.innerHTML = `
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
           <div style="font-size: 1.8rem; margin-bottom: 6px;">⌛</div>
-          <div style="font-weight: 700; color: #f87171; font-size: 1rem; margin-bottom: 6px;">Batas Waktu Pembayaran Telah Habis</div>
+          <div style="font-weight: 700; color: #f87171; font-size: 1rem; margin-bottom: 6px;">${isEn ? 'Payment Window Expired' : 'Batas Waktu Pembayaran Telah Habis'}</div>
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
-            Tagihan QRIS 15 menit untuk pesanan ini telah kedaluwarsa. Silakan lakukan pemesanan baru di katalog toko.
+            ${isEn ? 'The 15-minute QRIS payment window has expired. Please place a new order in our store catalog.' : 'Tagihan QRIS 15 menit untuk pesanan ini telah kedaluwarsa. Silakan lakukan pemesanan baru di katalog toko.'}
           </p>
-          <a href="/" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
-            Pesan Ulang di Katalog Toko ➔
+          <a href="${catalogUrl}" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
+            ${isEn ? 'Reorder from Catalog ➔' : 'Pesan Ulang di Katalog Toko ➔'}
           </a>
         </div>
       `;
@@ -158,44 +163,54 @@ function renderClaimResult(data) {
       itemsContainer.innerHTML = `
         <div style="background: rgba(148, 163, 184, 0.08); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; padding: 16px; text-align: center;">
           <div style="font-size: 1.8rem; margin-bottom: 6px;">✕</div>
-          <div style="font-weight: 700; color: #94a3b8; font-size: 1rem; margin-bottom: 6px;">Pesanan Dibatalkan Oleh Pembeli</div>
+          <div style="font-weight: 700; color: #94a3b8; font-size: 1rem; margin-bottom: 6px;">${isEn ? 'Order Cancelled by Customer' : 'Pesanan Dibatalkan Oleh Pembeli'}</div>
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
-            Transaksi ini telah dibatalkan dan tagihan QRIS dinonaktifkan. Anda dapat membuat pesanan baru kapan saja.
+            ${isEn ? 'This transaction has been cancelled and the QRIS invoice has been deactivated. You can place a new order anytime.' : 'Transaksi ini telah dibatalkan dan tagihan QRIS dinonaktifkan. Anda dapat membuat pesanan baru kapan saja.'}
           </p>
-          <a href="/" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
-            Kembali ke Katalog Toko ➔
+          <a href="${catalogUrl}" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
+            ${isEn ? 'Back to Store Catalog ➔' : 'Kembali ke Katalog Toko ➔'}
           </a>
         </div>
       `;
     } else if (data.fulfillment_status === 'PENDING_MANUAL_DELIVERY') {
       if (statusBadge) {
         statusBadge.className = 'badge badge-stock';
-        statusBadge.textContent = '● PEMBAYARAN LUNAS (MENUNGGU PENGIRIMAN KEY)';
+        statusBadge.textContent = isEn ? '● PAID (PREPARING LICENSE)' : '● PEMBAYARAN LUNAS (MENUNGGU PENGIRIMAN KEY)';
       }
       itemsContainer.innerHTML = `
         <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
           <div style="font-size: 1.8rem; margin-bottom: 8px;">📦</div>
-          <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">Pembayaran Lunas! Lisensi Sedang Disiapkan</div>
+          <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">${isEn ? 'Payment Verified! License Is Being Prepared' : 'Pembayaran Lunas! Lisensi Sedang Disiapkan'}</div>
           <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
-            Pembayaran Anda telah kami terima dengan sukses. Lisensi / serial key untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.
+            ${isEn
+              ? `We have received your payment. The license / serial key for this order is being prepared by our store admin. Click the button below to contact Customer Service via Telegram (Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) or wait for confirmation to be sent to your email.`
+              : `Pembayaran Anda telah kami terima dengan sukses. Lisensi / serial key untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.`}
           </p>
           <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-            <span>Hubungi CS via Telegram</span> ➔
+            <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
           </a>
         </div>
       `;
     } else if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
       const isFailed = data.fulfillment_status === 'FAILED' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
-      const title = isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual';
-      const defaultMsg = isFailed
-        ? "Pembayaran terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan hubungi Customer Service kami via Telegram."
-        : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.";
+      const title = isEn
+        ? (isFailed ? 'Upstream Server Stock Issue' : 'Product Quota Sold Out')
+        : (isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual');
+      const defaultMsg = isEn
+        ? (isFailed
+            ? "Your payment is verified, but an automatic fulfillment issue occurred with the server provider (momentarily empty stock/bot balance). Your funds are 100% safe! Please contact our Telegram Support."
+            : "Sorry, this product quota is currently sold out. Your funds are 100% safe. For refund or assistance, please contact our Telegram Support.")
+        : (isFailed
+            ? "Pembayaran terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan hubungi Customer Service kami via Telegram."
+            : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.");
 
       if (statusBadge) {
         statusBadge.className = 'badge badge-region';
         statusBadge.style.color = '#fbbf24';
         statusBadge.style.borderColor = 'rgba(245,158,11,0.4)';
-        statusBadge.textContent = isFailed ? '● KENDALA STOK (DANA AMAN)' : '● DANA AMAN (KUOTA HABIS)';
+        statusBadge.textContent = isEn
+          ? (isFailed ? '● STOCK ISSUE (FUNDS SAFE)' : '● FUNDS SAFE (SOLD OUT)')
+          : (isFailed ? '● KENDALA STOK (DANA AMAN)' : '● DANA AMAN (KUOTA HABIS)');
       }
 
       itemsContainer.innerHTML = `
@@ -206,7 +221,7 @@ function renderClaimResult(data) {
             ${escapeHtml(data.quota_out_message || defaultMsg)}
           </p>
           <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-            <span>Hubungi CS via Telegram</span> ➔
+            <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
           </a>
         </div>
       `;
@@ -214,13 +229,15 @@ function renderClaimResult(data) {
       if (data.payment_status === 'PAID') {
         itemsContainer.innerHTML = `
           <div style="background: rgba(245,158,11,0.1); padding: 12px; border-radius: 8px; color: #fbbf24; font-size: 0.85rem;">
-            Pembayaran Anda telah diterima. Lisensi sedang diproses oleh antrean sistem dalam 1-2 menit.
+            ${isEn ? 'Your payment has been received. The license is being processed by the system queue within 1-2 minutes.' : 'Pembayaran Anda telah diterima. Lisensi sedang diproses oleh antrean sistem dalam 1-2 menit.'}
           </div>
         `;
       } else {
         itemsContainer.innerHTML = `
           <div style="background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; color: var(--text-muted); font-size: 0.85rem;">
-            Pesanan ini belum dibayar. <a href="/payment?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Klik di sini untuk bayar QRIS sekarang ➔</a>
+            ${isEn
+              ? `This order has not been paid yet. <a href="${paymentPath}?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Click here to complete payment via QRIS now ➔</a>`
+              : `Pesanan ini belum dibayar. <a href="${paymentPath}?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Klik di sini untuk bayar QRIS sekarang ➔</a>`}
           </div>
         `;
       }
@@ -228,7 +245,7 @@ function renderClaimResult(data) {
       itemsContainer.innerHTML = items.map(item => `
         <div class="license-item-box">
           <span>${escapeHtml(item)}</span>
-          <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">Salin</button>
+          <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">${isEn ? 'Copy' : 'Salin'}</button>
         </div>
       `).join('');
     }

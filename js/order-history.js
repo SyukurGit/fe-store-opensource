@@ -369,7 +369,7 @@ const DigimestOrders = (() => {
 
       if (effectiveStatus === 'PAID') {
         // Paid item (clickable to claim)
-        const claimUrl = isEn ? `/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}&lang=en` : `/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}`;
+        const claimUrl = isEn ? `/en/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}` : `/claim?code=${encodeURIComponent(item.claim_code || item.invoice_number)}`;
         const paidBadge = isEn ? '● Paid' : '● Lunas';
         const claimLabel = isEn ? 'Claim Code:' : 'Kode Klaim:';
         const claimBtn = isEn ? 'View License 🔑' : 'Buka Lisensi 🔑';
@@ -666,6 +666,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Automatic Link Enforcer for English pages: ensures all internal links stay within /en/
+    if (isEnPage) {
+      document.querySelectorAll('a[href]').forEach(a => {
+        let href = a.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('//') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+        if (href.startsWith('/admin') || href.startsWith('/api') || href.startsWith('/en/') || href.startsWith('/css/') || href.startsWith('/js/') || href.startsWith('/logo/')) return;
+        
+        if (href === '/' || href === '/index.html') {
+          a.setAttribute('href', '/en/');
+        } else if (href.startsWith('/')) {
+          a.setAttribute('href', '/en' + href);
+        }
+      });
+    }
+
     // Language item click with intelligent path mapping (stays on exact same page!)
     document.querySelectorAll('[data-lang]').forEach(el => {
       el.addEventListener('click', (e) => {
@@ -684,6 +699,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let baseRoute = isEnCurrent ? cleanRoute.replace(/^en\/?/, '') : cleanRoute;
 
         if (targetLang === 'en') {
+          try {
+            localStorage.setItem('digimest_lang', 'en');
+            document.cookie = "digimest_lang=en; path=/; max-age=31536000; SameSite=Lax";
+          } catch (err) {}
           if (isEnCurrent) return;
           let targetPath = '/en/';
           if (baseRoute && baseRoute !== 'index') {
@@ -691,6 +710,10 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           window.location.href = targetPath;
         } else if (targetLang === 'id') {
+          try {
+            localStorage.setItem('digimest_lang', 'id');
+            document.cookie = "digimest_lang=id; path=/; max-age=31536000; SameSite=Lax";
+          } catch (err) {}
           if (!isEnCurrent) return;
           let targetPath = '/';
           if (baseRoute && baseRoute !== 'index') {

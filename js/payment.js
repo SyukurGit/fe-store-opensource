@@ -54,9 +54,10 @@ async function loadPaymentDetails() {
   const params = new URLSearchParams(window.location.search);
   currentInvoice = params.get('inv') || params.get('invoice');
 
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   if (!currentInvoice) {
-    alert('Nomor invoice tidak ditemukan.');
-    window.location.href = '/';
+    alert(isEn ? 'Invoice number not found.' : 'Nomor invoice tidak ditemukan.');
+    window.location.href = isEn ? '/en/' : '/';
     return;
   }
 

@@ -2,6 +2,37 @@
  * Digimest Frontend API Configuration
  * Production VPS Endpoint: https://digimest.syukurapi.online
  */
+
+// Immediate Language Preference Sync & Routing (runs before page rendering)
+(function initLanguagePreference() {
+  if (typeof window === 'undefined') return;
+  const path = window.location.pathname;
+  if (path.startsWith('/admin') || path.startsWith('/api')) return;
+
+  const cleanRoute = path.replace(/^\/+/, '').replace(/\.html$/, '');
+  const isEnCurrent = cleanRoute === 'en' || cleanRoute.startsWith('en/');
+  const savedLang = localStorage.getItem('digimest_lang');
+
+  // If currently browsing an /en/ URL, sync storage to 'en'
+  if (isEnCurrent) {
+    if (savedLang !== 'en') {
+      try {
+        localStorage.setItem('digimest_lang', 'en');
+        document.cookie = "digimest_lang=en; path=/; max-age=31536000; SameSite=Lax";
+      } catch (e) {}
+    }
+  } else {
+    // If user's stored preference is 'en', but visited an Indonesian page:
+    if (savedLang === 'en') {
+      const baseRoute = (cleanRoute === 'index' || cleanRoute === '') ? '' : cleanRoute;
+      const search = window.location.search || '';
+      const hash = window.location.hash || '';
+      const target = baseRoute ? ('/en/' + baseRoute + search + hash) : ('/en/' + search + hash);
+      window.location.replace(target);
+    }
+  }
+})();
+
 (function() {
   const host = window.location.hostname;
   const isLocalDev = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' ||
@@ -37,7 +68,7 @@ window.digimestApi = function(endpoint) {
 };
 
 // Current App Build Version
-window.STOREKU_BUILD_VERSION = '5.9.4';
+window.STOREKU_BUILD_VERSION = '5.9.5';
 
 // Background Auto-Reload Checker when user returns to tab
 (function initVersionWatcher() {
