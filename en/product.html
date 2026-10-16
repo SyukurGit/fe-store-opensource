@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -402,6 +402,34 @@
         <div id="voucherFeedback" style="font-size: 0.75rem; margin-top: 6px; display: none;"></div>
       </div>
 
+      <!-- Payment Method Switcher -->
+      <div class="form-group" style="margin-bottom: 1.15rem;">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span>Select Payment Method</span>
+          <span id="mCurrencyBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">IDR (Rupiah)</span>
+        </label>
+        <div class="payment-gateway-grid">
+          <div class="payment-method-card active" id="optPayQRIS" data-gateway="PAYMENTG" data-method="QRIS" data-channel="SHOPEEPAY">
+            <div class="payment-card-indicator">
+              <span class="payment-card-radio"></span>
+            </div>
+            <div class="payment-card-body">
+              <div class="payment-card-title">🇮🇩 QRIS ShopeePay</div>
+              <div class="payment-card-desc">Instant QR • IDR Indonesian Rupiah</div>
+            </div>
+          </div>
+          <div class="payment-method-card" id="optPayBinance" data-gateway="BINANCE" data-method="BINANCE_PAY" data-channel="USDT">
+            <div class="payment-card-indicator">
+              <span class="payment-card-radio"></span>
+            </div>
+            <div class="payment-card-body">
+              <div class="payment-card-title">⚡ Binance Pay (USDT)</div>
+              <div class="payment-card-desc">Crypto • Rate $1 = Rp <span id="mUsdRateText">18,000</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="order-summary-box">
         <div class="summary-row">
           <span>Unit Price</span>
@@ -417,7 +445,11 @@
         </div>
         <div class="summary-row">
           <span>Payment Method</span>
-          <span style="color: #60a5fa; font-weight: 600;">Instant QRIS</span>
+          <span id="mSummaryPaymentMethod" style="color: #60a5fa; font-weight: 600;">Instant QRIS</span>
+        </div>
+        <div class="summary-row" id="mSummaryUsdRateRow" style="display: none; color: #94a3b8; font-size: 0.8rem;">
+          <span>Conversion Rate</span>
+          <span>1 USD = Rp <span id="mSummaryUsdRate">18,000</span></span>
         </div>
         <div class="summary-row total">
           <span>Estimated Total</span>

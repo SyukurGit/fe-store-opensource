@@ -168,12 +168,49 @@ async function checkStatus() {
 }
 
 function renderPendingView(order) {
-  document.getElementById('totalAmountText').textContent = formatIDR(order.total_amount);
-  
-  if (order.qr_url) {
-    const qrisImg = document.getElementById('qrisImage');
-    if (qrisImg.src !== order.qr_url) {
-      qrisImg.src = order.qr_url;
+  const isBinance = (order.payment_method === 'BINANCE_PAY' || order.payment_gateway === 'BINANCE');
+  const qrisBox = document.getElementById('qrisPendingContainer');
+  const binanceBox = document.getElementById('binancePendingContainer');
+
+  if (isBinance) {
+    if (qrisBox) qrisBox.style.display = 'none';
+    if (binanceBox) binanceBox.style.display = 'block';
+
+    if (order.qr_url) {
+      const qrImg = document.getElementById('binanceQrCode');
+      if (qrImg && qrImg.src !== order.qr_url) {
+        qrImg.src = order.qr_url;
+      }
+    }
+
+    const cryptoAmt = document.getElementById('cryptoAmountDisplay');
+    if (cryptoAmt && order.crypto_amount_str) {
+      cryptoAmt.textContent = order.crypto_amount_str;
+    }
+    const cryptoCurr = document.getElementById('cryptoCurrencyDisplay');
+    if (cryptoCurr && order.crypto_currency) {
+      cryptoCurr.textContent = order.crypto_currency;
+    }
+    const payId = document.getElementById('binancePayIdDisplay');
+    if (payId && order.binance_pay_id) {
+      payId.textContent = order.binance_pay_id;
+    }
+    const accName = document.getElementById('binanceAccountNameDisplay');
+    if (accName && order.binance_account_name) {
+      accName.textContent = order.binance_account_name;
+    }
+  } else {
+    if (binanceBox) binanceBox.style.display = 'none';
+    if (qrisBox) qrisBox.style.display = 'block';
+
+    const amtText = document.getElementById('totalAmountText');
+    if (amtText) amtText.textContent = formatIDR(order.total_amount);
+
+    if (order.qr_url) {
+      const qrisImg = document.getElementById('qrisImage');
+      if (qrisImg && qrisImg.src !== order.qr_url) {
+        qrisImg.src = order.qr_url;
+      }
     }
   }
 
@@ -474,6 +511,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnManualCheck')?.addEventListener('click', triggerManualCheck);
   document.getElementById('btnCheckExpiredLate')?.addEventListener('click', triggerManualCheck);
   document.getElementById('copyAllKeysBtn')?.addEventListener('click', copyAllKeys);
+
+  // Copy buttons for Binance Pay
+  document.getElementById('btnCopyCryptoAmount')?.addEventListener('click', () => {
+    const el = document.getElementById('cryptoAmountDisplay');
+    if (el) copyText(el.textContent.trim());
+  });
+  document.getElementById('btnCopyPayId')?.addEventListener('click', () => {
+    const el = document.getElementById('binancePayIdDisplay');
+    if (el) copyText(el.textContent.trim());
+  });
 
   // Cancel order modal handlers
   document.getElementById('btnCancelOrder')?.addEventListener('click', openCancelModal);

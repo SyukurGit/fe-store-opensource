@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -75,7 +75,7 @@
         ✉️ Bukti lunas & kode ambil pesanan otomatis dikirim ke: <strong id="buyerEmailDisplay" style="color: #fff;"></strong>
       </div>
 
-      <!-- Pending QRIS State View -->
+      <!-- Pending State View -->
       <div id="pendingView">
         <div class="timer-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -86,22 +86,66 @@
           <strong id="timerText" style="color: #fff;">15:00</strong>
         </div>
 
-        <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">Scan QRIS</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Buka aplikasi Shopee, BCA, GoPay, OVO, Dana, atau mobile banking Anda dan scan QR di bawah ini.</p>
+        <!-- 1. QRIS Payment Container -->
+        <div id="qrisPendingContainer">
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">Scan QRIS</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Buka aplikasi Shopee, BCA, GoPay, OVO, Dana, atau mobile banking Anda dan scan QR di bawah ini.</p>
 
-        <!-- QRIS Image Box -->
-        <div class="qris-box">
-          <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
+          <!-- QRIS Image Box -->
+          <div class="qris-box">
+            <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
+          </div>
+
+          <!-- Highlight Nominal Wajib Bayar -->
+          <div class="highlight-amount-box">
+            <div style="font-size: 0.78rem; text-transform: uppercase; color: #fbbf24; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">
+              ⚠️ Pastikan Nominal Transfer Wajib Tepat
+            </div>
+            <div id="totalAmountText" class="amount-huge">Rp 0</div>
+            <div id="uniqueCodeNote" style="font-size: 0.82rem; color: #d1d5db; margin-top: 6px;">
+              Termasuk 3 digit kode unik. <strong>Jangan bulatkan transfer</strong> agar otomatis terverifikasi sistem!
+            </div>
+          </div>
         </div>
 
-        <!-- Highlight Nominal Wajib Bayar -->
-        <div class="highlight-amount-box">
-          <div style="font-size: 0.78rem; text-transform: uppercase; color: #fbbf24; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">
-            ⚠️ Pastikan Nominal Transfer Wajib Tepat
+        <!-- 2. Binance Pay Container -->
+        <div id="binancePendingContainer" style="display: none;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="color: #F3BA2F;">⚡</span> Binance Pay (USDT)
+          </h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Buka aplikasi Binance (Scan QR) atau transfer via Binance Pay ID di bawah ini.</p>
+
+          <!-- Binance QR Code -->
+          <div class="qris-box" style="background: #fff; padding: 12px; border-radius: 16px; margin: 1rem auto; max-width: 240px;">
+            <img id="binanceQrCode" src="" alt="Binance Pay QR Loading..." class="qris-img" style="max-width: 216px; display: block; margin: 0 auto;">
           </div>
-          <div id="totalAmountText" class="amount-huge">Rp 0</div>
-          <div id="uniqueCodeNote" style="font-size: 0.82rem; color: #d1d5db; margin-top: 6px;">
-            Termasuk 3 digit kode unik. <strong>Jangan bulatkan transfer</strong> agar otomatis terverifikasi sistem!
+
+          <!-- Crypto Payment Details Box -->
+          <div class="binance-pay-box" style="background: rgba(24, 26, 32, 0.95); border: 1px solid #2B313A; border-radius: 14px; padding: 14px 16px; text-align: left; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.82rem; color: #848E9C;">Total Transfer:</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="cryptoAmountDisplay" style="font-family: var(--font-mono); font-size: 1.15rem; font-weight: 800; color: #F3BA2F;">0.000</span>
+                <span id="cryptoCurrencyDisplay" style="font-weight: 700; color: #EAECEF; font-size: 0.85rem;">USDT</span>
+                <button type="button" id="btnCopyCryptoAmount" class="btn-copy-mini">Salin</button>
+              </div>
+            </div>
+            <div style="font-size: 0.75rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F3BA2F; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; line-height: 1.4;">
+              ⚠️ <strong>Penting:</strong> Kirim <strong>persis</strong> sesuai nominal di atas (jangan dibulatkan) agar deposit otomatis terdeteksi!
+            </div>
+            <div style="border-top: 1px solid #2B313A; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #848E9C;">Binance Pay ID:</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span id="binancePayIdDisplay" style="font-family: var(--font-mono); font-weight: 700; color: #fff;">-</span>
+                  <button type="button" id="btnCopyPayId" class="btn-copy-mini">Salin</button>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #848E9C;">Nama Akun Penerima:</span>
+                <span id="binanceAccountNameDisplay" style="font-weight: 600; color: #34d399;">-</span>
+              </div>
+            </div>
           </div>
         </div>
 

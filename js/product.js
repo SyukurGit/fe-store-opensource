@@ -2,6 +2,10 @@
 let currentProduct = null;
 let currentQty = 1;
 let appliedVoucher = null;
+let selectedPaymentGateway = 'PAYMENTG';
+let selectedPaymentMethod = 'QRIS';
+let selectedPaymentChannel = 'SHOPEEPAY';
+let appConfig = { usd_rate: 18000 };
 
 document.addEventListener('DOMContentLoaded', () => {
   initProductPage();
@@ -34,7 +38,27 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
+function updateUsdRateDisplays() {
+  const rateText = (appConfig.usd_rate || 18000).toLocaleString('id-ID');
+  const el1 = document.getElementById('mUsdRateText');
+  if (el1) el1.textContent = rateText;
+  const el2 = document.getElementById('mSummaryUsdRate');
+  if (el2) el2.textContent = rateText;
+}
+
 async function initProductPage() {
+  // Fetch dynamic usd_rate from app config
+  fetch(window.digimestApi ? window.digimestApi('/api/config') : '/api/config')
+    .then(r => r.json())
+    .then(json => {
+      if (json && json.success && json.data && json.data.usd_rate) {
+        appConfig.usd_rate = parseFloat(json.data.usd_rate) || 18000;
+        updateUsdRateDisplays();
+        updateCalculations();
+      }
+    })
+    .catch(() => {});
+
   const params = new URLSearchParams(window.location.search);
   const rawSlug = params.get('slug');
 
@@ -396,9 +420,29 @@ function updateCalculations() {
   }
 
   // Modal checkout updates
-  document.getElementById('mUnitPrice').textContent = formatIDR(unitPrice);
+  const isBinance = (selectedPaymentMethod === 'BINANCE_PAY');
+  const usdRate = appConfig.usd_rate > 0 ? appConfig.usd_rate : 18000;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
+  if (isBinance) {
+    const usdAmount = (finalTotal / usdRate).toFixed(2);
+    const unitUsd = (unitPrice / usdRate).toFixed(2);
+    document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT (${formatIDR(unitPrice)})`;
+    document.getElementById('mTotalPrice').textContent = `$${usdAmount} USDT`;
+  } else {
+    document.getElementById('mUnitPrice').textContent = formatIDR(unitPrice);
+    document.getElementById('mTotalPrice').textContent = formatIDR(finalTotal);
+  }
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
-  document.getElementById('mTotalPrice').textContent = formatIDR(finalTotal);
+
+  const btn = document.getElementById('btnConfirmCheckout');
+  if (btn && !btn.disabled) {
+    if (isBinance) {
+      btn.textContent = isEn ? 'Pay Now via Binance Pay ➔' : 'Bayar Sekarang via Binance Pay ➔';
+    } else {
+      btn.textContent = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
+    }
+  }
 
   const modalQtyInput = document.getElementById('modalQtyInput');
   if (modalQtyInput && parseInt(modalQtyInput.value, 10) !== currentQty) {
@@ -406,7 +450,67 @@ function updateCalculations() {
   }
 }
 
+function setupPaymentSelectorListeners() {
+  const optQRIS = document.getElementById('optPayQRIS');
+  const optBinance = document.getElementById('optPayBinance');
+
+  optQRIS?.addEventListener('click', () => {
+    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY');
+  });
+
+  optBinance?.addEventListener('click', () => {
+    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT');
+  });
+}
+
+function selectPaymentMethod(gateway, method, channel) {
+  selectedPaymentGateway = gateway;
+  selectedPaymentMethod = method;
+  selectedPaymentChannel = channel;
+
+  const optQRIS = document.getElementById('optPayQRIS');
+  const optBinance = document.getElementById('optPayBinance');
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
+  if (method === 'BINANCE_PAY') {
+    optBinance?.classList.add('active');
+    optQRIS?.classList.remove('active');
+    const badge = document.getElementById('mCurrencyBadge');
+    if (badge) {
+      badge.textContent = 'USD / USDT';
+      badge.style.background = 'rgba(245, 158, 11, 0.15)';
+      badge.style.color = '#fbbf24';
+    }
+    const sumMethod = document.getElementById('mSummaryPaymentMethod');
+    if (sumMethod) {
+      sumMethod.textContent = '⚡ Binance Pay (USDT)';
+      sumMethod.style.color = '#fbbf24';
+    }
+    const rateRow = document.getElementById('mSummaryUsdRateRow');
+    if (rateRow) rateRow.style.display = 'flex';
+  } else {
+    optQRIS?.classList.add('active');
+    optBinance?.classList.remove('active');
+    const badge = document.getElementById('mCurrencyBadge');
+    if (badge) {
+      badge.textContent = 'IDR (Rupiah)';
+      badge.style.background = 'rgba(16, 185, 129, 0.15)';
+      badge.style.color = '#10b981';
+    }
+    const sumMethod = document.getElementById('mSummaryPaymentMethod');
+    if (sumMethod) {
+      sumMethod.textContent = isEn ? 'Instant QRIS' : 'QRIS ShopeePay';
+      sumMethod.style.color = '#60a5fa';
+    }
+    const rateRow = document.getElementById('mSummaryUsdRateRow');
+    if (rateRow) rateRow.style.display = 'none';
+  }
+
+  updateCalculations();
+}
+
 function setupEventListeners() {
+  setupPaymentSelectorListeners();
   const qtyInput = document.getElementById('detailQtyInput');
   const btnMinus = document.getElementById('btnQtyMinus');
   const btnPlus = document.getElementById('btnQtyPlus');
@@ -656,8 +760,17 @@ async function submitCheckout() {
     return;
   }
 
+  const isBinance = (selectedPaymentMethod === 'BINANCE_PAY');
   btn.disabled = true;
-  btn.innerText = isEn ? 'Preparing Instant QRIS...' : 'Menyiapkan QRIS ShopeePay...';
+  if (isBinance) {
+    btn.innerText = isEn ? 'Preparing Binance Pay...' : 'Menyiapkan Binance Pay (USDT)...';
+  } else {
+    btn.innerText = isEn ? 'Preparing Instant QRIS...' : 'Menyiapkan QRIS ShopeePay...';
+  }
+
+  const defaultBtnText = isBinance 
+    ? (isEn ? 'Pay Now via Binance Pay ➔' : 'Bayar Sekarang via Binance Pay ➔')
+    : (isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔');
 
   try {
     const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
@@ -669,7 +782,10 @@ async function submitCheckout() {
         quantity: currentQty,
         customer_email: email,
         customer_contact: contact,
-        voucher_code: appliedVoucher ? appliedVoucher.code : ''
+        voucher_code: appliedVoucher ? appliedVoucher.code : '',
+        payment_gateway: selectedPaymentGateway,
+        payment_method: selectedPaymentMethod,
+        payment_channel: selectedPaymentChannel
       })
     });
 
@@ -677,7 +793,7 @@ async function submitCheckout() {
     if (!data.success) {
       alert(isEn ? ('Failed to create order: ' + (data.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan')));
       btn.disabled = false;
-      btn.innerText = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
+      btn.innerText = defaultBtnText;
       return;
     }
 
@@ -693,6 +809,10 @@ async function submitCheckout() {
         product_name: order.product_name,
         quantity: order.quantity,
         total_amount: order.total_amount,
+        crypto_amount_str: order.crypto_amount_str || '',
+        crypto_currency: order.crypto_currency || '',
+        payment_gateway: order.payment_gateway || selectedPaymentGateway,
+        payment_method: order.payment_method || selectedPaymentMethod,
         customer_email: email,
         payment_status: 'PENDING',
         expires_at: order.expires_at,
@@ -708,7 +828,7 @@ async function submitCheckout() {
     console.error('Checkout error:', err);
     alert(isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
     btn.disabled = false;
-    btn.innerText = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
+    btn.innerText = defaultBtnText;
   }
 }
 

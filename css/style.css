@@ -3344,4 +3344,123 @@ body.has-sticky-bar .floating-telegram-btn,
   border-radius: 6px;
 }
 
+/* ==========================================================================
+   Multi-Payment Gateway Switcher & Binance Pay Styles
+   ========================================================================== */
+.payment-gateway-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .payment-gateway-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.payment-method-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.payment-method-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.payment-method-card.active {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.2);
+}
+
+.payment-method-card#optPayBinance.active {
+  background: rgba(243, 186, 47, 0.08);
+  border-color: #F3BA2F;
+  box-shadow: 0 0 14px rgba(243, 186, 47, 0.2);
+}
+
+.payment-card-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-card-radio {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #64748b;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.payment-method-card.active .payment-card-radio {
+  border-color: #6366f1;
+}
+
+.payment-method-card#optPayBinance.active .payment-card-radio {
+  border-color: #F3BA2F;
+}
+
+.payment-method-card.active .payment-card-radio::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+}
+
+.payment-method-card#optPayBinance.active .payment-card-radio::after {
+  background: #F3BA2F;
+}
+
+.payment-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.payment-card-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.btn-copy-mini {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background: #2B313A;
+  color: #EAECEF;
+  border: 1px solid #3d4552;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-copy-mini:hover {
+  background: #363D47;
+  color: #fff;
+}
+
 
