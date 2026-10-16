@@ -514,7 +514,7 @@ function selectPaymentMethod(gateway, method, channel) {
     }
     const sumMethod = document.getElementById('mSummaryPaymentMethod');
     if (sumMethod) {
-      sumMethod.textContent = isEn ? 'Instant QRIS' : 'QRIS ShopeePay';
+      sumMethod.textContent = isEn ? 'Instant QRIS (Multi-Bank)' : 'QRIS Instant Multi-Bank';
       sumMethod.style.color = '#60a5fa';
     }
     const rateRow = document.getElementById('mSummaryUsdRateRow');

@@ -22,8 +22,14 @@
       } catch (e) {}
     }
   } else {
-    // If user's stored preference is 'en', but visited an Indonesian page:
-    if (savedLang === 'en') {
+    // If user's stored preference is 'en' or not yet set (default to English):
+    if (savedLang === 'en' || !savedLang) {
+      if (!savedLang) {
+        try {
+          localStorage.setItem('digimest_lang', 'en');
+          document.cookie = "digimest_lang=en; path=/; max-age=31536000; SameSite=Lax";
+        } catch (e) {}
+      }
       const baseRoute = (cleanRoute === 'index' || cleanRoute === '') ? '' : cleanRoute;
       const search = window.location.search || '';
       const hash = window.location.hash || '';
