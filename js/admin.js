@@ -740,6 +740,13 @@ async function loadSettings() {
         dcSwitch.checked = isDcOn;
         updateDcSwitchBadge(isDcOn);
       }
+
+      const silvexSwitch = document.getElementById('cfgSilvexEnabled');
+      if (silvexSwitch) {
+        const isSilvexOn = json.data.silvex_enabled !== 'false';
+        silvexSwitch.checked = isSilvexOn;
+        updateSilvexSwitchBadge(isSilvexOn);
+      }
     }
   } catch (err) {
     console.error('Failed to load settings:', err);
@@ -771,6 +778,31 @@ function updateDcSwitchBadge(isOn) {
   }
 }
 
+function updateSilvexSwitchBadge(isOn) {
+  const badge = document.getElementById('badgeSilvexSwitchState');
+  if (badge) {
+    if (isOn) {
+      badge.style.background = 'rgba(16, 185, 129, 0.2)';
+      badge.style.color = '#34d399';
+      badge.textContent = '● ON (AKTIF)';
+    } else {
+      badge.style.background = 'rgba(239, 68, 68, 0.2)';
+      badge.style.color = '#f87171';
+      badge.textContent = '● OFF (NONAKTIF)';
+    }
+  }
+  const silvexStatus = document.getElementById('settingsSilvexStatus');
+  if (silvexStatus) {
+    if (isOn) {
+      silvexStatus.style.color = '#a855f7';
+      silvexStatus.textContent = '● silvex-ai.com (Tarik API Aktif)';
+    } else {
+      silvexStatus.style.color = '#f87171';
+      silvexStatus.textContent = '○ Nonaktif (Silvex AI Dimatikan)';
+    }
+  }
+}
+
 async function saveSettings() {
   const btn = document.getElementById('btnSaveSettings');
   if (!btn) return;
@@ -779,13 +811,15 @@ async function saveSettings() {
 
   const teleInput = document.getElementById('cfgTelegramUser');
   const dcSwitch = document.getElementById('cfgDigitalCoreEnabled');
+  const silvexSwitch = document.getElementById('cfgSilvexEnabled');
   const body = {
     usd_rate: document.getElementById('cfgUsdRate').value,
     margin_percent: document.getElementById('cfgMarginPct').value,
     margin_fixed: document.getElementById('cfgMarginFixed').value,
     max_surge_disable_percent: document.getElementById('cfgMaxSurgePct')?.value || "50",
     telegram_cs_username: teleInput ? teleInput.value.trim().replace(/^@/, '') : "Digimestsupport",
-    digitalcore_enabled: dcSwitch ? (dcSwitch.checked ? "true" : "false") : "true"
+    digitalcore_enabled: dcSwitch ? (dcSwitch.checked ? "true" : "false") : "true",
+    silvex_enabled: silvexSwitch ? (silvexSwitch.checked ? "true" : "false") : "true"
   };
 
   try {
@@ -852,10 +886,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/admin/login';
   });
 
-  // Settings Save & DigitalCore Switch
+  // Settings Save & DigitalCore / Silvex Switch
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveSettings);
   document.getElementById('cfgDigitalCoreEnabled')?.addEventListener('change', (e) => {
     updateDcSwitchBadge(e.target.checked);
+  });
+  document.getElementById('cfgSilvexEnabled')?.addEventListener('change', (e) => {
+    updateSilvexSwitchBadge(e.target.checked);
   });
 
   // Product Filter Tabs & Search
@@ -891,10 +928,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('orderDetailModal')?.classList.remove('open');
   });
 
-  // DigitalCore Check Connection
+  // DigitalCore & Silvex Check Connection
   document.getElementById('btnCheckDcTop')?.addEventListener('click', checkDigitalCore);
   document.getElementById('btnCheckDcCard')?.addEventListener('click', checkDigitalCore);
   document.getElementById('btnCheckDcSettings')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckSilvexSettings')?.addEventListener('click', checkSilvexAI);
   document.getElementById('closeDcModalBtn')?.addEventListener('click', () => {
     document.getElementById('dcCheckModal')?.classList.remove('open');
   });
@@ -1151,6 +1189,114 @@ async function checkDigitalCore() {
           <div style="margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; font-size: 0.78rem; color: #94a3b8;">
             💡 <strong>Panduan Solusi:</strong><br>
             1. Periksa file <code>.env</code> di VPS, pastikan <code>DIGITALCORE_API_KEY</code> sudah terisi.<br>
+            2. Jika baru mengisi atau mengubah <code>.env</code>, jalankan <code>sudo systemctl restart storeku</code> di VPS agar aplikasi memuat key baru.
+          </div>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #f87171; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    }
+  } catch (err) {
+    if (modalBody) {
+      modalTitle.textContent = '❌ Terjadi Kesalahan Jaringan';
+      modalBody.innerHTML = `<div style="color: #f87171;">Tidak dapat mengirim request ke backend: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+async function checkSilvexAI() {
+  const modal = document.getElementById('dcCheckModal');
+  const modalBody = document.getElementById('dcModalBody');
+  const modalTitle = document.getElementById('dcModalTitle');
+
+  if (modal && modalBody) {
+    modalTitle.textContent = '🔍 Memeriksa Koneksi Silvex AI...';
+    modalBody.innerHTML = `
+      <div style="text-align: center; padding: 24px 0;">
+        <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+        <div style="font-weight: 700; color: #fff;">Sedang Menghubungi Server Silvex AI...</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Mengetes endpoint /balance dengan x-api-key terpasang</div>
+      </div>
+    `;
+    modal.classList.add('open');
+  }
+
+  try {
+    const res = await adminFetch('/api/admin/silvex/check');
+    if (!res) {
+      if (modalBody) {
+        modalBody.innerHTML = `<div style="color: #f87171;">Sesi admin tidak valid atau tidak dapat terhubung ke backend.</div>`;
+      }
+      return;
+    }
+
+    const json = await res.json();
+    const data = json.data || {};
+
+    if (json.success && data.success) {
+      showToast(`Koneksi Silvex AI Sukses! Saldo: $${(data.balance || 0).toFixed(2)}`);
+
+      if (modalBody) {
+        modalTitle.textContent = '✅ Koneksi Silvex AI Berhasil';
+        modalBody.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #34d399; font-size: 0.95rem; margin-bottom: 4px;">● Status: TERHUBUNG (HTTP ${data.http_status})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || 'API Key valid dan reseller Silvex AI merespons normal.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Saldo Dompet Silvex</td>
+              <td style="padding: 8px 0; font-weight: 800; font-family: var(--font-mono); font-size: 1.1rem; color: #a855f7; text-align: right;">$${(data.balance || 0).toFixed(2)} USD</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || 'https://silvex-ai.com/api/public/reseller')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">x-api-key Terpasang</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '***')}</code></td>
+            </tr>
+          </table>
+
+          ${data.raw_response ? `
+            <div style="margin-top: 14px;">
+              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Respon Mentah Upstream:</div>
+              <pre style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 0.75rem; color: #94a3b8; overflow-x: auto; max-height: 120px;">${escapeHtml(data.raw_response)}</pre>
+            </div>
+          ` : ''}
+        `;
+      }
+    } else {
+      showToast('Gagal terhubung ke Silvex AI.');
+
+      if (modalBody) {
+        modalTitle.textContent = '⚠️ Gagal Terhubung ke Silvex AI';
+        modalBody.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #f87171; font-size: 0.95rem; margin-bottom: 4px;">● Status: GAGAL (HTTP ${data.http_status || '-'})</div>
+            <div style="color: #cbd5e1; font-size: 0.82rem;">${escapeHtml(data.message || json.error || 'Server Silvex AI menolak permintaan.')}</div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <td style="padding: 8px 0; color: var(--text-muted);">Base URL</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #93c5fd; text-align: right;">${escapeHtml(data.base_url || 'https://silvex-ai.com/api/public/reseller')}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: var(--text-muted);">x-api-key Terpasang</td>
+              <td style="padding: 8px 0; font-family: var(--font-mono); color: #cbd5e1; text-align: right;"><code>${escapeHtml(data.api_key_masked || '(kosong)')}</code></td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; font-size: 0.78rem; color: #94a3b8;">
+            💡 <strong>Panduan Solusi:</strong><br>
+            1. Periksa file <code>.env</code> di VPS, pastikan <code>SILVEX_API_KEY</code> sudah terisi key reseller Silvex.<br>
             2. Jika baru mengisi atau mengubah <code>.env</code>, jalankan <code>sudo systemctl restart storeku</code> di VPS agar aplikasi memuat key baru.
           </div>
 
@@ -2611,7 +2757,12 @@ function populateProductSelectOptions(products) {
 
   if (crSelect) {
     crSelect.innerHTML = `<option value="">-- Pilih Produk --</option>` +
-      products.map(p => `<option value="${escapeHtml(p.slug)}">${escapeHtml(p.name)} (${p.source === 'LOCAL' ? 'Lokal' : 'Upstream'})</option>`).join('');
+      products.map(p => {
+        let srcLabel = 'DigitalCore';
+        if (p.source === 'LOCAL') srcLabel = 'Lokal';
+        else if (p.source === 'SILVEX') srcLabel = 'Silvex AI';
+        return `<option value="${escapeHtml(p.slug)}">${escapeHtml(p.name)} (${srcLabel})</option>`;
+      }).join('');
     if (currentCrVal) crSelect.value = currentCrVal;
   }
 
@@ -2659,10 +2810,12 @@ function renderEtalaseTable() {
   }
 
   tbody.innerHTML = filteredEtalaseProducts.map(p => {
-    const isLocal = p.source === 'LOCAL';
-    const sourceBadge = isLocal
-      ? `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">✨ Lokal Mandiri</span>`
-      : `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3);">🌐 Upstream DC</span>`;
+    let sourceBadge = `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3);">🌐 DigitalCore</span>`;
+    if (p.source === 'LOCAL') {
+      sourceBadge = `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">✨ Lokal Mandiri</span>`;
+    } else if (p.source === 'SILVEX') {
+      sourceBadge = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">🤖 Silvex AI</span>`;
+    }
 
     const statusBadge = p.is_active
       ? `<span class="badge badge-stock">● Aktif</span>`
@@ -3228,9 +3381,12 @@ function renderTranslationsTable() {
       ? `<span style="color: #cbd5e1; font-weight: 500;">${escapeHtml(t.name_en)}</span>`
       : `<span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Belum di-set (Pakai Teks Indo)</span>`;
 
-    const sourceBadge = t.source === 'LOCAL'
-      ? `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(59,130,246,0.15); color: #60a5fa; margin-left: 6px;">Lokal</span>`
-      : `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(168,85,247,0.15); color: #c084fc; margin-left: 6px;">Upstream</span>`;
+    let sourceBadge = `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(168,85,247,0.15); color: #c084fc; margin-left: 6px;">DC</span>`;
+    if (t.source === 'LOCAL') {
+      sourceBadge = `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(59,130,246,0.15); color: #60a5fa; margin-left: 6px;">Lokal</span>`;
+    } else if (t.source === 'SILVEX') {
+      sourceBadge = `<span style="font-size: 0.7rem; padding: 1px 5px; border-radius: 4px; background: rgba(16,185,129,0.15); color: #34d399; margin-left: 6px;">Silvex</span>`;
+    }
 
     return `
       <tr>
