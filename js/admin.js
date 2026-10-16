@@ -90,6 +90,8 @@ async function loadStats() {
         dcBalEl.style.color = '#10b981';
       }
     }
+    const dcTopEl = document.getElementById('statDcBalanceTop');
+    if (dcTopEl) dcTopEl.textContent = `$${(s.digitalcore_balance || 0).toFixed(2)}`;
 
     const silvexBalEl = document.getElementById('statSilvexBalance');
     if (silvexBalEl) {
@@ -101,6 +103,8 @@ async function loadStats() {
         silvexBalEl.style.color = '#10b981';
       }
     }
+    const silvexTopEl = document.getElementById('statSilvexBalanceTop');
+    if (silvexTopEl) silvexTopEl.textContent = `$${(s.silvex_balance || 0).toFixed(2)}`;
 
     const silvexStatusEl = document.getElementById('statSilvexStatus');
     if (silvexStatusEl) {
@@ -868,9 +872,68 @@ async function saveSettings() {
 }
 
 // -------------------------------------------------------------
+// APP-SHELL NAVIGATION (SIDEBAR, DRAWER, & MOBILE BOTTOM NAV)
+// -------------------------------------------------------------
+function setupAppShellNavigation() {
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
+
+  // 1. Sidebar Links active state
+  document.querySelectorAll('.admin-sidebar-link').forEach(link => {
+    const href = link.getAttribute('href');
+    if (!href) return;
+    const cleanHref = href.replace(/\.html$/, '');
+    if (cleanHref === currentPath || (cleanHref !== '/admin' && currentPath === cleanHref)) {
+      link.classList.add('active');
+    } else if (cleanHref === '/admin' && (currentPath === '/admin' || currentPath === '/admin/')) {
+      link.classList.add('active');
+    }
+  });
+
+  // 2. Bottom Nav active state
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    const href = item.getAttribute('href');
+    if (!href) return;
+    const cleanHref = href.replace(/\.html$/, '');
+    if (cleanHref === currentPath || (cleanHref === '/admin' && (currentPath === '/admin' || currentPath === '/admin/'))) {
+      item.classList.add('active');
+    }
+  });
+
+  // 3. Mobile Hamburger & Drawer Toggle
+  const sidebar = document.getElementById('adminSidebar');
+  const drawerOverlay = document.getElementById('adminDrawerOverlay');
+  const hamburgerBtn = document.getElementById('adminHamburgerBtn');
+  const bottomNavMenuBtn = document.getElementById('btnBottomNavMenu');
+
+  function openSidebar() {
+    sidebar?.classList.add('open');
+    drawerOverlay?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.remove('open');
+    drawerOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  hamburgerBtn?.addEventListener('click', openSidebar);
+  bottomNavMenuBtn?.addEventListener('click', openSidebar);
+  drawerOverlay?.addEventListener('click', closeSidebar);
+
+  // Close sidebar on link click on mobile
+  document.querySelectorAll('.admin-sidebar-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth < 1024) closeSidebar();
+    });
+  });
+}
+
+// -------------------------------------------------------------
 // 5. INITIALIZATION & EVENT LISTENERS
 // -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+  setupAppShellNavigation();
   loadStats();
   loadAdminProducts();
   loadOrders();
@@ -900,16 +963,18 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Data diperbarui 🔄');
   });
 
-  // Logout Button
-  document.getElementById('btnLogout')?.addEventListener('click', async () => {
-    localStorage.removeItem('digimest_admin_token');
-    localStorage.removeItem('Digimest_admin_token');
-    localStorage.removeItem('storeku_admin_token');
-    const logoutUrl = window.digimestApi ? window.digimestApi('/api/admin/logout') : '/api/admin/logout';
-    try {
-      await fetch(logoutUrl, { method: 'POST' });
-    } catch (e) {}
-    window.location.href = '/admin/login';
+  // Logout Button (Header & Sidebar)
+  document.querySelectorAll('#btnLogout, #btnLogoutSidebar, .btn-admin-logout').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      localStorage.removeItem('digimest_admin_token');
+      localStorage.removeItem('Digimest_admin_token');
+      localStorage.removeItem('storeku_admin_token');
+      const logoutUrl = window.digimestApi ? window.digimestApi('/api/admin/logout') : '/api/admin/logout';
+      try {
+        await fetch(logoutUrl, { method: 'POST' });
+      } catch (e) {}
+      window.location.href = '/admin/login';
+    });
   });
 
   // Settings Save & DigitalCore / Silvex Switch
