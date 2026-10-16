@@ -91,6 +91,29 @@ async function loadStats() {
       }
     }
 
+    const silvexBalEl = document.getElementById('statSilvexBalance');
+    if (silvexBalEl) {
+      silvexBalEl.textContent = `$${(s.silvex_balance || 0).toFixed(2)}`;
+      if (s.silvex_balance < 3.0) {
+        silvexBalEl.style.color = '#f87171';
+        silvexBalEl.title = '⚠️ Peringatan: Saldo Silvex menipis (< $3.00), segera lakukan top-up!';
+      } else {
+        silvexBalEl.style.color = '#10b981';
+      }
+    }
+
+    const silvexStatusEl = document.getElementById('statSilvexStatus');
+    if (silvexStatusEl) {
+      if (s.silvex_connected) {
+        silvexStatusEl.textContent = 'Aktif';
+        silvexStatusEl.style.color = '#34d399';
+      } else if (s.silvex_error) {
+        silvexStatusEl.textContent = 'Error';
+        silvexStatusEl.style.color = '#f87171';
+        silvexStatusEl.title = s.silvex_error;
+      }
+    }
+
     const badge = document.getElementById('apiStatusBadge');
     if (badge) {
       if (s.digitalcore_connected) {
@@ -871,6 +894,9 @@ document.addEventListener('DOMContentLoaded', () => {
       loadEtalaseProducts();
       loadAdminReviews();
     }
+    if (document.getElementById('adminSilvexTableBody')) {
+      loadSilvexProducts();
+    }
     showToast('Data diperbarui 🔄');
   });
 
@@ -932,6 +958,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCheckDcTop')?.addEventListener('click', checkDigitalCore);
   document.getElementById('btnCheckDcCard')?.addEventListener('click', checkDigitalCore);
   document.getElementById('btnCheckDcSettings')?.addEventListener('click', checkDigitalCore);
+  document.getElementById('btnCheckSilvexTop')?.addEventListener('click', checkSilvexAI);
+  document.getElementById('btnCheckSilvexCard')?.addEventListener('click', checkSilvexAI);
+  document.getElementById('btnCheckSilvexPage')?.addEventListener('click', checkSilvexAI);
   document.getElementById('btnCheckSilvexSettings')?.addEventListener('click', checkSilvexAI);
   document.getElementById('closeDcModalBtn')?.addEventListener('click', () => {
     document.getElementById('dcCheckModal')?.classList.remove('open');
@@ -1054,6 +1083,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTranslationsUI();
   }
 
+  // Silvex AI Products Page Handlers
+  if (document.getElementById('adminSilvexTableBody')) {
+    loadSilvexProducts();
+    setupSilvexUI();
+  }
+
   // Setup Manual Deliver UI (Orders & Dashboard)
   setupManualDeliverUI();
 
@@ -1061,6 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       closeEditProductModal();
+      closeEditSilvexModal();
       document.getElementById('orderDetailModal')?.classList.remove('open');
       document.getElementById('dcCheckModal')?.classList.remove('open');
       document.getElementById('loginHistoryModal')?.classList.remove('open');
@@ -1069,6 +1105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('quickKeysModal')?.classList.remove('open');
       document.getElementById('manualDeliverModal')?.classList.remove('open');
       document.getElementById('editTransModal')?.classList.remove('open');
+      document.getElementById('editSilvexModal')?.classList.remove('open');
     }
   });
 });
@@ -3591,3 +3628,409 @@ function setupTranslationsUI() {
 // Expose modal handlers to global scope for HTML onclick attributes
 window.openTransModal = openTransModal;
 window.closeTransModal = closeTransModal;
+
+// -------------------------------------------------------------
+// 14. SILVEX AI PRODUCT MANAGEMENT & LOGO PRESETS
+// -------------------------------------------------------------
+let allSilvexProducts = [];
+let filteredSilvexProducts = [];
+let currentSilvexFilter = 'ALL';
+let currentEditingSilvexSlug = null;
+
+const PRESET_AI_LOGOS = [
+  { name: 'ChatGPT', url: 'https://api.iconify.design/simple-icons:openai.svg?color=%2310a37f' },
+  { name: 'Claude', url: 'https://api.iconify.design/simple-icons:anthropic.svg?color=%23d97706' },
+  { name: 'Midjourney', url: 'https://api.iconify.design/simple-icons:midjourney.svg?color=%23ffffff' },
+  { name: 'Canva', url: 'https://api.iconify.design/simple-icons:canva.svg?color=%2300c4cc' },
+  { name: 'Cursor', url: 'https://api.iconify.design/simple-icons:cursor.svg?color=%2338bdf8' },
+  { name: 'Perplexity', url: 'https://api.iconify.design/simple-icons:perplexity.svg?color=%2320b2aa' },
+  { name: 'Gemini', url: 'https://api.iconify.design/simple-icons:googlegemini.svg?color=%234285f4' },
+  { name: 'Copilot', url: 'https://api.iconify.design/simple-icons:githubcopilot.svg?color=%23ffffff' },
+  { name: 'ElevenLabs', url: 'https://api.iconify.design/simple-icons:elevenlabs.svg?color=%23ffffff' },
+  { name: 'Suno AI', url: 'https://api.iconify.design/simple-icons:suno.svg?color=%23f43f5e' },
+  { name: 'Runway', url: 'https://api.iconify.design/simple-icons:runway.svg?color=%236366f1' },
+  { name: 'DeepL', url: 'https://api.iconify.design/simple-icons:deepl.svg?color=%230f2b46' },
+  { name: 'Grammarly', url: 'https://api.iconify.design/simple-icons:grammarly.svg?color=%2315c39a' },
+  { name: 'CapCut', url: 'https://api.iconify.design/simple-icons:capcut.svg?color=%23ffffff' },
+  { name: 'Netflix', url: 'https://api.iconify.design/simple-icons:netflix.svg?color=%23e50914' },
+  { name: 'Spotify', url: 'https://api.iconify.design/simple-icons:spotify.svg?color=%231ed760' },
+  { name: 'YouTube', url: 'https://api.iconify.design/simple-icons:youtube.svg?color=%23ff0000' }
+];
+
+async function loadSilvexProducts() {
+  const tbody = document.getElementById('adminSilvexTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">Memuat katalog produk Silvex AI...</td></tr>`;
+
+  try {
+    const res = await adminFetch('/api/admin/silvex/products');
+    if (!res) return;
+    const json = await res.json();
+    if (!json.success || !json.data) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2.5rem; color: #f87171;">Gagal memuat produk Silvex: ${escapeHtml(json.error || 'Server error')}</td></tr>`;
+      return;
+    }
+
+    allSilvexProducts = json.data;
+    updateSilvexCounters();
+    applySilvexFilter();
+
+    // Fetch balance for Silvex card
+    adminFetch('/api/admin/silvex/check').then(async (cRes) => {
+      if (!cRes) return;
+      const cJson = await cRes.json();
+      if (cJson.success && cJson.data && cJson.data.success) {
+        const bal = cJson.data.balance || 0;
+        const balEl = document.getElementById('cntSilvexBalance');
+        if (balEl) balEl.textContent = `$${bal.toFixed(2)}`;
+      }
+    }).catch(() => {});
+
+  } catch (err) {
+    console.error('Failed to load Silvex products:', err);
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2.5rem; color: #f87171;">Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function updateSilvexCounters() {
+  const total = allSilvexProducts.length;
+  const active = allSilvexProducts.filter(p => p.is_active).length;
+  const hidden = total - active;
+
+  if (document.getElementById('cntTotalSilvex')) document.getElementById('cntTotalSilvex').textContent = total;
+  if (document.getElementById('cntActiveSilvex')) document.getElementById('cntActiveSilvex').textContent = active;
+  if (document.getElementById('cntHiddenSilvex')) document.getElementById('cntHiddenSilvex').textContent = hidden;
+  if (document.getElementById('totalSilvexBadge')) document.getElementById('totalSilvexBadge').textContent = `● ${active} Aktif dari ${total} Produk Silvex`;
+}
+
+function applySilvexFilter() {
+  const search = (document.getElementById('searchSilvexInput')?.value || '').trim().toLowerCase();
+
+  filteredSilvexProducts = allSilvexProducts.filter(p => {
+    const match = (p.name || '').toLowerCase().includes(search) ||
+                  (p.original_name || '').toLowerCase().includes(search) ||
+                  (p.slug || '').toLowerCase().includes(search) ||
+                  (p.type || '').toLowerCase().includes(search);
+    if (!match) return false;
+
+    if (currentSilvexFilter === 'ALL') return true;
+    if (currentSilvexFilter === 'ACTIVE') return p.is_active;
+    if (currentSilvexFilter === 'HIDDEN') return !p.is_active;
+    if (currentSilvexFilter === 'CUSTOM') return p.is_customized;
+    return true;
+  });
+
+  renderSilvexProductsTable();
+}
+
+function renderSilvexProductsTable() {
+  const tbody = document.getElementById('adminSilvexTableBody');
+  if (!tbody) return;
+
+  if (filteredSilvexProducts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2.5rem; color: var(--text-muted);">Tidak ada produk Silvex yang cocok dengan filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredSilvexProducts.map(p => {
+    const isCustomPrice = p.custom_price_idr > 0;
+    const isCustomTitle = !!p.custom_name;
+    const logoSrc = p.custom_logo || p.logo || '/logo/digimest_petak.png';
+
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${logoSrc}" alt="" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; background: #0f172a; padding: 3px; border: 1px solid var(--border-subtle);" onerror="this.src='/logo/digimest_petak.png'">
+            <div>
+              <div style="font-weight: 700; color: #fff;">${escapeHtml(p.name)}</div>
+              ${isCustomTitle ? `<div style="font-size: 0.72rem; color: var(--text-muted);">Asli: ${escapeHtml(p.original_name)}</div>` : ''}
+              <div style="font-size: 0.72rem; color: #38bdf8; font-family: var(--font-mono);">${escapeHtml(p.slug)}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="font-weight: 600;">${p.stock} pcs ${p.custom_stock !== undefined && p.custom_stock >= 0 ? '<span class="badge-custom" style="font-size: 0.65rem; padding: 1px 6px; margin-left: 4px;">Kustom</span>' : ''}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.region || 'Global')} • ${escapeHtml(p.warranty || '-')}</div>
+        </td>
+        <td>
+          <div style="font-family: var(--font-mono); color: #fbbf24; font-weight: 700;">$${(p.original_price_usd || 0).toFixed(2)}</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">(Modal: ${formatIDR(p.modal_idr)})</div>
+          ${p.surge_percent > 0 ? `<div style="font-size: 0.7rem; color: #f59e0b; font-weight: 600;">+${p.surge_percent.toFixed(1)}% naik</div>` : ''}
+        </td>
+        <td>
+          <div style="font-weight: 700; color: #fff; font-family: var(--font-mono);">${formatIDR(p.reference_price_idr)}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">
+            ${isCustomPrice ? '<span class="badge-custom">Kustom</span>' : '<span class="badge-auto">Formula Env</span>'}
+          </div>
+        </td>
+        <td>
+          ${p.has_promo ? `
+            <div style="font-weight: 700; color: #fbbf24; font-family: var(--font-mono);">${formatIDR(p.promo_price_idr)}</div>
+            <div style="font-size: 0.72rem;"><span class="badge-discount-mini">-${p.discount_percent}% OFF</span></div>
+          ` : `
+            <span style="color: var(--text-muted); font-size: 0.85rem;">-</span>
+          `}
+        </td>
+        <td>
+          ${p.is_auto_suspended 
+            ? `<span class="status-pill failed" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4);" title="Modal upstream melonjak melebihi ambang batas.">⚠️ Disuspend (+${p.surge_percent.toFixed(0)}%)</span>` 
+            : (!p.is_active 
+                ? '<span class="status-pill failed">● Tersembunyi</span>' 
+                : (p.is_force_out_of_stock
+                    ? '<span class="status-pill warning" style="background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.35);" title="Produk dipaksa habis secara manual oleh admin.">⚡ Paksa Habis</span>'
+                    : (p.stock <= 0
+                        ? '<span class="status-pill" style="background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25);" title="Stok asli dari Silvex AI kosong.">● Habis (Silvex)</span>'
+                        : '<span class="status-pill paid">● Aktif</span>')))}
+        </td>
+        <td style="text-align: right;">
+          <button class="btn-action-mini" onclick="openEditSilvexModal('${escapeHtml(p.slug)}')">
+            ✏️ Edit
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderSilvexLogoPresets() {
+  const container = document.getElementById('silvexLogoPresetButtons');
+  if (!container) return;
+
+  container.innerHTML = PRESET_AI_LOGOS.map(p => `
+    <button type="button" class="btn-nav silvex-preset-btn" data-url="${escapeHtml(p.url)}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);">
+      <img src="${escapeHtml(p.url)}" alt="" style="width: 14px; height: 14px; object-fit: contain;">
+      <span>${escapeHtml(p.name)}</span>
+    </button>
+  `).join('');
+
+  container.querySelectorAll('.silvex-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      const input = document.getElementById('edSilvexCustomLogo');
+      const preview = document.getElementById('edSilvexLogoPreview');
+      if (input) input.value = url;
+      if (preview) preview.src = url;
+      showToast(`Preset icon "${btn.textContent.trim()}" dipilih ✨`);
+    });
+  });
+}
+
+function openEditSilvexModal(slug) {
+  const p = allSilvexProducts.find(item => item.slug === slug);
+  if (!p) return;
+
+  currentEditingSilvexSlug = slug;
+
+  const currentLogo = p.custom_logo || p.logo || '/logo/digimest_petak.png';
+  document.getElementById('edSilvexLogoPreview').src = currentLogo;
+  document.getElementById('edSilvexOriginalName').textContent = p.original_name;
+  document.getElementById('edSilvexSlug').textContent = p.slug;
+  document.getElementById('edSilvexUSD').textContent = `$${(p.original_price_usd || 0).toFixed(2)}`;
+  document.getElementById('edSilvexModalIDR').textContent = `Modal: ${formatIDR(p.modal_idr)}`;
+  document.getElementById('edSilvexEnvPrice').textContent = formatIDR(p.env_price_idr);
+
+  document.getElementById('edSilvexIsActive').checked = p.is_active;
+  const forceOutEl = document.getElementById('edSilvexIsForceOutOfStock');
+  if (forceOutEl) forceOutEl.checked = !!p.is_force_out_of_stock;
+
+  // Custom Logo
+  const edLogo = document.getElementById('edSilvexCustomLogo');
+  if (edLogo) edLogo.value = p.custom_logo || '';
+
+  document.getElementById('edSilvexCustomName').value = p.custom_name || '';
+
+  // Custom Type
+  const edType = document.getElementById('edSilvexCustomType');
+  if (edType) edType.value = p.custom_type || '';
+  const defTypeEl = document.getElementById('edSilvexDefaultTypeNotice');
+  if (defTypeEl) defTypeEl.textContent = p.original_type || p.type || 'AI Account';
+
+  // Custom Region
+  const edReg = document.getElementById('edSilvexCustomRegion');
+  if (edReg) edReg.value = p.custom_region || '';
+  const defRegEl = document.getElementById('edSilvexDefaultRegionNotice');
+  if (defRegEl) defRegEl.textContent = p.original_region || p.region || 'Global';
+
+  // Custom Warranty
+  const edWar = document.getElementById('edSilvexCustomWarranty');
+  if (edWar) edWar.value = p.custom_warranty || '';
+  const defWarEl = document.getElementById('edSilvexDefaultWarrantyNotice');
+  if (defWarEl) defWarEl.textContent = p.original_warranty || p.warranty || 'Garansi Toko';
+
+  // Custom Stock
+  const edStock = document.getElementById('edSilvexCustomStock');
+  if (edStock) edStock.value = (p.custom_stock !== undefined && p.custom_stock >= 0) ? p.custom_stock : '';
+  const defStockEl = document.getElementById('edSilvexDefaultStockNotice');
+  if (defStockEl) defStockEl.textContent = `${p.original_stock !== undefined ? p.original_stock : p.stock} Stok`;
+
+  // Pre-fill Reference Price
+  const refPrice = p.reference_price_idr || p.calculated_price_idr;
+  document.getElementById('edSilvexCustomPrice').value = refPrice;
+  document.getElementById('edSilvexMinPriceNotice').textContent = formatIDR(p.env_price_idr);
+
+  // Pre-fill Promo Price
+  document.getElementById('edSilvexPromoPrice').value = p.promo_price_idr > 0 ? p.promo_price_idr : '';
+  document.getElementById('edSilvexMinPromoNotice').textContent = formatIDR(p.modal_idr);
+
+  document.getElementById('edSilvexCustomDesc').value = p.custom_description || '';
+  document.getElementById('edSilvexCustomTerms').value = p.custom_terms || (p.terms || 'Membeli berarti setuju');
+
+  document.getElementById('editSilvexModal')?.classList.add('open');
+}
+
+function closeEditSilvexModal() {
+  document.getElementById('editSilvexModal')?.classList.remove('open');
+  currentEditingSilvexSlug = null;
+}
+
+async function saveSilvexProductOverride() {
+  if (!currentEditingSilvexSlug) return;
+  const p = allSilvexProducts.find(item => item.slug === currentEditingSilvexSlug);
+  if (!p) return;
+
+  const customPrice = parseInt(document.getElementById('edSilvexCustomPrice').value, 10) || 0;
+  const promoPrice = parseInt(document.getElementById('edSilvexPromoPrice').value, 10) || 0;
+
+  if (customPrice > 0 && customPrice < p.env_price_idr) {
+    alert(`Harga acuan (${formatIDR(customPrice)}) tidak boleh lebih rendah dari harga default sistem (${formatIDR(p.env_price_idr)})`);
+    return;
+  }
+
+  if (promoPrice > 0) {
+    if (promoPrice < p.modal_idr) {
+      alert(`Harga promo (${formatIDR(promoPrice)}) tidak boleh lebih rendah dari modal toko (${formatIDR(p.modal_idr)})`);
+      return;
+    }
+    const effectiveRef = customPrice > 0 ? customPrice : p.env_price_idr;
+    if (promoPrice >= effectiveRef) {
+      alert(`Harga promo (${formatIDR(promoPrice)}) harus lebih murah dari harga acuan (${formatIDR(effectiveRef)})`);
+      return;
+    }
+  }
+
+  const customStockVal = document.getElementById('edSilvexCustomStock') ? document.getElementById('edSilvexCustomStock').value.trim() : '';
+  let customStock = -1;
+  if (customStockVal !== '') {
+    const parsedStock = parseInt(customStockVal, 10);
+    if (!isNaN(parsedStock) && parsedStock >= 0) {
+      customStock = parsedStock;
+    }
+  }
+
+  const btn = document.getElementById('btnSaveSilvexProduct');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+  }
+
+  const body = {
+    is_active: document.getElementById('edSilvexIsActive').checked,
+    is_force_out_of_stock: document.getElementById('edSilvexIsForceOutOfStock') ? document.getElementById('edSilvexIsForceOutOfStock').checked : false,
+    custom_logo: (document.getElementById('edSilvexCustomLogo')?.value || '').trim(),
+    custom_name: (document.getElementById('edSilvexCustomName').value || '').trim(),
+    custom_type: (document.getElementById('edSilvexCustomType')?.value || '').trim(),
+    custom_region: (document.getElementById('edSilvexCustomRegion')?.value || '').trim(),
+    custom_warranty: (document.getElementById('edSilvexCustomWarranty')?.value || '').trim(),
+    custom_stock: customStock,
+    custom_price_idr: customPrice,
+    promo_price_idr: promoPrice,
+    custom_description: (document.getElementById('edSilvexCustomDesc').value || '').trim(),
+    custom_terms: (document.getElementById('edSilvexCustomTerms').value || '').trim()
+  };
+
+  try {
+    const res = await adminFetch(`/api/admin/products/${encodeURIComponent(currentEditingSilvexSlug)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Kustomisasi produk Silvex AI berhasil disimpan! ✨');
+      closeEditSilvexModal();
+      await loadSilvexProducts();
+    } else {
+      alert('Gagal menyimpan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Simpan Kustomisasi';
+    }
+  }
+}
+
+async function resetSilvexProductOverride() {
+  if (!currentEditingSilvexSlug) return;
+  if (!confirm(`Reset kustomisasi produk "${currentEditingSilvexSlug}" ke pengaturan bawaan Silvex AI?`)) return;
+
+  const btn = document.getElementById('btnResetSilvexProduct');
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await adminFetch(`/api/admin/products/${encodeURIComponent(currentEditingSilvexSlug)}/reset`, {
+      method: 'POST'
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast('Produk Silvex AI dikembalikan ke default 🔄');
+      closeEditSilvexModal();
+      await loadSilvexProducts();
+    } else {
+      alert('Gagal mereset: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function setupSilvexUI() {
+  renderSilvexLogoPresets();
+
+  document.querySelectorAll('[data-sfilter]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('[data-sfilter]').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentSilvexFilter = e.target.dataset.sfilter;
+      applySilvexFilter();
+    });
+  });
+
+  document.getElementById('searchSilvexInput')?.addEventListener('input', applySilvexFilter);
+
+  // Logo live preview & clear button
+  const logoInput = document.getElementById('edSilvexCustomLogo');
+  const previewImg = document.getElementById('edSilvexLogoPreview');
+  logoInput?.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (previewImg) previewImg.src = val || '/logo/digimest_petak.png';
+  });
+
+  document.getElementById('btnClearSilvexLogo')?.addEventListener('click', () => {
+    if (logoInput) logoInput.value = '';
+    if (previewImg) {
+      const p = allSilvexProducts.find(item => item.slug === currentEditingSilvexSlug);
+      previewImg.src = p?.logo || '/logo/digimest_petak.png';
+    }
+    showToast('Logo kustom dibersihkan, menggunakan deteksi otomatis');
+  });
+
+  // Modal events
+  document.getElementById('closeSilvexModalBtn')?.addEventListener('click', closeEditSilvexModal);
+  document.getElementById('btnCancelSilvexEdit')?.addEventListener('click', closeEditSilvexModal);
+  document.getElementById('btnSaveSilvexProduct')?.addEventListener('click', saveSilvexProductOverride);
+  document.getElementById('btnResetSilvexProduct')?.addEventListener('click', resetSilvexProductOverride);
+}
+
+// Expose Silvex modal handlers to window for onclick attributes
+window.openEditSilvexModal = openEditSilvexModal;
+window.closeEditSilvexModal = closeEditSilvexModal;
+

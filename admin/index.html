@@ -41,7 +41,8 @@
     <!-- Admin Navigation Tabs -->
     <nav class="admin-nav-tabs">
       <a href="/admin" class="admin-nav-tab active">📊 Ringkasan Dashboard</a>
-      <a href="/admin/products" class="admin-nav-tab">📦 Manajemen Produk Upstream</a>
+      <a href="/admin/products" class="admin-nav-tab">📦 Produk DigitalCore</a>
+      <a href="/admin/silvex-products" class="admin-nav-tab">🤖 Produk Silvex AI</a>
       <a href="/admin/custom-products" class="admin-nav-tab">✨ Produk Mandiri / Lokal</a>
       <a href="/admin/translations" class="admin-nav-tab">🌐 Terjemahan (EN)</a>
       <a href="/admin/reviews" class="admin-nav-tab">⭐ Ulasan & Etalase</a>
@@ -55,12 +56,15 @@
     <div class="admin-header-row">
       <div class="admin-title-wrap">
         <h1>Dashboard Monitoring Toko</h1>
-        <p>Pantau pembayaran QRIS, perputaran omzet, dan saldo stok DigitalCore secara real-time.</p>
+        <p>Pantau pembayaran QRIS, perputaran omzet, dan saldo stok DigitalCore serta Silvex AI secara real-time.</p>
       </div>
       <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
         <span class="badge badge-stock" id="apiStatusBadge">● Memeriksa Status...</span>
         <button id="btnCheckDcTop" class="btn-nav" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #a5b4fc; cursor: pointer; border-radius: 8px; font-weight: 600;">
           ⚡ Cek API DigitalCore
+        </button>
+        <button id="btnCheckSilvexTop" class="btn-nav" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; cursor: pointer; border-radius: 8px; font-weight: 600;">
+          🤖 Cek API Silvex
         </button>
       </div>
     </div>
@@ -85,6 +89,20 @@
         <div class="stat-meta" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
           <span>Order DC: <strong id="statDcOrders" style="color:#fff;">0</strong></span>
           <button id="btnCheckDcCard" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 700;">
+            🔍 Cek API
+          </button>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <span>Saldo Silvex AI Bot</span>
+          <span>🤖</span>
+        </div>
+        <div class="stat-value highlight-gold" id="statSilvexBalance">$0.00</div>
+        <div class="stat-meta" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <span>Status: <strong id="statSilvexStatus" style="color:#34d399;">Aktif</strong></span>
+          <button id="btnCheckSilvexCard" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 700;">
             🔍 Cek API
           </button>
         </div>
@@ -118,14 +136,23 @@
     </div>
 
     <!-- Quick Navigation Shortcuts -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
       <a href="/admin/products" class="stat-card" style="text-decoration: none; border-color: rgba(99, 102, 241, 0.3); transition: transform 0.2s;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="font-size: 1.75rem;">📦</div>
-          <span style="font-size: 0.8rem; color: #818cf8; font-weight: 700;">Kelola Katalog ➔</span>
+          <span style="font-size: 0.8rem; color: #818cf8; font-weight: 700;">Katalog DC ➔</span>
         </div>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;">Manajemen Produk</div>
-        <div style="font-size: 0.82rem; color: var(--text-muted);">Atur harga khusus, nama, deskripsi, terms, atau sembunyikan produk dari toko.</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;">Produk DigitalCore</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted);">Atur harga khusus, nama, deskripsi, terms, atau sembunyikan produk DC.</div>
+      </a>
+
+      <a href="/admin/silvex-products" class="stat-card" style="text-decoration: none; border-color: rgba(56, 189, 248, 0.3); transition: transform 0.2s;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 1.75rem;">🤖</div>
+          <span style="font-size: 0.8rem; color: #38bdf8; font-weight: 700;">Katalog Silvex ➔</span>
+        </div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;">Produk Silvex AI</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted);">Kelola AI apps (ChatGPT, Claude, Canva, dll), atur logo ikon AI, harga jual & promo.</div>
       </a>
 
       <a href="/admin/orders" class="stat-card" style="text-decoration: none; border-color: rgba(16, 185, 129, 0.3); transition: transform 0.2s;">
@@ -143,7 +170,7 @@
           <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 700;">Atur Margin ➔</span>
         </div>
         <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;">Kurs & Pengaturan Toko</div>
-        <div style="font-size: 0.82rem; color: var(--text-muted);">Sesuaikan kurs USD-IDR dan persentase keuntungan global toko secara otomatis.</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted);">Sesuaikan kurs USD-IDR, saklar provider API, dan keuntungan global toko.</div>
       </a>
     </div>
 
