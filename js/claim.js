@@ -233,11 +233,14 @@ function renderClaimResult(data) {
           </div>
         `;
       } else {
+        const isBinanceOrder = (data.payment_method === 'BINANCE_PAY' || (data.payment_channel && data.payment_channel.toUpperCase().includes('BINANCE')));
+        const payPromptText = isEn
+          ? (isBinanceOrder ? 'Click here to pay via Binance Pay (USDT) now ➔' : 'Click here to complete payment via QRIS now ➔')
+          : (isBinanceOrder ? 'Klik di sini untuk bayar via Binance Pay (USDT) sekarang ➔' : 'Klik di sini untuk bayar QRIS sekarang ➔');
+
         itemsContainer.innerHTML = `
           <div style="background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; color: var(--text-muted); font-size: 0.85rem;">
-            ${isEn
-              ? `This order has not been paid yet. <a href="${paymentPath}?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Click here to complete payment via QRIS now ➔</a>`
-              : `Pesanan ini belum dibayar. <a href="${paymentPath}?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">Klik di sini untuk bayar QRIS sekarang ➔</a>`}
+            ${isEn ? 'This order has not been paid yet.' : 'Pesanan ini belum dibayar.'} <a href="${paymentPath}?inv=${encodeURIComponent(data.invoice_number)}" style="color: var(--primary); font-weight: 700;">${payPromptText}</a>
           </div>
         `;
       }

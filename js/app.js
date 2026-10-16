@@ -137,144 +137,6 @@ function applyFilterAndSearch() {
   renderProducts(filtered);
 }
 
-// Checkout Modal Handling
-function openCheckoutModal(slug) {
-  selectedProduct = allProducts.find(p => p.slug === slug);
-  if (!selectedProduct) return;
-
-  const modal = document.getElementById('checkoutModal');
-  document.getElementById('mProdName').textContent = selectedProduct.name;
-  document.getElementById('mProdType').textContent = selectedProduct.type || 'Digital License';
-  document.getElementById('mProdLogo').src = selectedProduct.logo || 'https://via.placeholder.com/40';
-
-  const qtyInput = document.getElementById('qtyInput');
-  qtyInput.value = 1;
-  qtyInput.max = selectedProduct.stock > 0 ? selectedProduct.stock : 100;
-
-  // Prefill email if previously used
-  const savedEmail = localStorage.getItem('digimest_saved_email') || localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email') || '';
-  const emailInput = document.getElementById('emailInput');
-  if (emailInput && !emailInput.value) {
-    emailInput.value = savedEmail;
-  }
-
-  // Render wholesale tiers if available (only if no custom price or promo override)
-  const tierContainer = document.getElementById('tierPillsContainer');
-  if (tierContainer) {
-    if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
-      tierContainer.innerHTML = selectedProduct.tiers.map(t => {
-        const range = t.maxQty ? `${t.minQty}–${t.maxQty} pcs` : `${t.minQty}+ pcs`;
-        return `<span class="tier-pill">${range}: ${formatIDR(t.priceIDR)}</span>`;
-      }).join(' ');
-    } else {
-      tierContainer.innerHTML = '';
-    }
-  }
-
-  updateCheckoutCalculations();
-  modal.classList.add('open');
-  if (emailInput && !emailInput.value) {
-    setTimeout(() => emailInput.focus(), 150);
-  }
-}
-
-function closeCheckoutModal() {
-  document.getElementById('checkoutModal')?.classList.remove('open');
-  selectedProduct = null;
-}
-
-function updateCheckoutCalculations() {
-  if (!selectedProduct) return;
-
-  const qty = parseInt(document.getElementById('qtyInput').value, 10) || 1;
-  let unitPriceIDR = selectedProduct.priceIDR;
-
-  // Check tiers for quantity (only if not customized or promo override)
-  if (!selectedProduct.isCustomized && !selectedProduct.hasPromo && selectedProduct.tiers && selectedProduct.tiers.length > 0) {
-    for (const t of selectedProduct.tiers) {
-      if (qty >= t.minQty && (t.maxQty === null || qty <= t.maxQty)) {
-        unitPriceIDR = t.priceIDR;
-        break;
-      }
-    }
-  }
-
-  const total = unitPriceIDR * qty;
-
-  document.getElementById('mUnitPrice').textContent = formatIDR(unitPriceIDR);
-  document.getElementById('mQtyDisplay').textContent = `x ${qty}`;
-  document.getElementById('mTotalPrice').textContent = formatIDR(total);
-}
-
-// Process Checkout submission
-async function submitCheckout() {
-  if (!selectedProduct) return;
-
-  const btn = document.getElementById('btnConfirmCheckout');
-  const qty = parseInt(document.getElementById('qtyInput').value, 10) || 1;
-  const email = (document.getElementById('emailInput')?.value || '').trim();
-  const contact = (document.getElementById('contactInput')?.value || '').trim();
-
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    alert('Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!');
-    document.getElementById('emailInput')?.focus();
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerText = 'Menyiapkan QRIS ShopeePay...';
-
-  try {
-    const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
-    const res = await fetch(checkoutUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        product_slug: selectedProduct.slug,
-        quantity: qty,
-        customer_email: email,
-        customer_contact: contact
-      })
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      alert('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan'));
-      btn.disabled = false;
-      btn.innerText = 'Bayar Sekarang via QRIS ➔';
-      return;
-    }
-
-    const order = data.data;
-
-    // SAVE EMAIL & ORDER TO LOCAL STORAGE!
-    localStorage.setItem('digimest_saved_email', email); localStorage.setItem('digihub_saved_email', email);
-    localStorage.setItem('storeku_saved_email', email);
-    const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
-    if (orderHandler) {
-      orderHandler.saveOrder({
-        invoice_number: order.invoice_number,
-        claim_code: order.claim_code,
-        product_name: order.product_name,
-        quantity: order.quantity,
-        total_amount: order.total_amount,
-        payment_status: 'PENDING',
-        expires_at: order.expires_at,
-        created_at: new Date().toISOString()
-      });
-    }
-
-    // REDIRECT TO PAYMENT PAGE
-    const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
-    const paymentPath = isEn ? '/en/payment' : '/payment';
-    window.location.href = `${paymentPath}?inv=${encodeURIComponent(order.invoice_number)}`;
-  } catch (err) {
-    alert('Koneksi terputus: ' + err.message);
-    btn.disabled = false;
-    btn.innerText = 'Bayar Sekarang via QRIS ➔';
-  }
-}
-
 // History Modal Render (Uses unified DigihubOrders)
 function openHistoryModal() {
   const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
@@ -325,17 +187,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  document.getElementById('qtyInput')?.addEventListener('input', updateCheckoutCalculations);
-  document.getElementById('closeCheckoutBtn')?.addEventListener('click', closeCheckoutModal);
-  document.getElementById('btnConfirmCheckout')?.addEventListener('click', submitCheckout);
-
   document.getElementById('openHistoryBtn')?.addEventListener('click', openHistoryModal);
   document.getElementById('closeHistoryBtn')?.addEventListener('click', closeHistoryModal);
 
   // Close modals on clicking overlay outside card
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
-      closeCheckoutModal();
       closeHistoryModal();
     }
   });

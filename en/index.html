@@ -185,67 +185,7 @@
     </div>
   </main>
 
-  <!-- Modal Checkout -->
-  <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 class="modal-title" id="checkoutModalTitle">Confirm Order</h3>
-        <button class="modal-close" id="closeCheckoutBtn">&times;</button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Selected Product</label>
-        <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid var(--border-subtle);">
-          <img id="mProdLogo" src="" alt="" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
-          <div>
-            <div id="mProdName" style="font-weight: 700; color: #fff;"></div>
-            <div id="mProdType" style="font-size: 0.78rem; color: var(--text-muted);"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="qtyInput">Purchase Quantity (Qty)</label>
-        <input type="number" id="qtyInput" class="form-input" min="1" max="100" value="1">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="emailInput">Buyer Email <span style="color:#ef4444;">*</span> (Required for license delivery)</label>
-        <input type="email" id="emailInput" class="form-input" placeholder="e.g. name@gmail.com" required>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">License keys and purchase invoice will be sent automatically to this email.</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="contactInput">Contact WhatsApp / Telegram (Optional)</label>
-        <input type="text" id="contactInput" class="form-input" placeholder="+123456789 or @username">
-      </div>
-
-      <div class="order-summary-box">
-        <div class="summary-row">
-          <span>Unit Price</span>
-          <span id="mUnitPrice">Rp 0</span>
-        </div>
-        <div class="summary-row">
-          <span>Quantity</span>
-          <span id="mQtyDisplay">x 1</span>
-        </div>
-        <div class="summary-row">
-          <span>Payment Method</span>
-          <span style="color: #60a5fa; font-weight: 600;">Instant QRIS</span>
-        </div>
-        <div class="summary-row total">
-          <span>Estimated Total</span>
-          <span id="mTotalPrice" style="color: #10b981;">Rp 0</span>
-        </div>
-      </div>
-
-      <button id="btnConfirmCheckout" class="btn-submit">
-        Pay Now via QRIS ➔
-      </button>
-    </div>
-  </div>
-
-  <!-- Drawer / Modal Order History (LocalStorage) -->
+<!-- Drawer / Modal Order History (LocalStorage) -->
   <div class="modal-overlay" id="historyModal">
     <div class="modal-card" style="max-width: 620px;">
       <div class="modal-header">

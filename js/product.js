@@ -402,9 +402,23 @@ function updateCalculations() {
   const stickyPrice = document.getElementById('mStickyPrice');
   if (stickyPrice) stickyPrice.textContent = formatIDR(unitPrice);
 
-  // Voucher discount calculation
+  // Voucher discount calculation & minimum spend validation
   let finalTotal = subtotal;
   if (appliedVoucher && appliedVoucher.discountIDR > 0) {
+    if (appliedVoucher.minSpendIDR > 0 && subtotal < appliedVoucher.minSpendIDR) {
+      const vCode = appliedVoucher.code;
+      const vMin = appliedVoucher.minSpendIDR;
+      handleCancelVoucher(true);
+      const feedback = document.getElementById('voucherFeedback');
+      if (feedback) {
+        feedback.textContent = `Voucher ${vCode} dibatalkan otomatis: minimal belanja ${formatIDR(vMin)} belum terpenuhi.`;
+        feedback.style.color = '#f87171';
+        feedback.style.display = 'block';
+      }
+      showToast(`Voucher ${vCode} dibatalkan karena kuantitas berkurang.`);
+      return;
+    }
+
     const effectiveDiscount = Math.min(appliedVoucher.discountIDR, Math.max(0, subtotal - 1000));
     finalTotal = Math.max(1000, subtotal - effectiveDiscount);
 
@@ -509,6 +523,13 @@ function selectPaymentMethod(gateway, method, channel) {
   updateCalculations();
 }
 
+function getMaxAvailableQty() {
+  if (currentProduct && currentProduct.stock > 0 && !currentProduct.stockCapped) {
+    return Math.min(currentProduct.stock, 100);
+  }
+  return 100;
+}
+
 function setupEventListeners() {
   setupPaymentSelectorListeners();
   const qtyInput = document.getElementById('detailQtyInput');
@@ -524,17 +545,26 @@ function setupEventListeners() {
   });
 
   btnPlus?.addEventListener('click', () => {
-    if (currentQty < 100) {
+    const maxQty = getMaxAvailableQty();
+    if (currentQty < maxQty) {
       currentQty++;
       qtyInput.value = currentQty;
       updateCalculations();
+    } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
+      showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
   });
 
   qtyInput?.addEventListener('input', () => {
+    const maxQty = getMaxAvailableQty();
     let val = parseInt(qtyInput.value, 10) || 1;
     if (val < 1) val = 1;
-    if (val > 100) val = 100;
+    if (val > maxQty) {
+      val = maxQty;
+      if (currentProduct && currentProduct.stock > 0 && maxQty === currentProduct.stock) {
+        showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+      }
+    }
     currentQty = val;
     qtyInput.value = val;
     updateCalculations();
@@ -555,18 +585,27 @@ function setupEventListeners() {
   });
 
   btnModalPlus?.addEventListener('click', () => {
-    if (currentQty < 100) {
+    const maxQty = getMaxAvailableQty();
+    if (currentQty < maxQty) {
       currentQty++;
       if (qtyInput) qtyInput.value = currentQty;
       if (modalQty) modalQty.value = currentQty;
       updateCalculations();
+    } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
+      showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
   });
 
   modalQty?.addEventListener('input', () => {
+    const maxQty = getMaxAvailableQty();
     let val = parseInt(modalQty.value, 10) || 1;
     if (val < 1) val = 1;
-    if (val > 100) val = 100;
+    if (val > maxQty) {
+      val = maxQty;
+      if (currentProduct && currentProduct.stock > 0 && maxQty === currentProduct.stock) {
+        showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+      }
+    }
     currentQty = val;
     modalQty.value = val;
     if (qtyInput) qtyInput.value = val;
@@ -650,7 +689,8 @@ async function handleApplyVoucher() {
     if (json.success && json.data && json.data.valid) {
       appliedVoucher = {
         code: json.data.code,
-        discountIDR: json.data.discount_idr
+        discountIDR: json.data.discount_idr,
+        minSpendIDR: json.data.min_spend_idr || 0
       };
 
       if (feedback) {
@@ -692,13 +732,13 @@ async function handleApplyVoucher() {
   }
 }
 
-function handleCancelVoucher() {
+function handleCancelVoucher(keepFeedbackMsg = false) {
   appliedVoucher = null;
   const input = document.getElementById('voucherInput');
   if (input) {
     input.disabled = false;
     input.value = '';
-    input.focus();
+    if (!keepFeedbackMsg) input.focus();
   }
   const btnApply = document.getElementById('btnApplyVoucher');
   if (btnApply) {
@@ -708,7 +748,7 @@ function handleCancelVoucher() {
   const btnCancel = document.getElementById('btnCancelVoucher');
   if (btnCancel) btnCancel.style.display = 'none';
   const feedback = document.getElementById('voucherFeedback');
-  if (feedback) feedback.style.display = 'none';
+  if (feedback && !keepFeedbackMsg) feedback.style.display = 'none';
   const statusTag = document.getElementById('voucherStatusTag');
   if (statusTag) statusTag.style.display = 'none';
 
