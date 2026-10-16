@@ -51,8 +51,9 @@ async function initProductPage() {
   fetch(window.digimestApi ? window.digimestApi('/api/config') : '/api/config')
     .then(r => r.json())
     .then(json => {
-      if (json && json.success && json.data && json.data.usd_rate) {
-        appConfig.usd_rate = parseFloat(json.data.usd_rate) || 18000;
+      const rate = (json && json.data && json.data.usd_rate) || (json && json.usd_rate);
+      if (rate) {
+        appConfig.usd_rate = parseFloat(rate) || 18000;
         updateUsdRateDisplays();
         updateCalculations();
       }

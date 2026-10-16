@@ -568,6 +568,7 @@ function renderOrdersTable() {
                 <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli</button>
                 <button class="btn-action-mini" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4);" onclick="markRefundedOrder('${escapeHtml(o.invoice_number)}')">Refund</button>
               ` : ''}
+              <button class="btn-action-mini" style="background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.35);" onclick="deleteOrder('${escapeHtml(o.invoice_number)}')">Hapus</button>
             </div>
           </td>
         </tr>
@@ -613,6 +614,7 @@ function renderOrdersTable() {
               <button class="btn-action-mini" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4);" onclick="forceFulfillOrder('${escapeHtml(o.invoice_number)}')">Beli Paksa</button>
               <button class="btn-action-mini" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4);" onclick="markRefundedOrder('${escapeHtml(o.invoice_number)}')">Refund</button>
             ` : ''}
+            <button class="btn-action-mini" style="background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.35);" onclick="deleteOrder('${escapeHtml(o.invoice_number)}')">Hapus</button>
           </div>
         </td>
       </tr>
@@ -666,10 +668,39 @@ function viewOrderDetail(invoice) {
           </div>
         `).join('')}
       </div>
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end;">
+        <button class="btn-action-mini" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.4); padding: 6px 14px; font-weight: 600;" onclick="deleteOrder('${escapeHtml(order.invoice_number)}')">🗑️ Hapus Pesanan Permanen</button>
+      </div>
     </div>
   `;
 
   modal?.classList.add('open');
+}
+
+async function deleteOrder(invoice) {
+  if (!confirm(`Yakin ingin menghapus pesanan "${invoice}" secara permanen dari database?\n\nTindakan ini tidak dapat dibatalkan.`)) {
+    return;
+  }
+
+  try {
+    const res = await adminFetch(`/api/admin/orders/${encodeURIComponent(invoice)}`, {
+      method: 'DELETE'
+    });
+    if (!res) return;
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || `Pesanan ${invoice} berhasil dihapus! 🗑️`);
+      const modal = document.getElementById('orderDetailModal');
+      if (modal && modal.classList.contains('open')) {
+        modal.classList.remove('open');
+      }
+      await loadOrders();
+    } else {
+      alert('Gagal menghapus pesanan: ' + (json.error || 'Server error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan saat menghapus pesanan: ' + err.message);
+  }
 }
 
 async function retryFulfillment(invoice) {
@@ -833,6 +864,14 @@ function updateSilvexSwitchBadge(isOn) {
 async function saveSettings() {
   const btn = document.getElementById('btnSaveSettings');
   if (!btn) return;
+
+  const usdRateVal = parseFloat(document.getElementById('cfgUsdRate')?.value) || 0;
+  if (usdRateVal < 16000) {
+    alert('Nilai kurs USD/USDT tidak boleh kurang dari Rp 16.000 untuk mencegah kerugian finansial toko!');
+    document.getElementById('cfgUsdRate')?.focus();
+    return;
+  }
+
   btn.disabled = true;
   btn.innerText = 'Menyimpan...';
 
@@ -1835,7 +1874,7 @@ function renderAdminVouchersTable(vouchers) {
             <button class="btn-action-mini" onclick="toggleVoucherStatus(${v.id})" style="font-size: 0.75rem; color: ${v.is_active ? '#fbbf24' : '#10b981'};" title="${v.is_active ? 'Nonaktifkan voucher' : 'Aktifkan voucher'}">
               ${v.is_active ? '⏸ Matikan' : '▶ Aktifkan'}
             </button>
-            <button class="btn-action-mini" onclick="deleteVoucher(${v.id}, '${escapeHtml(v.code)}')" style="font-size: 0.75rem; color: #f87171;" title="Hapus voucher">
+            <button class="btn-action-mini" onclick="deleteVoucher(${v.id})" style="font-size: 0.75rem; color: #f87171;" title="Hapus voucher">
               🗑️ Hapus
             </button>
           </div>
@@ -1974,7 +2013,14 @@ async function toggleVoucherStatus(id) {
 }
 
 async function deleteVoucher(id, code) {
-  if (!confirm(`Yakin ingin menghapus permanen voucher "${code}"?\nVoucher yang sudah dihapus tidak dapat dipulihkan.`)) {
+  let vCode = code;
+  if (!vCode && Array.isArray(allAdminVouchers)) {
+    const found = allAdminVouchers.find(v => v.id === id);
+    if (found) vCode = found.code;
+  }
+  if (!vCode) vCode = `ID #${id}`;
+
+  if (!confirm(`Yakin ingin menghapus permanen voucher "${vCode}"?\nVoucher yang sudah dihapus tidak dapat dipulihkan.`)) {
     return;
   }
 
@@ -2149,15 +2195,21 @@ async function submitDatabaseClean() {
 
   const payload = {
     clean_orders: cleanOrders,
+    orders_mode: ordersScope.toUpperCase(),
     orders_scope: ordersScope,
+    orders_older_days: ordersDays,
     orders_older_than_days: ordersDays,
     clean_delivered_keys: cleanKeys,
+    keys_older_days: keysDays,
     delivered_keys_older_than_days: keysDays,
     clean_login_logs: cleanLogs,
+    logs_mode: logsScope.toUpperCase(),
     login_logs_scope: logsScope,
     clean_vouchers: cleanVouchers,
+    vouchers_mode: vouchersScope.toUpperCase(),
     vouchers_scope: vouchersScope,
     clean_cached_products: cleanCached,
+    run_vacuum: vacuum,
     vacuum: vacuum,
     admin_password: password
   };
@@ -2174,16 +2226,25 @@ async function submitDatabaseClean() {
 
     if (json.success && json.data) {
       const d = json.data;
+      const sizeBefore = d.size_before || d.database_size_before || '-';
+      const sizeAfter = d.size_after || d.database_size_after || '-';
+      const spaceFreed = d.space_freed || '-';
+      const ordersDel = d.orders_deleted ?? 0;
+      const keysDel = d.delivered_keys_cleared ?? d.keys_cleaned ?? 0;
+      const logsDel = d.admin_logs_deleted ?? d.logs_deleted ?? 0;
+      const vouchersDel = d.vouchers_deleted ?? 0;
+      const cacheDel = d.cached_products_deleted ?? d.cached_cleaned ?? 0;
+      const isVacuumed = d.vacuumed || d.vacuum_executed;
       const summaryMsg = `✅ Pembersihan Database Berhasil Dilakukan!\n\n` +
-        `• Ukuran Awal: ${d.size_before}\n` +
-        `• Ukuran Akhir: ${d.size_after}\n` +
-        `• Ruang Dihemat: ${d.space_freed}\n` +
-        `• Pesanan Dihapus: ${d.orders_deleted}\n` +
-        `• Serial Key Dikosongkan: ${d.delivered_keys_cleared}\n` +
-        `• Log Login Dihapus: ${d.admin_logs_deleted}\n` +
-        `• Voucher Dihapus: ${d.vouchers_deleted}\n` +
-        `• Cache Dikosongkan: ${d.cached_products_deleted}\n` +
-        `• SQLite VACUUM: ${d.vacuumed ? 'Selesai' : 'Dilewati'}`;
+        `• Ukuran Awal: ${sizeBefore}\n` +
+        `• Ukuran Akhir: ${sizeAfter}\n` +
+        `• Ruang Dihemat: ${spaceFreed}\n` +
+        `• Pesanan Dihapus: ${ordersDel}\n` +
+        `• Serial Key Dikosongkan: ${keysDel}\n` +
+        `• Log Login Dihapus: ${logsDel}\n` +
+        `• Voucher Dihapus: ${vouchersDel}\n` +
+        `• Cache Dikosongkan: ${cacheDel}\n` +
+        `• SQLite VACUUM: ${isVacuumed ? 'Selesai' : 'Dilewati'}`;
 
       alert(summaryMsg);
       showToast('Database SQLite berhasil dibersihkan! 🧹');
@@ -2355,7 +2416,7 @@ function renderLocalProductsTable() {
         <td style="text-align: right;">
           <div style="display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;">
             <button class="btn-action-mini" onclick="editLocalProduct(${p.id})">Edit</button>
-            <button class="btn-action-mini" style="color: #f87171; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);" onclick="deleteLocalProduct(${p.id}, '${escapeHtml(p.name)}')">Hapus</button>
+            <button class="btn-action-mini" style="color: #f87171; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);" onclick="deleteLocalProduct(${p.id})">Hapus</button>
           </div>
         </td>
       </tr>
@@ -2518,7 +2579,9 @@ async function saveLocalProduct() {
 }
 
 async function deleteLocalProduct(id, name) {
-  if (!confirm(`Yakin ingin menghapus produk mandiri "${name}" secara permanen dari database? Seluruh sisa key untuk produk ini juga akan terhapus.`)) {
+  const prod = allLocalProducts.find(item => item.id === id);
+  const prodName = name || (prod ? prod.name : `ID #${id}`);
+  if (!confirm(`Yakin ingin menghapus produk mandiri "${prodName}" secara permanen dari database? Seluruh sisa key untuk produk ini juga akan terhapus.`)) {
     return;
   }
 
