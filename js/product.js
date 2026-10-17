@@ -302,8 +302,8 @@ function renderProductDetail(p, stats, reviews) {
 
   // Badges
   document.getElementById('dProdCategory').textContent = p.type || 'Digital License';
-  document.getElementById('dProdRegion').textContent = p.region ? `🌐 ${p.region}` : '🌐 Global';
-  document.getElementById('dProdWarranty').textContent = p.warranty ? `🛡️ ${p.warranty}` : (isEn ? '🛡️ Store Warranty' : '🛡️ Garansi Toko');
+  document.getElementById('dProdRegion').textContent = p.region ? p.region : 'Global';
+  document.getElementById('dProdWarranty').textContent = p.warranty ? p.warranty : (isEn ? 'Store Warranty' : 'Garansi Toko');
 
   const isOut = p.stock <= 0 || !!p.isForceOutOfStock;
   const stockText = isOut
@@ -412,6 +412,13 @@ function updateCalculations() {
   const stickyPrice = document.getElementById('mStickyPrice');
   if (stickyPrice) stickyPrice.textContent = formatIDR(unitPrice);
 
+  // Modal checkout updates
+  const isCrypto = (selectedPaymentMethod === 'BINANCE_PAY' || selectedPaymentMethod === 'CRYPTO');
+  const usdRate = appConfig.usd_rate > 0 ? appConfig.usd_rate : 18000;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+  const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+  const isPureUSD = isCrypto || (activeCur === 'USD' && selectedPaymentGateway !== 'PAYMENTG');
+
   // Voucher discount calculation & minimum spend validation
   let finalTotal = subtotal;
   if (appliedVoucher && appliedVoucher.discountIDR > 0) {
@@ -437,25 +444,27 @@ function updateCalculations() {
     const vTag = document.getElementById('mVoucherCodeTag');
     if (vTag) vTag.textContent = appliedVoucher.code;
     const vAmount = document.getElementById('mVoucherDiscountAmount');
-    if (vAmount) vAmount.textContent = `-${formatIDR(effectiveDiscount)}`;
+    if (vAmount) {
+      if (isPureUSD) {
+        const discUSD = (effectiveDiscount / usdRate).toFixed(2);
+        vAmount.textContent = `-$${discUSD} USDT`;
+      } else {
+        vAmount.textContent = `-${formatIDR(effectiveDiscount)}`;
+      }
+    }
   } else {
     const vRow = document.getElementById('mVoucherRow');
     if (vRow) vRow.style.display = 'none';
   }
 
-  // Modal checkout updates
-  const isCrypto = (selectedPaymentMethod === 'BINANCE_PAY' || selectedPaymentMethod === 'CRYPTO');
-  const usdRate = appConfig.usd_rate > 0 ? appConfig.usd_rate : 18000;
-  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
-
-  if (isCrypto) {
+  // Pure USD vs IDR pricing formatting (No IDR leakage for international/crypto buyers)
+  if (isPureUSD) {
     const usdAmount = (finalTotal / usdRate).toFixed(2);
     const unitUsd = (unitPrice / usdRate).toFixed(2);
     document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT`;
     document.getElementById('mTotalPrice').textContent = `$${usdAmount} USDT`;
   } else {
-    const cur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
-    if (cur === 'USD') {
+    if (activeCur === 'USD') {
       const usdAmount = (finalTotal / usdRate).toFixed(2);
       const unitUsd = (unitPrice / usdRate).toFixed(2);
       document.getElementById('mUnitPrice').textContent = `$${unitUsd} (~Rp ${Number(unitPrice).toLocaleString('id-ID')})`;
@@ -467,14 +476,19 @@ function updateCalculations() {
   }
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
 
+  const rateRow = document.getElementById('mSummaryUsdRateRow');
+  if (rateRow) {
+    rateRow.style.display = (activeCur === 'USD' && selectedPaymentGateway === 'PAYMENTG') ? 'flex' : 'none';
+  }
+
   const btn = document.getElementById('btnConfirmCheckout');
   if (btn && !btn.disabled) {
     if (selectedPaymentMethod === 'BINANCE_PAY') {
-      btn.textContent = isEn ? 'Pay Now via Binance Pay ➔' : 'Bayar Sekarang via Binance Pay ➔';
+      btn.textContent = isEn ? 'Pay Now via Binance Pay' : 'Bayar Sekarang via Binance Pay';
     } else if (selectedPaymentMethod === 'CRYPTO' || selectedPaymentGateway === 'USDT_BEP20') {
-      btn.textContent = isEn ? 'Pay Now via USDT (BEP-20) ➔' : 'Bayar Sekarang via USDT (BEP-20) ➔';
+      btn.textContent = isEn ? 'Pay Now via USDT (BEP-20)' : 'Bayar Sekarang via USDT (BEP-20)';
     } else {
-      btn.textContent = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
+      btn.textContent = isEn ? 'Pay Now via QRIS' : 'Bayar Sekarang via QRIS';
     }
   }
 
@@ -503,24 +517,45 @@ function closeQrisRegionNoticeModal() {
   document.getElementById('qrisRegionNoticeModal')?.classList.remove('open');
 }
 
-function triggerPriceRecalcAnimation() {
+let recalcTimer = null;
+function triggerPriceRecalcAnimation(callback) {
   const summaryBox = document.getElementById('orderSummaryBox');
   const totalPrice = document.getElementById('mTotalPrice');
+  const vAmount = document.getElementById('mVoucherDiscountAmount');
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
+  if (recalcTimer) clearTimeout(recalcTimer);
+
   if (totalPrice) {
-    totalPrice.innerHTML = `<span class="price-shimmer-loading">${isEn ? '⚡ Calculating quote...' : '⚡ Menghitung kurs...'}</span>`;
+    totalPrice.innerHTML = `<span class="price-calc-spinner"><svg class="spin-svg" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10" stroke-opacity="0.2"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg> <span>${isEn ? 'Calculating...' : 'Menghitung...'}</span></span>`;
+  }
+  if (vAmount && appliedVoucher) {
+    vAmount.innerHTML = `<span class="calc-pulse-dots">•••</span>`;
   }
   if (summaryBox) {
-    summaryBox.classList.remove('price-recalc-pulse');
-    void summaryBox.offsetWidth; // Force DOM reflow to re-trigger CSS keyframe
-    summaryBox.classList.add('price-recalc-pulse');
+    summaryBox.classList.remove('quote-calculating');
+    void summaryBox.offsetWidth;
+    summaryBox.classList.add('quote-calculating');
   }
 
-  setTimeout(() => {
-    updateCalculations();
-    if (summaryBox) summaryBox.classList.remove('price-recalc-pulse');
-  }, 260);
+  recalcTimer = setTimeout(() => {
+    if (typeof callback === 'function') {
+      callback();
+    } else {
+      updateCalculations();
+    }
+    if (summaryBox) summaryBox.classList.remove('quote-calculating');
+    if (totalPrice) {
+      totalPrice.classList.remove('price-pop-in');
+      void totalPrice.offsetWidth;
+      totalPrice.classList.add('price-pop-in');
+    }
+    if (vAmount && appliedVoucher) {
+      vAmount.classList.remove('price-pop-in');
+      void vAmount.offsetWidth;
+      vAmount.classList.add('price-pop-in');
+    }
+  }, 220);
 }
 
 function setupPaymentSelectorListeners() {
@@ -638,10 +673,10 @@ function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
       badge.style.color = '#fbbf24';
     }
     if (sumMethod) {
-      sumMethod.textContent = '⚡ Binance Pay (USDT)';
+      sumMethod.textContent = 'Binance Pay (USDT)';
       sumMethod.style.color = '#fbbf24';
     }
-    if (rateRow) rateRow.style.display = 'flex';
+    if (rateRow) rateRow.style.display = 'none';
   } else if (gateway === 'USDT_BEP20' || method === 'CRYPTO') {
     if (activeLogo) {
       activeLogo.src = '/logo/usdt.png';
@@ -659,10 +694,10 @@ function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
       badge.style.color = '#f0b90b';
     }
     if (sumMethod) {
-      sumMethod.textContent = '🟡 USDT BEP-20 (BSC)';
+      sumMethod.textContent = 'USDT BEP-20 (BSC)';
       sumMethod.style.color = '#f0b90b';
     }
-    if (rateRow) rateRow.style.display = 'flex';
+    if (rateRow) rateRow.style.display = 'none';
   } else {
     // Default: QRIS
     if (activeLogo) {
@@ -756,7 +791,7 @@ function setupEventListeners() {
       currentQty--;
       if (qtyInput) qtyInput.value = currentQty;
       if (modalQty) modalQty.value = currentQty;
-      updateCalculations();
+      triggerPriceRecalcAnimation();
     }
   });
 
@@ -766,7 +801,7 @@ function setupEventListeners() {
       currentQty++;
       if (qtyInput) qtyInput.value = currentQty;
       if (modalQty) modalQty.value = currentQty;
-      updateCalculations();
+      triggerPriceRecalcAnimation();
     } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
       showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
@@ -785,7 +820,7 @@ function setupEventListeners() {
     currentQty = val;
     modalQty.value = val;
     if (qtyInput) qtyInput.value = val;
-    updateCalculations();
+    triggerPriceRecalcAnimation();
   });
 
   // Voucher handlers
@@ -853,11 +888,10 @@ function setupEventListeners() {
   window.addEventListener('currencychange', (e) => {
     const newCur = e.detail?.currency;
     if (newCur === 'USD') {
-      selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
+      selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', true);
     } else {
-      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
+      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
     }
-    updateCalculations();
   });
 }
 
@@ -918,8 +952,8 @@ async function handleApplyVoucher() {
         statusTag.style.display = 'inline';
       }
 
-      updateCalculations();
-      showToast(`Voucher ${json.data.code} berhasil diterapkan! ✨`);
+      triggerPriceRecalcAnimation();
+      showToast(`Voucher ${json.data.code} berhasil diterapkan!`);
     } else {
       appliedVoucher = null;
       if (feedback) {
@@ -927,7 +961,7 @@ async function handleApplyVoucher() {
         feedback.style.color = '#f87171';
         feedback.style.display = 'block';
       }
-      updateCalculations();
+      triggerPriceRecalcAnimation();
     }
   } catch (err) {
     if (feedback) {
@@ -961,7 +995,7 @@ function handleCancelVoucher(keepFeedbackMsg = false) {
   const statusTag = document.getElementById('voucherStatusTag');
   if (statusTag) statusTag.style.display = 'none';
 
-  updateCalculations();
+  triggerPriceRecalcAnimation();
 }
 
 function openCheckoutModal() {

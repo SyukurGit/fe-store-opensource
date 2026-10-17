@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.10">
-  <script src="/js/api-config.js?v=5.9.10"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.11">
+  <script src="/js/api-config.js?v=5.9.11"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -379,13 +379,14 @@
       <span id="mStickyPrice" class="mobile-sticky-price">Rp 0</span>
     </div>
     <button id="btnStickyBuy" class="btn-submit mobile-sticky-btn">
-      Beli Sekarang ➔
+      Beli Sekarang
     </button>
   </div>
 
   <!-- Modal Konfirmasi Checkout & Pembayaran -->
   <div class="modal-overlay" id="checkoutModal">
     <div class="modal-card checkout-modal-card">
+      <div class="modal-sheet-handle"></div>
       <div class="modal-header">
         <h3 class="modal-title">Konfirmasi & Detail Pembelian</h3>
         <button class="modal-close" id="closeCheckoutBtn">&times;</button>
@@ -397,35 +398,29 @@
         <!-- Left Column: Product, Quantity, Single Active Gateway, Voucher -->
         <div class="checkout-col checkout-col-left">
           
-          <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label">Produk Terpilih</label>
-            <div class="modal-product-summary">
-              <img id="mProdLogo" src="" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover;">
-              <div style="flex: 1; min-width: 0;">
-                <div id="mProdName" style="font-weight: 700; color: #fff; font-size: 0.95rem; line-height: 1.3;"></div>
-                <div id="mProdType" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;"></div>
+          <!-- Integrated Product & Quantity Card -->
+          <div class="modal-product-card">
+            <div class="modal-product-row">
+              <img id="mProdLogo" src="" alt="" class="modal-prod-img">
+              <div class="modal-prod-details">
+                <div id="mProdName" class="modal-prod-name"></div>
+                <div class="modal-prod-sub-row">
+                  <span id="mProdType" class="modal-prod-badge"></span>
+                  <span id="mModalStockNote" class="modal-prod-stock">Stok Tersedia</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Quantity Stepper in Checkout Modal -->
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Jumlah Lisensi</span>
-              <span id="mModalStockNote" style="color: #60a5fa; font-weight: 600; font-size: 0.8rem;">Stok Tersedia</span>
-            </label>
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border-subtle);">
-              <span style="font-size: 0.84rem; color: #94a3b8;">Atur Jumlah:</span>
-              <div class="qty-stepper">
-                <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn">−</button>
-                <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1">
-                <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn">+</button>
+              <div class="modal-prod-stepper-wrap">
+                <div class="qty-stepper compact-stepper">
+                  <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn">−</button>
+                  <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1">
+                  <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn">+</button>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Single Active Payment Gateway Card with Change Button -->
-          <div class="form-group" style="margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span>Metode Pembayaran</span>
               <span id="mCurrencyBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">IDR (Rupiah)</span>
@@ -445,15 +440,13 @@
           </div>
 
           <!-- Voucher Promo Code Box -->
-          <div class="voucher-input-card" style="margin-bottom: 0.5rem; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-subtle); border-radius: 12px; padding: 12px;">
-            <label class="form-label" for="voucherInput" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span>🎟️ Punya Kode Voucher?</span>
-              <span id="voucherStatusTag" style="font-size: 0.72rem; color: #10b981; font-weight: 600; display: none;"></span>
-            </label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="voucherInput" class="form-input" placeholder="Ketik kode voucher" style="text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.05em; min-height: 40px;" autocomplete="off">
-              <button type="button" id="btnApplyVoucher" class="btn-nav" style="white-space: nowrap; padding: 0 14px; font-weight: 600; border-color: rgba(99, 102, 241, 0.4); color: #818cf8; cursor: pointer; min-height: 40px;">Terapkan</button>
-              <button type="button" id="btnCancelVoucher" class="btn-nav" style="display: none; padding: 0 12px; color: #f87171; border-color: rgba(239, 68, 68, 0.3); cursor: pointer; min-height: 40px;" title="Hapus voucher">✕</button>
+          <div class="voucher-input-card">
+            <div class="voucher-input-row">
+              <div style="position: relative; flex: 1;">
+                <input type="text" id="voucherInput" class="form-input" placeholder="KODE VOUCHER (OPSIONAL)" style="text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.05em; min-height: 38px; font-size: 0.82rem; padding: 6px 12px;" autocomplete="off">
+              </div>
+              <button type="button" id="btnApplyVoucher" class="btn-nav" style="white-space: nowrap; padding: 0 14px; font-weight: 600; border-color: rgba(99, 102, 241, 0.4); color: #818cf8; cursor: pointer; min-height: 38px; font-size: 0.82rem;">Terapkan</button>
+              <button type="button" id="btnCancelVoucher" class="btn-nav" style="display: none; padding: 0 10px; color: #f87171; border-color: rgba(239, 68, 68, 0.3); cursor: pointer; min-height: 38px;" title="Hapus voucher">✕</button>
             </div>
             <div id="voucherFeedback" style="font-size: 0.75rem; margin-top: 6px; display: none;"></div>
           </div>
@@ -463,18 +456,18 @@
         <!-- Right Column: Buyer Details, Financial Summary & Submit Button -->
         <div class="checkout-col checkout-col-right">
 
-          <div class="form-group" style="margin-bottom: 0.85rem;">
+          <div class="form-group" style="margin-bottom: 0.75rem;">
             <label class="form-label" for="emailInput">Email Pembeli <span style="color:#ef4444;">*</span> (Wajib untuk Lisensi)</label>
             <input type="email" id="emailInput" class="form-input" placeholder="contoh: nama@gmail.com" required style="min-height: 40px;">
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">Kode klaim otomatis dikirim ke email ini via <strong>syukurapi.online</strong>.</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Lisensi dikirim otomatis ke email ini segera setelah pembayaran diverifikasi.</div>
           </div>
 
-          <div class="form-group" style="margin-bottom: 0.85rem;">
+          <div class="form-group" style="margin-bottom: 0.75rem;">
             <label class="form-label" for="contactInput">WhatsApp / Telegram (Opsional)</label>
             <input type="text" id="contactInput" class="form-input" placeholder="08xxxxxxxxxx atau @username" style="min-height: 40px;">
           </div>
 
-          <div class="order-summary-box" id="orderSummaryBox" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+          <div class="order-summary-box" id="orderSummaryBox" style="margin-top: 0.5rem; margin-bottom: 0.85rem;">
             <div class="summary-row">
               <span>Harga Satuan</span>
               <span id="mUnitPrice">Rp 0</span>
@@ -502,13 +495,22 @@
           </div>
 
           <button id="btnConfirmCheckout" class="btn-submit" style="margin-top: 0.25rem;">
-            Bayar Sekarang via QRIS ➔
+            Bayar Sekarang via QRIS
           </button>
 
           <div class="checkout-trust-row">
-            <span>🔒 Enkripsi 256-Bit</span>
-            <span>⚡ Lisensi Otomatis</span>
-            <span>🛡️ Garansi Resmi</span>
+            <span class="trust-item">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Enkripsi 256-Bit</span>
+            </span>
+            <span class="trust-item">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Lisensi Otomatis</span>
+            </span>
+            <span class="trust-item">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Garansi Resmi</span>
+            </span>
           </div>
 
         </div>
@@ -578,8 +580,10 @@
   <div id="qrisRegionNoticeModal" class="modal-overlay" style="z-index: 2200;">
     <div class="modal-card region-notice-card" style="position: relative;">
       <button type="button" class="modal-close" id="closeQrisNoticeBtn" style="position: absolute; top: 12px; right: 14px;" title="Tutup">&times;</button>
-      <div class="region-notice-icon">🇮🇩 ⚠️</div>
-      <h3 class="region-notice-title" id="qrisNoticeTitle">Perhatian Pembayaran QRIS</h3>
+      <div class="region-notice-icon-wrap" style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
+        <svg viewBox="0 0 24 24" width="34" height="34" stroke="#fbbf24" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h3 class="region-notice-title" id="qrisNoticeTitle">Pembayaran QRIS Khusus Region Indonesia</h3>
       <div class="region-notice-body" id="qrisNoticeBody">
         Metode <strong>QRIS</strong> hanya dapat diproses menggunakan <strong>Rekening Bank Indonesia atau E-Wallet Indonesia</strong> (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay).<br><br>
         Total transaksi Anda akan dikonversi ke Rupiah sesuai kurs toko: <strong>1 USD = Rp <span id="qrisNoticeRate">18.000</span></strong>.<br><br>
@@ -651,7 +655,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.10"></script>
-  <script src="/js/product.js?v=5.9.10"></script>
+  <script src="/js/order-history.js?v=5.9.11"></script>
+  <script src="/js/product.js?v=5.9.11"></script>
 </body>
 </html>
