@@ -102,32 +102,6 @@ window.digimestClientCountry = sessionStorage.getItem('digimest_client_country')
   }
 })();
 
-// Fetch latest dynamic /api/config (usd_rate & country) in background
-(function fetchAppConfigAsync() {
-  if (typeof window === 'undefined') return;
-  const sim = (new URLSearchParams(window.location.search)).get('simulate_country');
-  const queryStr = sim ? `?simulate_country=${encodeURIComponent(sim)}` : '';
-  const url = (window.digimestApi ? window.digimestApi('/api/config') : '/api/config') + queryStr;
-
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data && (data.success || data.data)) {
-        const d = data.data || data;
-        if (d.usd_rate) {
-          window.digimestUSDRate = parseFloat(d.usd_rate);
-          try { sessionStorage.setItem('digimest_usd_rate', d.usd_rate); } catch (e) {}
-        }
-        if (d.client_country) {
-          window.digimestClientCountry = d.client_country;
-          try { sessionStorage.setItem('digimest_client_country', d.client_country); } catch (e) {}
-        }
-        window.dispatchEvent(new CustomEvent('appconfigloaded', { detail: d }));
-      }
-    })
-    .catch(() => {});
-})();
-
 (function() {
   const host = window.location.hostname;
   const isLocalDev = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' ||
@@ -162,8 +136,34 @@ window.digimestApi = function(endpoint) {
   return base ? base + path : path;
 };
 
+// Fetch latest dynamic /api/config (usd_rate & country) in background
+(function fetchAppConfigAsync() {
+  if (typeof window === 'undefined') return;
+  const sim = (new URLSearchParams(window.location.search)).get('simulate_country');
+  const queryStr = sim ? `?simulate_country=${encodeURIComponent(sim)}` : '';
+  const url = (window.digimestApi ? window.digimestApi('/api/config') : '/api/config') + queryStr;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data && (data.success || data.data)) {
+        const d = data.data || data;
+        if (d.usd_rate) {
+          window.digimestUSDRate = parseFloat(d.usd_rate);
+          try { sessionStorage.setItem('digimest_usd_rate', d.usd_rate); } catch (e) {}
+        }
+        if (d.client_country) {
+          window.digimestClientCountry = d.client_country;
+          try { sessionStorage.setItem('digimest_client_country', d.client_country); } catch (e) {}
+        }
+        window.dispatchEvent(new CustomEvent('appconfigloaded', { detail: d }));
+      }
+    })
+    .catch(() => {});
+})();
+
 // Current App Build Version
-window.STOREKU_BUILD_VERSION = '5.9.6';
+window.STOREKU_BUILD_VERSION = '5.9.7';
 
 // Background Auto-Reload Checker when user returns to tab
 (function initVersionWatcher() {

@@ -213,7 +213,6 @@ function renderReviewsSection(stats, reviews) {
 
   // Reviews List
   const listWrap = document.getElementById('reviewsListWrap');
-  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
   if (listWrap) {
     if (!reviews || reviews.length === 0) {
