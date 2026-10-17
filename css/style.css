@@ -3349,11 +3349,11 @@ body.has-sticky-bar .floating-telegram-btn,
    ========================================================================== */
 .payment-gateway-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .payment-gateway-grid {
     grid-template-columns: 1fr;
   }
@@ -3389,6 +3389,12 @@ body.has-sticky-bar .floating-telegram-btn,
   box-shadow: 0 0 14px rgba(243, 186, 47, 0.2);
 }
 
+.payment-method-card#optPayBep20.active {
+  background: rgba(240, 185, 11, 0.08);
+  border-color: #f0b90b;
+  box-shadow: 0 0 14px rgba(240, 185, 11, 0.2);
+}
+
 .payment-card-indicator {
   display: flex;
   align-items: center;
@@ -3413,6 +3419,10 @@ body.has-sticky-bar .floating-telegram-btn,
   border-color: #F3BA2F;
 }
 
+.payment-method-card#optPayBep20.active .payment-card-radio {
+  border-color: #f0b90b;
+}
+
 .payment-method-card.active .payment-card-radio::after {
   content: '';
   position: absolute;
@@ -3426,6 +3436,28 @@ body.has-sticky-bar .floating-telegram-btn,
 
 .payment-method-card#optPayBinance.active .payment-card-radio::after {
   background: #F3BA2F;
+}
+
+.payment-method-card#optPayBep20.active .payment-card-radio::after {
+  background: #f0b90b;
+}
+
+.logo-bep20-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(240, 185, 11, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(240, 185, 11, 0.25);
+  flex-shrink: 0;
+}
+
+.logo-bep20-wrap .payment-card-logo-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .payment-card-body {

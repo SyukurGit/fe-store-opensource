@@ -435,11 +435,11 @@ function updateCalculations() {
   }
 
   // Modal checkout updates
-  const isBinance = (selectedPaymentMethod === 'BINANCE_PAY');
+  const isCrypto = (selectedPaymentMethod === 'BINANCE_PAY' || selectedPaymentMethod === 'CRYPTO');
   const usdRate = appConfig.usd_rate > 0 ? appConfig.usd_rate : 18000;
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
-  if (isBinance) {
+  if (isCrypto) {
     const usdAmount = (finalTotal / usdRate).toFixed(2);
     const unitUsd = (unitPrice / usdRate).toFixed(2);
     document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT (${formatIDR(unitPrice)})`;
@@ -452,8 +452,10 @@ function updateCalculations() {
 
   const btn = document.getElementById('btnConfirmCheckout');
   if (btn && !btn.disabled) {
-    if (isBinance) {
+    if (selectedPaymentMethod === 'BINANCE_PAY') {
       btn.textContent = isEn ? 'Pay Now via Binance Pay ➔' : 'Bayar Sekarang via Binance Pay ➔';
+    } else if (selectedPaymentMethod === 'CRYPTO' || selectedPaymentGateway === 'USDT_BEP20') {
+      btn.textContent = isEn ? 'Pay Now via USDT (BEP-20) ➔' : 'Bayar Sekarang via USDT (BEP-20) ➔';
     } else {
       btn.textContent = isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔';
     }
@@ -468,6 +470,7 @@ function updateCalculations() {
 function setupPaymentSelectorListeners() {
   const optQRIS = document.getElementById('optPayQRIS');
   const optBinance = document.getElementById('optPayBinance');
+  const optBep20 = document.getElementById('optPayBep20');
 
   optQRIS?.addEventListener('click', () => {
     selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY');
@@ -475,6 +478,10 @@ function setupPaymentSelectorListeners() {
 
   optBinance?.addEventListener('click', () => {
     selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT');
+  });
+
+  optBep20?.addEventListener('click', () => {
+    selectPaymentMethod('USDT_BEP20', 'CRYPTO', 'BEP20');
   });
 }
 
@@ -485,39 +492,52 @@ function selectPaymentMethod(gateway, method, channel) {
 
   const optQRIS = document.getElementById('optPayQRIS');
   const optBinance = document.getElementById('optPayBinance');
+  const optBep20 = document.getElementById('optPayBep20');
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
+  optQRIS?.classList.remove('active');
+  optBinance?.classList.remove('active');
+  optBep20?.classList.remove('active');
+
+  const badge = document.getElementById('mCurrencyBadge');
+  const sumMethod = document.getElementById('mSummaryPaymentMethod');
+  const rateRow = document.getElementById('mSummaryUsdRateRow');
 
   if (method === 'BINANCE_PAY') {
     optBinance?.classList.add('active');
-    optQRIS?.classList.remove('active');
-    const badge = document.getElementById('mCurrencyBadge');
     if (badge) {
       badge.textContent = 'USD / USDT';
       badge.style.background = 'rgba(245, 158, 11, 0.15)';
       badge.style.color = '#fbbf24';
     }
-    const sumMethod = document.getElementById('mSummaryPaymentMethod');
     if (sumMethod) {
       sumMethod.textContent = '⚡ Binance Pay (USDT)';
       sumMethod.style.color = '#fbbf24';
     }
-    const rateRow = document.getElementById('mSummaryUsdRateRow');
+    if (rateRow) rateRow.style.display = 'flex';
+  } else if (method === 'CRYPTO' || gateway === 'USDT_BEP20') {
+    optBep20?.classList.add('active');
+    if (badge) {
+      badge.textContent = 'USDT (BEP-20)';
+      badge.style.background = 'rgba(240, 185, 11, 0.15)';
+      badge.style.color = '#f0b90b';
+    }
+    if (sumMethod) {
+      sumMethod.textContent = '🟡 USDT BEP-20 (BSC)';
+      sumMethod.style.color = '#f0b90b';
+    }
     if (rateRow) rateRow.style.display = 'flex';
   } else {
     optQRIS?.classList.add('active');
-    optBinance?.classList.remove('active');
-    const badge = document.getElementById('mCurrencyBadge');
     if (badge) {
       badge.textContent = 'IDR (Rupiah)';
       badge.style.background = 'rgba(16, 185, 129, 0.15)';
       badge.style.color = '#10b981';
     }
-    const sumMethod = document.getElementById('mSummaryPaymentMethod');
     if (sumMethod) {
       sumMethod.textContent = isEn ? 'Instant QRIS (Multi-Bank)' : 'QRIS Instant Multi-Bank';
       sumMethod.style.color = '#60a5fa';
     }
-    const rateRow = document.getElementById('mSummaryUsdRateRow');
     if (rateRow) rateRow.style.display = 'none';
   }
 

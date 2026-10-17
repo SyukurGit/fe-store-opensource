@@ -169,11 +169,38 @@ async function checkStatus() {
 
 function renderPendingView(order) {
   const isBinance = (order.payment_method === 'BINANCE_PAY' || order.payment_gateway === 'BINANCE');
+  const isBEP20 = (order.payment_gateway === 'USDT_BEP20' || order.payment_channel === 'BEP20' || order.payment_gateway === 'PAYMENTG_BEP20' || (order.payment_method === 'CRYPTO' && !isBinance));
   const qrisBox = document.getElementById('qrisPendingContainer');
   const binanceBox = document.getElementById('binancePendingContainer');
+  const bep20Box = document.getElementById('bep20PendingContainer');
 
-  if (isBinance) {
+  if (isBEP20) {
     if (qrisBox) qrisBox.style.display = 'none';
+    if (binanceBox) binanceBox.style.display = 'none';
+    if (bep20Box) bep20Box.style.display = 'block';
+
+    if (order.qr_url) {
+      const qrImg = document.getElementById('bep20QrCode');
+      if (qrImg && qrImg.src !== order.qr_url) {
+        qrImg.src = order.qr_url;
+      }
+    }
+
+    const bepAmount = document.getElementById('bep20AmountDisplay');
+    if (bepAmount && order.crypto_amount_str) {
+      bepAmount.textContent = order.crypto_amount_str;
+    }
+    const bepCexAmount = document.getElementById('bep20CexAmount');
+    if (bepCexAmount && order.crypto_amount_str) {
+      bepCexAmount.textContent = order.crypto_amount_str;
+    }
+    const bepWallet = document.getElementById('bep20WalletDisplay');
+    if (bepWallet && order.wallet_address) {
+      bepWallet.textContent = order.wallet_address;
+    }
+  } else if (isBinance) {
+    if (qrisBox) qrisBox.style.display = 'none';
+    if (bep20Box) bep20Box.style.display = 'none';
     if (binanceBox) binanceBox.style.display = 'block';
 
     if (order.qr_url) {
@@ -201,6 +228,7 @@ function renderPendingView(order) {
     }
   } else {
     if (binanceBox) binanceBox.style.display = 'none';
+    if (bep20Box) bep20Box.style.display = 'none';
     if (qrisBox) qrisBox.style.display = 'block';
 
     const amtText = document.getElementById('totalAmountText');
@@ -357,6 +385,24 @@ function showSuccessView(order) {
         <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">${isEn ? 'Copy' : 'Salin'}</button>
       </div>
     `).join('');
+  }
+
+  const existingTx = document.getElementById('successTxHashRow');
+  if (existingTx) existingTx.remove();
+  if (order.tx_hash) {
+    const txRow = document.createElement('div');
+    txRow.id = 'successTxHashRow';
+    txRow.style.cssText = 'background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 1rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; text-align: left;';
+    txRow.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span>🟡</span>
+        <span style="color: #94a3b8;">${isEn ? 'Blockchain Tx Hash (BSC):' : 'Hash Transaksi Blockchain (BSC):'}</span>
+      </div>
+      <a href="https://bscscan.com/tx/${encodeURIComponent(order.tx_hash)}" target="_blank" rel="noopener noreferrer" style="color: #f0b90b; font-family: var(--font-mono); font-weight: 700; text-decoration: underline; font-size: 0.78rem;" title="${escapeHtml(order.tx_hash)}">
+        ${escapeHtml(order.tx_hash.slice(0, 10))}...${escapeHtml(order.tx_hash.slice(-8))} ↗
+      </a>
+    `;
+    itemsContainer.parentNode.appendChild(txRow);
   }
 
   showToast(isEn ? 'Payment Successful! 🎉' : 'Pembayaran Berhasil! 🎉');
@@ -519,6 +565,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btnCopyPayId')?.addEventListener('click', () => {
     const el = document.getElementById('binancePayIdDisplay');
+    if (el) copyText(el.textContent.trim());
+  });
+
+  // Copy buttons for USDT BEP-20
+  document.getElementById('btnCopyBep20Amount')?.addEventListener('click', () => {
+    const el = document.getElementById('bep20AmountDisplay');
+    if (el) copyText(el.textContent.trim());
+  });
+  document.getElementById('btnCopyBep20Wallet')?.addEventListener('click', () => {
+    const el = document.getElementById('bep20WalletDisplay');
     if (el) copyText(el.textContent.trim());
   });
 
