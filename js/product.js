@@ -12,12 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
 });
 
-function formatIDR(num) {
+function formatCurrency(amountIDR, amountUSD = 0) {
+  if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
+    return window.DigimestCurrency.format(amountIDR, amountUSD);
+  }
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0
-  }).format(num);
+  }).format(amountIDR || 0);
+}
+
+function formatIDR(num) {
+  return formatCurrency(num, 0);
 }
 
 function escapeHtml(str) {
@@ -442,11 +449,19 @@ function updateCalculations() {
   if (isCrypto) {
     const usdAmount = (finalTotal / usdRate).toFixed(2);
     const unitUsd = (unitPrice / usdRate).toFixed(2);
-    document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT (${formatIDR(unitPrice)})`;
+    document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT`;
     document.getElementById('mTotalPrice').textContent = `$${usdAmount} USDT`;
   } else {
-    document.getElementById('mUnitPrice').textContent = formatIDR(unitPrice);
-    document.getElementById('mTotalPrice').textContent = formatIDR(finalTotal);
+    const cur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+    if (cur === 'USD') {
+      const usdAmount = (finalTotal / usdRate).toFixed(2);
+      const unitUsd = (unitPrice / usdRate).toFixed(2);
+      document.getElementById('mUnitPrice').textContent = `$${unitUsd} (~Rp ${Number(unitPrice).toLocaleString('id-ID')})`;
+      document.getElementById('mTotalPrice').textContent = `Rp ${Number(finalTotal).toLocaleString('id-ID')} (~$${usdAmount})`;
+    } else {
+      document.getElementById('mUnitPrice').textContent = 'Rp ' + Number(unitPrice).toLocaleString('id-ID');
+      document.getElementById('mTotalPrice').textContent = 'Rp ' + Number(finalTotal).toLocaleString('id-ID');
+    }
   }
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
 
@@ -910,3 +925,22 @@ function openHistoryModal() {
 function closeHistoryModal() {
   document.getElementById('historyModal')?.classList.remove('open');
 }
+
+// Reactive Currency Switcher Listener for Product Detail
+window.addEventListener('currencychange', () => {
+  if (currentProduct) {
+    const promoStrikeWrap = document.getElementById('dPromoStrikeWrap');
+    const stickyStrikeWrap = document.getElementById('mStickyStrikeWrap');
+    if (currentProduct.hasPromo) {
+      if (promoStrikeWrap) {
+        const dStrike = document.getElementById('dStrikedPrice');
+        if (dStrike) dStrike.textContent = formatCurrency(currentProduct.referencePriceIDR, currentProduct.referencePriceUSD);
+      }
+      if (stickyStrikeWrap) {
+        const mStrike = document.getElementById('mStickyStrikedPrice');
+        if (mStrike) mStrike.textContent = formatCurrency(currentProduct.referencePriceIDR, currentProduct.referencePriceUSD);
+      }
+    }
+    updateCalculations();
+  }
+});

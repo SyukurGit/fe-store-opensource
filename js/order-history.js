@@ -7,6 +7,9 @@ const DigimestOrders = (() => {
 
   // Format currency helper
   function formatIDR(num) {
+    if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
+      return window.DigimestCurrency.format(num);
+    }
     return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
   }
 
@@ -580,7 +583,92 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {}
 })();
 
-// Mobile Navigation Drawer & Language Switcher Manager
+// ==============================================================
+// DIGIMEST CURRENCY MANAGER (USD & IDR SMART SWITCHER)
+// ==============================================================
+window.DigimestCurrency = {
+  getCurrency: function() {
+    return localStorage.getItem('digimest_currency') || 'IDR';
+  },
+  getRate: function() {
+    return window.digimestUSDRate || parseFloat(sessionStorage.getItem('digimest_usd_rate')) || 18000;
+  },
+  setCurrency: function(curr, isManual = true) {
+    const cur = (curr === 'USD') ? 'USD' : 'IDR';
+    try {
+      localStorage.setItem('digimest_currency', cur);
+      if (isManual) {
+        localStorage.setItem('digimest_currency_manual', '1');
+      }
+    } catch (e) {}
+    this.syncUI();
+    window.dispatchEvent(new CustomEvent('currencychange', { detail: { currency: cur } }));
+  },
+  format: function(amountIDR, amountUSD = 0) {
+    const cur = this.getCurrency();
+    if (cur === 'USD') {
+      let usdVal = Number(amountUSD);
+      if (!usdVal || usdVal <= 0) {
+        const rate = this.getRate();
+        usdVal = Number(amountIDR || 0) / rate;
+      }
+      return '$' + usdVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(Number(amountIDR || 0));
+  },
+  formatEstimate: function(amountIDR, amountUSD = 0) {
+    const cur = this.getCurrency();
+    const rate = this.getRate();
+    if (cur === 'USD') {
+      const idrVal = Number(amountIDR || 0);
+      return `~Rp ${idrVal.toLocaleString('id-ID')}`;
+    } else {
+      const usdVal = amountUSD > 0 ? amountUSD : (Number(amountIDR || 0) / rate);
+      return `~$${usdVal.toFixed(2)}`;
+    }
+  },
+  syncUI: function() {
+    const cur = this.getCurrency();
+    const isUSD = cur === 'USD';
+
+    // Update Desktop Navbar Button
+    const desktopCode = document.getElementById('desktopCurrencyCode');
+    const desktopSymbol = document.querySelector('.currency-symbol-icon');
+    if (desktopCode) desktopCode.textContent = cur;
+    if (desktopSymbol) desktopSymbol.textContent = isUSD ? '$' : 'Rp';
+
+    // Update Desktop Menu items checkmarks & active class
+    document.querySelectorAll('.currency-item').forEach(el => {
+      const itemCur = el.getAttribute('data-currency');
+      const check = el.querySelector('.currency-check');
+      const isActive = itemCur === cur;
+      el.classList.toggle('active', isActive);
+      if (check) check.style.visibility = isActive ? 'visible' : 'hidden';
+    });
+
+    // Update Mobile Drawer items
+    document.querySelectorAll('.drawer-currency-btn').forEach(btn => {
+      const btnCur = btn.getAttribute('data-currency');
+      const check = btn.querySelector('.currency-check');
+      const isActive = btnCur === cur;
+      btn.classList.toggle('active', isActive);
+      if (check) check.style.visibility = isActive ? 'visible' : 'hidden';
+    });
+  }
+};
+
+// Listen to app config loaded to update rate if changed
+window.addEventListener('appconfigloaded', () => {
+  if (window.DigimestCurrency) {
+    window.DigimestCurrency.syncUI();
+  }
+});
+
+// Mobile Navigation Drawer, Language & Currency Switcher Manager
 (() => {
   function initMobileNav() {
     const hamburgerBtn = document.getElementById('navHamburgerBtn');
@@ -589,11 +677,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawerHistoryBtn = document.getElementById('drawerOpenHistoryBtn');
     const langBtn = document.getElementById('langDropdownBtn');
     const langWrap = langBtn?.closest('.lang-dropdown-wrap');
+    const curBtn = document.getElementById('currencyDropdownBtn');
+    const curWrap = curBtn?.closest('.currency-dropdown-wrap');
 
     function openDrawer() {
       hamburgerBtn?.classList.add('open');
       drawerOverlay?.classList.add('open');
       document.body.style.overflow = 'hidden';
+      // Sync UI on drawer open
+      window.DigimestCurrency.syncUI();
     }
 
     function closeDrawer() {
@@ -622,14 +714,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // Language Dropdown Toggle
     langBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
+      curWrap?.classList.remove('open');
       langWrap?.classList.toggle('open');
+    });
+
+    // Currency Dropdown Toggle (Desktop)
+    curBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      langWrap?.classList.remove('open');
+      curWrap?.classList.toggle('open');
     });
 
     document.addEventListener('click', (e) => {
       if (langWrap && !langWrap.contains(e.target)) {
         langWrap.classList.remove('open');
       }
+      if (curWrap && !curWrap.contains(e.target)) {
+        curWrap.classList.remove('open');
+      }
     });
+
+    // Desktop Currency Switcher items click
+    document.querySelectorAll('.currency-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetCur = el.getAttribute('data-currency');
+        curWrap?.classList.remove('open');
+        window.DigimestCurrency.setCurrency(targetCur, true);
+      });
+    });
+
+    // Mobile Drawer Currency items click
+    document.querySelectorAll('.drawer-currency-btn').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetCur = el.getAttribute('data-currency');
+        window.DigimestCurrency.setCurrency(targetCur, true);
+      });
+    });
+
+    // Sync Currency UI
+    window.DigimestCurrency.syncUI();
 
     // Sync Language Switcher UI with current page language
     const isEnPage = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
@@ -681,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Language item click with intelligent path mapping (stays on exact same page!)
+    // Language item click with intelligent path mapping & smart currency transition
     document.querySelectorAll('[data-lang]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -702,6 +827,11 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             localStorage.setItem('digimest_lang', 'en');
             document.cookie = "digimest_lang=en; path=/; max-age=31536000; SameSite=Lax";
+            // SMART CURRENCY TRANSITION:
+            // If user has not manually locked currency, auto switch to USD
+            if (!localStorage.getItem('digimest_currency_manual')) {
+              localStorage.setItem('digimest_currency', 'USD');
+            }
           } catch (err) {}
           if (isEnCurrent) return;
           let targetPath = '/en/';
@@ -713,6 +843,11 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             localStorage.setItem('digimest_lang', 'id');
             document.cookie = "digimest_lang=id; path=/; max-age=31536000; SameSite=Lax";
+            // SMART CURRENCY TRANSITION:
+            // If user has not manually locked currency, auto switch to IDR
+            if (!localStorage.getItem('digimest_currency_manual')) {
+              localStorage.setItem('digimest_currency', 'IDR');
+            }
           } catch (err) {}
           if (!isEnCurrent) return;
           let targetPath = '/';

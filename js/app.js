@@ -3,9 +3,16 @@
 let allProducts = [];
 let selectedProduct = null;
 
-// Format Rupiah
+// Format Currency
+function formatCurrency(amountIDR, amountUSD = 0) {
+  if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
+    return window.DigimestCurrency.format(amountIDR, amountUSD);
+  }
+  return 'Rp ' + Number(amountIDR || 0).toLocaleString('id-ID');
+}
+
 function formatIDR(num) {
-  return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+  return formatCurrency(num, 0);
 }
 
 // Toast helper
@@ -94,13 +101,13 @@ function renderProducts(products) {
           <div class="price-wrap">
             ${p.hasPromo ? `
               <div class="price-strike-wrap">
-                <span class="price-original-striked">${formatIDR(p.referencePriceIDR)}</span>
+                <span class="price-original-striked">${formatCurrency(p.referencePriceIDR, p.referencePriceUSD)}</span>
                 <span class="badge-discount-mini">-${p.discountPercent}%</span>
               </div>
-              <span class="price-amount promo-highlight">${formatIDR(p.priceIDR)}</span>
+              <span class="price-amount promo-highlight">${formatCurrency(p.priceIDR, p.priceUSD)}</span>
             ` : `
               <span class="price-label">${isEn ? 'Starting From' : 'Mulai Dari'}</span>
-              <span class="price-amount">${formatIDR(p.priceIDR)}</span>
+              <span class="price-amount">${formatCurrency(p.priceIDR, p.priceUSD)}</span>
             `}
           </div>
           <button class="btn-buy btn-buy-catalog ${isOut ? 'btn-buy-out' : ''}" onclick="event.stopPropagation(); window.location.href='${prodLink}'">
@@ -157,9 +164,277 @@ function escapeHtml(str) {
   }[tag] || tag));
 }
 
+// ==========================================================================
+// HERO CAROUSEL CONTROLLER (60FPS HARDWARE ACCELERATED & TOUCH SWIPE)
+// ==========================================================================
+// ==========================================================================
+// HERO CAROUSEL CONTROLLER (60FPS HARDWARE ACCELERATED & TOUCH SWIPE)
+// ==========================================================================
+function createCarouselController({ containerId, trackId, prevBtnId, nextBtnId, dotsSelector, progressId, duration = 3500 }) {
+  const container = document.getElementById(containerId);
+  const track = document.getElementById(trackId);
+  const prevBtn = document.getElementById(prevBtnId);
+  const nextBtn = document.getElementById(nextBtnId);
+  const progressBar = document.getElementById(progressId);
+
+  if (!container || !track) return null;
+
+  const slides = container.querySelectorAll('.carousel-slide');
+  const dots = document.querySelectorAll(dotsSelector);
+
+  if (slides.length <= 1) return null;
+
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+  const slideDuration = duration;
+  let slideTimer = null;
+  let progressTimer = null;
+  let progressStart = Date.now();
+  let isPaused = false;
+
+  function updateSlide(index, animate = true) {
+    if (index < 0) {
+      currentIndex = totalSlides - 1;
+    } else if (index >= totalSlides) {
+      currentIndex = 0;
+    } else {
+      currentIndex = index;
+    }
+
+    if (!animate) {
+      track.style.transition = 'none';
+    } else {
+      track.style.transition = 'transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1)';
+    }
+
+    track.style.transform = `translate3d(-${currentIndex * 100}%, 0, 0)`;
+
+    // Update active classes for slides & dots
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === currentIndex);
+    });
+
+    dots.forEach((dot, i) => {
+      const isActive = i === currentIndex;
+      dot.classList.toggle('active', isActive);
+      dot.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    resetProgress();
+  }
+
+  function startAutoplay() {
+    clearTimeout(slideTimer);
+    clearInterval(progressTimer);
+    if (isPaused) return;
+
+    progressStart = Date.now();
+    if (progressBar) progressBar.style.width = '0%';
+
+    progressTimer = setInterval(() => {
+      if (isPaused) return;
+      const elapsed = Date.now() - progressStart;
+      const pct = Math.min(100, (elapsed / slideDuration) * 100);
+      if (progressBar) progressBar.style.width = pct + '%';
+    }, 40);
+
+    slideTimer = setTimeout(() => {
+      if (!isPaused) {
+        updateSlide(currentIndex + 1);
+      }
+    }, slideDuration);
+  }
+
+  function resetProgress() {
+    clearTimeout(slideTimer);
+    clearInterval(progressTimer);
+    startAutoplay();
+  }
+
+  function pause() {
+    isPaused = true;
+    clearTimeout(slideTimer);
+    clearInterval(progressTimer);
+  }
+
+  function resume() {
+    if (!isPaused) return;
+    isPaused = false;
+    startAutoplay();
+  }
+
+  // Button Listeners
+  prevBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    updateSlide(currentIndex - 1);
+  });
+
+  nextBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    updateSlide(currentIndex + 1);
+  });
+
+  // Dots click
+  dots.forEach(dot => {
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(e.currentTarget.dataset.index, 10);
+      if (!isNaN(idx)) {
+        updateSlide(idx);
+      }
+    });
+  });
+
+  // Pause on hover
+  container.addEventListener('mouseenter', pause);
+  container.addEventListener('mouseleave', resume);
+
+  // Touch Swipe Gesture
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+  let isSwiping = false;
+
+  container.addEventListener('touchstart', (e) => {
+    pause();
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchEndX = touch.clientX;
+    touchEndY = touch.clientY;
+    isSwiping = true;
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!isSwiping) return;
+    const touch = e.touches[0];
+    touchEndX = touch.clientX;
+    touchEndY = touch.clientY;
+  }, { passive: true });
+
+  container.addEventListener('touchend', () => {
+    if (!isSwiping) return;
+    isSwiping = false;
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+      if (diffX < 0) {
+        updateSlide(currentIndex + 1);
+      } else {
+        updateSlide(currentIndex - 1);
+      }
+    }
+    resume();
+  });
+
+  // Page Visibility Change
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pause();
+    } else {
+      resume();
+    }
+  });
+
+  // Keyboard navigation
+  container.setAttribute('tabindex', '0');
+  container.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      updateSlide(currentIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      updateSlide(currentIndex + 1);
+    }
+  });
+
+  // Init First Slide & Run
+  updateSlide(0, false);
+  startAutoplay();
+
+  return { updateSlide, pause, resume };
+}
+
+function initHeroCarousels() {
+  // Desktop Slider (Fast 3200ms cycle between banner1 and banner2)
+  createCarouselController({
+    containerId: 'heroCarouselDesktop',
+    trackId: 'carouselTrackDesktop',
+    prevBtnId: 'carouselPrevBtnDesktop',
+    nextBtnId: 'carouselNextBtnDesktop',
+    dotsSelector: '#carouselPaginationDesktop .carousel-dot',
+    progressId: 'carouselProgressBarDesktop',
+    duration: 3200
+  });
+
+  // Mobile Slider (Smooth 4500ms cycle across all 3 banners)
+  createCarouselController({
+    containerId: 'heroCarouselMobile',
+    trackId: 'carouselTrackMobile',
+    prevBtnId: 'carouselPrevBtnMobile',
+    nextBtnId: 'carouselNextBtnMobile',
+    dotsSelector: '#carouselPaginationMobile .carousel-dot',
+    progressId: 'carouselProgressBarMobile',
+    duration: 4500
+  });
+}
+
+// ==========================================================================
+// ENHANCED PROMINENT SEARCH CONTROLLER (DESKTOP & MOBILE)
+// ==========================================================================
+function initEnhancedSearch() {
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+  const searchSubmitBtn = document.getElementById('searchSubmitBtn');
+
+  if (!searchInput) return;
+
+  function handleSearchInput() {
+    const val = searchInput.value.trim();
+    if (searchClearBtn) {
+      searchClearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+    }
+    applyFilterAndSearch();
+  }
+
+  function handleSearchSubmit() {
+    applyFilterAndSearch();
+    // Scroll smoothly to products catalog section if user presses search button or enter
+    const target = document.getElementById('productsGrid') || document.getElementById('loadingCatalog');
+    if (target) {
+      const topOffset = target.getBoundingClientRect().top + window.pageYOffset - 100;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    }
+  }
+
+  searchInput.addEventListener('input', handleSearchInput);
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
+  });
+
+  searchSubmitBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSearchSubmit();
+  });
+
+  searchClearBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+    searchInput.focus();
+    applyFilterAndSearch();
+  });
+}
+
 // Lifecycle Init
 document.addEventListener('DOMContentLoaded', async () => {
   updateHistoryBadge();
+  initHeroCarousels();
+  initEnhancedSearch();
 
   // Load products
   try {
@@ -176,9 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loadingCatalog').textContent = 'Koneksi ke backend gagal: ' + e.message;
   }
 
-  // Events
-  document.getElementById('searchInput')?.addEventListener('input', applyFilterAndSearch);
-
+  // Filter tag buttons
   document.querySelectorAll('.tag-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
@@ -194,6 +467,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       closeHistoryModal();
+    }
+  });
+
+  // Reactive Currency Switcher Listener
+  window.addEventListener('currencychange', () => {
+    if (allProducts && allProducts.length > 0) {
+      applyFilterAndSearch();
     }
   });
 });

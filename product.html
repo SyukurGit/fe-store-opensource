@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -40,6 +40,27 @@
         <a href="/claim" class="btn-nav nav-desktop-item">
           <span class="nav-text-desktop">🔑 Klaim Produk</span>
         </a>
+
+        <!-- Currency Dropdown (Desktop Only) -->
+        <div class="currency-dropdown-wrap nav-desktop-item">
+          <button type="button" class="currency-btn" id="currencyDropdownBtn" aria-label="Pilih Mata Uang / Currency">
+            <span class="currency-symbol-icon">Rp</span>
+            <span class="currency-code" id="desktopCurrencyCode">IDR</span>
+            <span class="currency-arrow">▾</span>
+          </button>
+          <div class="currency-menu" id="currencyMenu">
+            <button type="button" class="currency-item active" data-currency="IDR">
+              <span class="currency-item-symbol">Rp</span>
+              <span class="currency-item-name">IDR (Rupiah)</span>
+              <span class="currency-check">✓</span>
+            </button>
+            <button type="button" class="currency-item" data-currency="USD">
+              <span class="currency-item-symbol">$</span>
+              <span class="currency-item-name">USD (Dollar)</span>
+              <span class="currency-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Language Dropdown (Desktop & Mobile) -->
         <div class="lang-dropdown-wrap">
@@ -134,6 +155,26 @@
                 <span>English</span>
               </span>
               <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Mata Uang / Currency</div>
+          <div class="drawer-currency-grid">
+            <button type="button" class="drawer-currency-btn active" data-currency="IDR">
+              <span class="drawer-currency-left">
+                <span class="currency-symbol-badge">Rp</span>
+                <span>IDR (Rupiah)</span>
+              </span>
+              <span class="currency-check">✓</span>
+            </button>
+            <button type="button" class="drawer-currency-btn" data-currency="USD">
+              <span class="drawer-currency-left">
+                <span class="currency-symbol-badge">$</span>
+                <span>USD (Dollar)</span>
+              </span>
+              <span class="currency-check" style="visibility: hidden;">✓</span>
             </button>
           </div>
         </div>

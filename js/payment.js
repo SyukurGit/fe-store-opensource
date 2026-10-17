@@ -7,6 +7,9 @@ let currentClaimCode = '';
 let deliveredKeys = [];
 
 function formatIDR(num) {
+  if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
+    return window.DigimestCurrency.format(num);
+  }
   return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
 }
 
