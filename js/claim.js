@@ -21,6 +21,9 @@ async function doClaim(queryCode) {
   const errBox = document.getElementById('claimError');
   const resultBox = document.getElementById('claimResult');
 
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || (window.location.pathname.startsWith('/en'));
+  const catalogUrl = isEn ? '/en/' : '/';
+
   if (loading) loading.style.display = 'block';
   if (errBox) errBox.style.display = 'none';
   if (resultBox) resultBox.style.display = 'none';
@@ -34,10 +37,12 @@ async function doClaim(queryCode) {
 
     if (!res.ok || !data.success) {
       if (errBox) {
+        const notFoundText = isEn ? 'Order with that code was not found.' : 'Pesanan dengan kode tersebut tidak ditemukan.';
+        const backText = isEn ? '← Back to Store Catalog' : '← Kembali ke Katalog Toko';
         errBox.innerHTML = `
-          <div>${escapeHtml(data.error || 'Pesanan dengan kode tersebut tidak ditemukan.')}</div>
+          <div>${escapeHtml(data.error || notFoundText)}</div>
           <div style="margin-top: 10px;">
-            <a href="/" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">← Kembali ke Katalog Toko</a>
+            <a href="${catalogUrl}" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">${backText}</a>
           </div>
         `;
         errBox.style.display = 'block';
@@ -49,10 +54,12 @@ async function doClaim(queryCode) {
   } catch (err) {
     if (loading) loading.style.display = 'none';
     if (errBox) {
+      const connFailText = isEn ? 'Connection failed: ' : 'Koneksi gagal: ';
+      const backText = isEn ? '← Back to Store Catalog' : '← Kembali ke Katalog Toko';
       errBox.innerHTML = `
-        <div>Koneksi gagal: ${escapeHtml(err.message)}</div>
+        <div>${connFailText}${escapeHtml(err.message)}</div>
         <div style="margin-top: 10px;">
-          <a href="/" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">← Kembali ke Katalog Toko</a>
+          <a href="${catalogUrl}" style="color: #60a5fa; text-decoration: underline; font-weight: 600; font-size: 0.82rem;">${backText}</a>
         </div>
       `;
       errBox.style.display = 'block';
@@ -234,9 +241,16 @@ function renderClaimResult(data) {
         `;
       } else {
         const isBinanceOrder = (data.payment_method === 'BINANCE_PAY' || (data.payment_channel && data.payment_channel.toUpperCase().includes('BINANCE')));
-        const payPromptText = isEn
-          ? (isBinanceOrder ? 'Click here to pay via Binance Pay (USDT) now ➔' : 'Click here to complete payment via QRIS now ➔')
-          : (isBinanceOrder ? 'Klik di sini untuk bayar via Binance Pay (USDT) sekarang ➔' : 'Klik di sini untuk bayar QRIS sekarang ➔');
+        const isBEP20Order = (data.payment_gateway === 'USDT_BEP20' || data.payment_channel === 'BEP20' || (data.payment_method === 'CRYPTO' && !isBinanceOrder));
+
+        let payPromptText;
+        if (isBEP20Order) {
+          payPromptText = isEn ? 'Click here to complete payment via USDT (BEP-20) now ➔' : 'Klik di sini untuk bayar via USDT (BEP-20) sekarang ➔';
+        } else if (isBinanceOrder) {
+          payPromptText = isEn ? 'Click here to pay via Binance Pay (USDT) now ➔' : 'Klik di sini untuk bayar via Binance Pay (USDT) sekarang ➔';
+        } else {
+          payPromptText = isEn ? 'Click here to complete payment via QRIS now ➔' : 'Klik di sini untuk bayar QRIS sekarang ➔';
+        }
 
         itemsContainer.innerHTML = `
           <div style="background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; color: var(--text-muted); font-size: 0.85rem;">
@@ -344,7 +358,7 @@ function setupClaimReviewUI(order) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmitReview');
       btn.disabled = true;
-      btn.textContent = 'Mengirimkan...';
+      btn.textContent = isEn ? 'Submitting...' : 'Mengirimkan...';
 
       const authorName = (document.getElementById('reviewAuthorInput')?.value || '').trim();
       const reviewText = (document.getElementById('reviewTextInput')?.value || '').trim();
@@ -366,17 +380,17 @@ function setupClaimReviewUI(order) {
         const json = await res.json();
         if (res.ok && json.success) {
           localStorage.setItem(storageKey, 'true');
-          showToast('Ulasan Anda berhasil dikirim! ⭐');
+          showToast(isEn ? 'Your review has been submitted! ⭐' : 'Ulasan Anda berhasil dikirim! ⭐');
           form.style.display = 'none';
           if (succMsg) succMsg.style.display = 'block';
         } else {
-          showToast(json.error || 'Gagal mengirimkan ulasan');
+          showToast(json.error || (isEn ? 'Failed to submit review' : 'Gagal mengirimkan ulasan'));
         }
       } catch (err) {
-        showToast('Koneksi gagal: ' + err.message);
+        showToast((isEn ? 'Connection error: ' : 'Koneksi gagal: ') + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = '⭐ Kirim Ulasan';
+        btn.textContent = isEn ? '⭐ Submit Review' : '⭐ Kirim Ulasan';
       }
     };
   }

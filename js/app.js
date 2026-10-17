@@ -167,9 +167,6 @@ function escapeHtml(str) {
 // ==========================================================================
 // HERO CAROUSEL CONTROLLER (60FPS HARDWARE ACCELERATED & TOUCH SWIPE)
 // ==========================================================================
-// ==========================================================================
-// HERO CAROUSEL CONTROLLER (60FPS HARDWARE ACCELERATED & TOUCH SWIPE)
-// ==========================================================================
 function createCarouselController({ containerId, trackId, prevBtnId, nextBtnId, dotsSelector, progressId, duration = 3500 }) {
   const container = document.getElementById(containerId);
   const track = document.getElementById(trackId);
@@ -441,14 +438,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productsUrl = window.digimestApi ? window.digimestApi('/api/products') : '/api/products';
     const res = await fetch(productsUrl);
     const data = await res.json();
+    const isEn = document.documentElement.lang === 'en' || window.location.pathname.startsWith('/en');
+    const loadingEl = document.getElementById('loadingCatalog');
     if (data.success && data.data) {
       allProducts = data.data;
       renderProducts(allProducts);
     } else {
-      document.getElementById('loadingCatalog').textContent = 'Gagal memuat katalog: ' + (data.error || 'Server error');
+      if (loadingEl) loadingEl.textContent = (isEn ? 'Failed to load catalog: ' : 'Gagal memuat katalog: ') + (data.error || 'Server error');
     }
   } catch (e) {
-    document.getElementById('loadingCatalog').textContent = 'Koneksi ke backend gagal: ' + e.message;
+    const isEn = document.documentElement.lang === 'en' || window.location.pathname.startsWith('/en');
+    const loadingEl = document.getElementById('loadingCatalog');
+    if (loadingEl) loadingEl.textContent = (isEn ? 'Connection to backend failed: ' : 'Koneksi ke backend gagal: ') + e.message;
   }
 
   // Filter tag buttons

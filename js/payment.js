@@ -5,6 +5,7 @@ let timerInterval = null;
 let currentInvoice = '';
 let currentClaimCode = '';
 let deliveredKeys = [];
+let currentOrderData = null;
 
 function formatIDR(num) {
   if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
@@ -171,6 +172,7 @@ async function checkStatus() {
 }
 
 function renderPendingView(order) {
+  currentOrderData = order;
   const isBinance = (order.payment_method === 'BINANCE_PAY' || order.payment_gateway === 'BINANCE');
   const isBEP20 = (order.payment_gateway === 'USDT_BEP20' || order.payment_channel === 'BEP20' || order.payment_gateway === 'PAYMENTG_BEP20' || (order.payment_method === 'CRYPTO' && !isBinance));
   const qrisBox = document.getElementById('qrisPendingContainer');
@@ -610,6 +612,13 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(pollInterval);
         pollInterval = setInterval(checkStatus, 3000);
       }
+    }
+  });
+
+  // Reactive Currency Switcher Listener for Payment Page
+  window.addEventListener('currencychange', () => {
+    if (currentOrderData) {
+      renderPendingView(currentOrderData);
     }
   });
 });
