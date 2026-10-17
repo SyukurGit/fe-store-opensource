@@ -51,6 +51,8 @@ function updateUsdRateDisplays() {
   if (el1) el1.textContent = rateText;
   const el2 = document.getElementById('mSummaryUsdRate');
   if (el2) el2.textContent = rateText;
+  const el3 = document.getElementById('qrisNoticeRate');
+  if (el3) el3.textContent = rateText;
 }
 
 async function initProductPage() {
@@ -482,44 +484,149 @@ function updateCalculations() {
   }
 }
 
+function openGwSelectorModal() {
+  document.getElementById('gwSelectorModal')?.classList.add('open');
+}
+
+function closeGwSelectorModal() {
+  document.getElementById('gwSelectorModal')?.classList.remove('open');
+}
+
+function openQrisRegionNoticeModal() {
+  const rateText = (appConfig.usd_rate || 18000).toLocaleString('id-ID');
+  const rateEl = document.getElementById('qrisNoticeRate');
+  if (rateEl) rateEl.textContent = rateText;
+  document.getElementById('qrisRegionNoticeModal')?.classList.add('open');
+}
+
+function closeQrisRegionNoticeModal() {
+  document.getElementById('qrisRegionNoticeModal')?.classList.remove('open');
+}
+
+function triggerPriceRecalcAnimation() {
+  const summaryBox = document.getElementById('orderSummaryBox');
+  const totalPrice = document.getElementById('mTotalPrice');
+  if (summaryBox) {
+    summaryBox.classList.remove('price-recalc-pulse');
+    void summaryBox.offsetWidth; // Force DOM reflow to re-trigger CSS keyframe
+    summaryBox.classList.add('price-recalc-pulse');
+    setTimeout(() => summaryBox.classList.remove('price-recalc-pulse'), 400);
+  }
+  if (totalPrice) {
+    totalPrice.classList.remove('price-recalc-pulse');
+    void totalPrice.offsetWidth;
+    totalPrice.classList.add('price-recalc-pulse');
+    setTimeout(() => totalPrice.classList.remove('price-recalc-pulse'), 400);
+  }
+}
+
 function setupPaymentSelectorListeners() {
-  const optQRIS = document.getElementById('optPayQRIS');
-  const optBinance = document.getElementById('optPayBinance');
-  const optBep20 = document.getElementById('optPayBep20');
+  const btnOpenSelector = document.getElementById('btnOpenGwSelector');
+  const cardSelected = document.getElementById('selectedGatewayCard');
+  const btnCloseSelector = document.getElementById('closeGwSelectorBtn');
 
-  optQRIS?.addEventListener('click', () => {
-    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY');
+  btnOpenSelector?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openGwSelectorModal();
   });
 
-  optBinance?.addEventListener('click', () => {
-    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT');
+  cardSelected?.addEventListener('click', (e) => {
+    if (e.target.closest('#btnOpenGwSelector')) return;
+    openGwSelectorModal();
   });
 
-  optBep20?.addEventListener('click', () => {
-    selectPaymentMethod('USDT_BEP20', 'CRYPTO', 'BEP20');
+  btnCloseSelector?.addEventListener('click', closeGwSelectorModal);
+
+  // Gateway items in selector modal
+  const selQRIS = document.getElementById('selPayQRIS');
+  const selBinance = document.getElementById('selPayBinance');
+  const selBep20 = document.getElementById('selPayBep20');
+
+  selQRIS?.addEventListener('click', () => {
+    if (selectedPaymentGateway === 'PAYMENTG') {
+      closeGwSelectorModal();
+      return;
+    }
+    const isCurrentlyCrypto = (selectedPaymentGateway === 'BINANCE' || selectedPaymentGateway === 'USDT_BEP20' || selectedPaymentMethod === 'BINANCE_PAY' || selectedPaymentMethod === 'CRYPTO');
+    const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+
+    // If switching from USD/Crypto to QRIS, show region confirmation modal
+    if (isCurrentlyCrypto || activeCur === 'USD') {
+      openQrisRegionNoticeModal();
+    } else {
+      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
+      closeGwSelectorModal();
+    }
+  });
+
+  selBinance?.addEventListener('click', () => {
+    if (selectedPaymentGateway === 'BINANCE') {
+      closeGwSelectorModal();
+      return;
+    }
+    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', true);
+    closeGwSelectorModal();
+  });
+
+  selBep20?.addEventListener('click', () => {
+    if (selectedPaymentGateway === 'USDT_BEP20') {
+      closeGwSelectorModal();
+      return;
+    }
+    selectPaymentMethod('USDT_BEP20', 'CRYPTO', 'BEP20', true);
+    closeGwSelectorModal();
+  });
+
+  // Region Notice Modal actions
+  const btnConfirmQRIS = document.getElementById('btnConfirmSwitchToQRIS');
+  const btnCancelQRIS = document.getElementById('btnCancelSwitchToQRIS');
+
+  btnConfirmQRIS?.addEventListener('click', () => {
+    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
+    closeQrisRegionNoticeModal();
+    closeGwSelectorModal();
+  });
+
+  btnCancelQRIS?.addEventListener('click', () => {
+    closeQrisRegionNoticeModal();
   });
 }
 
-function selectPaymentMethod(gateway, method, channel) {
+function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
   selectedPaymentGateway = gateway;
   selectedPaymentMethod = method;
   selectedPaymentChannel = channel;
 
-  const optQRIS = document.getElementById('optPayQRIS');
-  const optBinance = document.getElementById('optPayBinance');
-  const optBep20 = document.getElementById('optPayBep20');
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
-  optQRIS?.classList.remove('active');
-  optBinance?.classList.remove('active');
-  optBep20?.classList.remove('active');
+  // Update selector options active states
+  const selQRIS = document.getElementById('selPayQRIS');
+  const selBinance = document.getElementById('selPayBinance');
+  const selBep20 = document.getElementById('selPayBep20');
 
+  selQRIS?.classList.toggle('active', gateway === 'PAYMENTG');
+  selBinance?.classList.toggle('active', gateway === 'BINANCE');
+  selBep20?.classList.toggle('active', gateway === 'USDT_BEP20');
+
+  // Update active single gateway card
+  const activeLogo = document.getElementById('activeGwLogo');
+  const activeTitle = document.getElementById('activeGwTitle');
+  const activeSubtitle = document.getElementById('activeGwSubtitle');
   const badge = document.getElementById('mCurrencyBadge');
   const sumMethod = document.getElementById('mSummaryPaymentMethod');
   const rateRow = document.getElementById('mSummaryUsdRateRow');
 
-  if (method === 'BINANCE_PAY') {
-    optBinance?.classList.add('active');
+  if (gateway === 'BINANCE' || method === 'BINANCE_PAY') {
+    if (activeLogo) {
+      activeLogo.src = '/logo/binence.png';
+      activeLogo.alt = 'Binance Pay';
+    }
+    if (activeTitle) activeTitle.textContent = 'Binance Pay (Crypto)';
+    if (activeSubtitle) {
+      activeSubtitle.textContent = isEn
+        ? '0% Gas Fee • Instant Auto-Detect • USD'
+        : '0% Gas Fee • Auto Konfirmasi Cepat via Binance App';
+    }
     if (badge) {
       badge.textContent = 'USD / USDT';
       badge.style.background = 'rgba(245, 158, 11, 0.15)';
@@ -530,8 +637,17 @@ function selectPaymentMethod(gateway, method, channel) {
       sumMethod.style.color = '#fbbf24';
     }
     if (rateRow) rateRow.style.display = 'flex';
-  } else if (method === 'CRYPTO' || gateway === 'USDT_BEP20') {
-    optBep20?.classList.add('active');
+  } else if (gateway === 'USDT_BEP20' || method === 'CRYPTO') {
+    if (activeLogo) {
+      activeLogo.src = '/logo/usdt.png';
+      activeLogo.alt = 'USDT BEP-20';
+    }
+    if (activeTitle) activeTitle.textContent = 'USDT BEP-20 (BNB Smart Chain)';
+    if (activeSubtitle) {
+      activeSubtitle.textContent = isEn
+        ? 'Decentralized Web3 Transfer • Low Gas'
+        : 'Trust Wallet, Metamask, Binance • Low Gas';
+    }
     if (badge) {
       badge.textContent = 'USDT (BEP-20)';
       badge.style.background = 'rgba(240, 185, 11, 0.15)';
@@ -543,7 +659,19 @@ function selectPaymentMethod(gateway, method, channel) {
     }
     if (rateRow) rateRow.style.display = 'flex';
   } else {
-    optQRIS?.classList.add('active');
+    // Default: QRIS
+    if (activeLogo) {
+      activeLogo.src = '/logo/kris.png';
+      activeLogo.alt = 'QRIS';
+    }
+    if (activeTitle) {
+      activeTitle.textContent = isEn ? 'Instant QRIS (Multi-Bank)' : 'QRIS Instant Multi-Bank';
+    }
+    if (activeSubtitle) {
+      activeSubtitle.textContent = isEn
+        ? 'Indonesian Bank & E-Wallets • 0% Fee'
+        : 'BCA, Mandiri, BRI, GoPay, OVO, Dana • 0% Fee';
+    }
     if (badge) {
       badge.textContent = 'IDR (Rupiah)';
       badge.style.background = 'rgba(16, 185, 129, 0.15)';
@@ -554,6 +682,10 @@ function selectPaymentMethod(gateway, method, channel) {
       sumMethod.style.color = '#60a5fa';
     }
     if (rateRow) rateRow.style.display = 'none';
+  }
+
+  if (triggerAnim) {
+    triggerPriceRecalcAnimation();
   }
 
   updateCalculations();
@@ -684,7 +816,35 @@ function setupEventListeners() {
     if (e.target.classList.contains('modal-overlay')) {
       closeCheckoutModal();
       closeHistoryModal();
+      closeGwSelectorModal();
+      closeQrisRegionNoticeModal();
     }
+  });
+
+  // Close modals on Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('qrisRegionNoticeModal')?.classList.contains('open')) {
+        closeQrisRegionNoticeModal();
+      } else if (document.getElementById('gwSelectorModal')?.classList.contains('open')) {
+        closeGwSelectorModal();
+      } else if (document.getElementById('checkoutModal')?.classList.contains('open')) {
+        closeCheckoutModal();
+      } else if (document.getElementById('historyModal')?.classList.contains('open')) {
+        closeHistoryModal();
+      }
+    }
+  });
+
+  // Automatically update checkout gateway when currency is switched in header
+  window.addEventListener('currencychange', (e) => {
+    const newCur = e.detail?.currency;
+    if (newCur === 'USD') {
+      selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
+    } else {
+      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
+    }
+    updateCalculations();
   });
 }
 
@@ -808,6 +968,14 @@ function openCheckoutModal() {
   const savedEmail = localStorage.getItem('digimest_saved_email') || localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email');
   if (emailInput && savedEmail) {
     emailInput.value = savedEmail;
+  }
+
+  // Smart default gateway: IDR -> QRIS, USD -> Binance Pay
+  const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+  if (activeCur === 'USD') {
+    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
+  } else {
+    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
   }
 
   updateCalculations();
