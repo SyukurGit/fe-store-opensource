@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.9">
-  <script src="/js/api-config.js?v=5.9.9"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.10">
+  <script src="/js/api-config.js?v=5.9.10"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -518,7 +518,7 @@
   </div>
 
   <!-- Payment Gateway Selection Modal (Change Method) -->
-  <div id="gwSelectorModal" class="modal-overlay" style="z-index: 1050;">
+  <div id="gwSelectorModal" class="modal-overlay" style="z-index: 2100;">
     <div class="modal-card gw-selector-card">
       <div class="modal-header">
         <h3 class="modal-title">Select Payment Method</h3>
@@ -575,8 +575,9 @@
   </div>
 
   <!-- Special Confirmation Modal: Switching from USDT to QRIS (Indonesia Region Only) -->
-  <div id="qrisRegionNoticeModal" class="modal-overlay" style="z-index: 1100;">
-    <div class="modal-card region-notice-card">
+  <div id="qrisRegionNoticeModal" class="modal-overlay" style="z-index: 2200;">
+    <div class="modal-card region-notice-card" style="position: relative;">
+      <button type="button" class="modal-close" id="closeQrisNoticeBtn" style="position: absolute; top: 12px; right: 14px;" title="Close">&times;</button>
       <div class="region-notice-icon">🇮🇩 ⚠️</div>
       <h3 class="region-notice-title" id="qrisNoticeTitle">QRIS Payment Notice (Indonesia Only)</h3>
       <div class="region-notice-body" id="qrisNoticeBody">
@@ -650,7 +651,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.9"></script>
-  <script src="/js/product.js?v=5.9.9"></script>
+  <script src="/js/order-history.js?v=5.9.10"></script>
+  <script src="/js/product.js?v=5.9.10"></script>
 </body>
 </html>

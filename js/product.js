@@ -506,24 +506,28 @@ function closeQrisRegionNoticeModal() {
 function triggerPriceRecalcAnimation() {
   const summaryBox = document.getElementById('orderSummaryBox');
   const totalPrice = document.getElementById('mTotalPrice');
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+
+  if (totalPrice) {
+    totalPrice.innerHTML = `<span class="price-shimmer-loading">${isEn ? '⚡ Calculating quote...' : '⚡ Menghitung kurs...'}</span>`;
+  }
   if (summaryBox) {
     summaryBox.classList.remove('price-recalc-pulse');
     void summaryBox.offsetWidth; // Force DOM reflow to re-trigger CSS keyframe
     summaryBox.classList.add('price-recalc-pulse');
-    setTimeout(() => summaryBox.classList.remove('price-recalc-pulse'), 400);
   }
-  if (totalPrice) {
-    totalPrice.classList.remove('price-recalc-pulse');
-    void totalPrice.offsetWidth;
-    totalPrice.classList.add('price-recalc-pulse');
-    setTimeout(() => totalPrice.classList.remove('price-recalc-pulse'), 400);
-  }
+
+  setTimeout(() => {
+    updateCalculations();
+    if (summaryBox) summaryBox.classList.remove('price-recalc-pulse');
+  }, 260);
 }
 
 function setupPaymentSelectorListeners() {
   const btnOpenSelector = document.getElementById('btnOpenGwSelector');
   const cardSelected = document.getElementById('selectedGatewayCard');
   const btnCloseSelector = document.getElementById('closeGwSelectorBtn');
+  const btnCloseQris = document.getElementById('closeQrisNoticeBtn');
 
   btnOpenSelector?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -536,6 +540,7 @@ function setupPaymentSelectorListeners() {
   });
 
   btnCloseSelector?.addEventListener('click', closeGwSelectorModal);
+  btnCloseQris?.addEventListener('click', closeQrisRegionNoticeModal);
 
   // Gateway items in selector modal
   const selQRIS = document.getElementById('selPayQRIS');
@@ -681,14 +686,17 @@ function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
       sumMethod.textContent = isEn ? 'Instant QRIS (Multi-Bank)' : 'QRIS Instant Multi-Bank';
       sumMethod.style.color = '#60a5fa';
     }
-    if (rateRow) rateRow.style.display = 'none';
+    if (rateRow) {
+      const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+      rateRow.style.display = (activeCur === 'USD') ? 'flex' : 'none';
+    }
   }
 
   if (triggerAnim) {
     triggerPriceRecalcAnimation();
+  } else {
+    updateCalculations();
   }
-
-  updateCalculations();
 }
 
 function getMaxAvailableQty() {
@@ -811,13 +819,18 @@ function setupEventListeners() {
     }
   });
 
-  // Close modals on background click
+  // Close modals on background click (isolated by modal id)
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
-      closeCheckoutModal();
-      closeHistoryModal();
-      closeGwSelectorModal();
-      closeQrisRegionNoticeModal();
+      if (e.target.id === 'qrisRegionNoticeModal') {
+        closeQrisRegionNoticeModal();
+      } else if (e.target.id === 'gwSelectorModal') {
+        closeGwSelectorModal();
+      } else if (e.target.id === 'checkoutModal') {
+        closeCheckoutModal();
+      } else if (e.target.id === 'historyModal') {
+        closeHistoryModal();
+      }
     }
   });
 

@@ -4432,8 +4432,25 @@ body.has-sticky-bar .floating-telegram-btn,
   100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
+@keyframes priceShimmerWave {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .price-recalc-pulse {
   animation: priceRecalcPulse 0.35s ease-out;
+}
+
+.price-shimmer-loading {
+  display: inline-block;
+  background: linear-gradient(90deg, #10b981 0%, #a7f3d0 50%, #10b981 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: priceShimmerWave 0.8s infinite linear;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* Checkout Trust Guarantees Row */
