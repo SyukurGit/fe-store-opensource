@@ -832,7 +832,7 @@ window.addEventListener('appconfigloaded', () => {
             }
           } catch (err) {}
           if (isEnCurrent) return;
-          let targetPath = '/en/';
+          let targetPath = '/en/' + currentSearch + currentHash;
           if (baseRoute && baseRoute !== 'index') {
             targetPath = '/en/' + baseRoute + currentSearch + currentHash;
           }
@@ -848,7 +848,7 @@ window.addEventListener('appconfigloaded', () => {
             }
           } catch (err) {}
           if (!isEnCurrent) return;
-          let targetPath = '/';
+          let targetPath = '/' + currentSearch + currentHash;
           if (baseRoute && baseRoute !== 'index') {
             targetPath = '/' + baseRoute + currentSearch + currentHash;
           }

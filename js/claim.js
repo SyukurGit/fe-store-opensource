@@ -9,10 +9,11 @@ function showToast(msg) {
 }
 
 function copyText(text) {
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || (window.location.pathname.startsWith('/en'));
   navigator.clipboard.writeText(text).then(() => {
-    showToast('Berhasil disalin! 📋');
+    showToast(isEn ? 'Copied to clipboard! 📋' : 'Berhasil disalin! 📋');
   }).catch(() => {
-    showToast('Gagal menyalin.');
+    showToast(isEn ? 'Failed to copy.' : 'Gagal menyalin.');
   });
 }
 
@@ -109,6 +110,7 @@ function renderClaimResult(data) {
   const isRefunded = data.fulfillment_status === 'REFUNDED';
   const isExpired = data.payment_status === 'EXPIRED';
   const isCancelled = data.payment_status === 'CANCELLED';
+  const isCrypto = (data.payment_gateway === 'BINANCE_PAY' || data.payment_gateway === 'USDT_BEP20' || data.payment_method === 'CRYPTO' || data.payment_method === 'BINANCE_PAY');
 
   if (statusBadge) {
     // Reset any custom inline style colors from previous renders
@@ -159,7 +161,9 @@ function renderClaimResult(data) {
           <div style="font-size: 1.8rem; margin-bottom: 6px;">⌛</div>
           <div style="font-weight: 700; color: #f87171; font-size: 1rem; margin-bottom: 6px;">${isEn ? 'Payment Window Expired' : 'Batas Waktu Pembayaran Telah Habis'}</div>
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
-            ${isEn ? 'The 15-minute QRIS payment window has expired. Please place a new order in our store catalog.' : 'Tagihan QRIS 15 menit untuk pesanan ini telah kedaluwarsa. Silakan lakukan pemesanan baru di katalog toko.'}
+            ${isEn
+              ? `The ${isCrypto ? 'crypto' : '15-minute QRIS'} payment window has expired. Please place a new order in our store catalog.`
+              : `Batas waktu pembayaran ${isCrypto ? 'Crypto' : 'QRIS 15 menit'} untuk pesanan ini telah kedaluwarsa. Silakan lakukan pemesanan baru di katalog toko.`}
           </p>
           <a href="${catalogUrl}" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
             ${isEn ? 'Reorder from Catalog ➔' : 'Pesan Ulang di Katalog Toko ➔'}
@@ -172,7 +176,9 @@ function renderClaimResult(data) {
           <div style="font-size: 1.8rem; margin-bottom: 6px;">✕</div>
           <div style="font-weight: 700; color: #94a3b8; font-size: 1rem; margin-bottom: 6px;">${isEn ? 'Order Cancelled by Customer' : 'Pesanan Dibatalkan Oleh Pembeli'}</div>
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
-            ${isEn ? 'This transaction has been cancelled and the QRIS invoice has been deactivated. You can place a new order anytime.' : 'Transaksi ini telah dibatalkan dan tagihan QRIS dinonaktifkan. Anda dapat membuat pesanan baru kapan saja.'}
+            ${isEn
+              ? 'This transaction has been cancelled and the payment invoice has been deactivated. You can place a new order anytime.'
+              : 'Transaksi ini telah dibatalkan dan tagihan pembayaran telah dinonaktifkan. Anda dapat membuat pesanan baru kapan saja.'}
           </p>
           <a href="${catalogUrl}" class="btn-buy" style="display: inline-block; text-decoration: none; padding: 7px 20px; font-size: 0.85rem;">
             ${isEn ? 'Back to Store Catalog ➔' : 'Kembali ke Katalog Toko ➔'}

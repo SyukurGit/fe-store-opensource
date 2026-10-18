@@ -219,7 +219,7 @@ function renderReviewsSection(stats, reviews) {
   if (listWrap) {
     if (!reviews || reviews.length === 0) {
       listWrap.innerHTML = `
-        <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.88rem; background: rgba(255,255,255,0.015); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.08);">
+        <div class="reviews-empty-state">
           ${isEn ? 'No customer reviews yet for this product.<br><span style="font-size: 0.8rem; opacity: 0.8;">Be the first buyer to review this product after completion!</span>' : 'Belum ada ulasan untuk produk ini.<br><span style="font-size: 0.8rem; opacity: 0.8;">Jadilah pembeli pertama yang memberikan penilaian setelah pesanan Anda lunas!</span>'}
         </div>
       `;
@@ -742,6 +742,7 @@ function getMaxAvailableQty() {
 }
 
 function setupEventListeners() {
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   setupPaymentSelectorListeners();
   const qtyInput = document.getElementById('detailQtyInput');
   const btnMinus = document.getElementById('btnQtyMinus');
@@ -762,7 +763,7 @@ function setupEventListeners() {
       qtyInput.value = currentQty;
       updateCalculations();
     } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
-      showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+      showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
   });
 
@@ -773,7 +774,7 @@ function setupEventListeners() {
     if (val > maxQty) {
       val = maxQty;
       if (currentProduct && currentProduct.stock > 0 && maxQty === currentProduct.stock) {
-        showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+        showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
       }
     }
     currentQty = val;
@@ -803,7 +804,7 @@ function setupEventListeners() {
       if (modalQty) modalQty.value = currentQty;
       triggerPriceRecalcAnimation();
     } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
-      showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+      showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
   });
 
@@ -814,13 +815,24 @@ function setupEventListeners() {
     if (val > maxQty) {
       val = maxQty;
       if (currentProduct && currentProduct.stock > 0 && maxQty === currentProduct.stock) {
-        showToast(`Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
+        showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
       }
     }
     currentQty = val;
     modalQty.value = val;
     if (qtyInput) qtyInput.value = val;
     triggerPriceRecalcAnimation();
+  });
+
+  // Email input real-time validation handler to clear inline error on typing
+  const emailInput = document.getElementById('emailInput');
+  emailInput?.addEventListener('input', () => {
+    const errEl = document.getElementById('emailInputError');
+    if (errEl) {
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+    }
+    emailInput.style.borderColor = '';
   });
 
   // Voucher handlers
@@ -897,6 +909,7 @@ function setupEventListeners() {
 
 async function handleApplyVoucher() {
   if (!currentProduct) return;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   const input = document.getElementById('voucherInput');
   const code = (input?.value || '').trim().toUpperCase();
   const feedback = document.getElementById('voucherFeedback');
@@ -904,7 +917,7 @@ async function handleApplyVoucher() {
 
   if (!code) {
     if (feedback) {
-      feedback.textContent = 'Silakan ketik kode voucher terlebih dahulu.';
+      feedback.textContent = isEn ? 'Please enter a voucher code first.' : 'Silakan ketik kode voucher terlebih dahulu.';
       feedback.style.color = '#f87171';
       feedback.style.display = 'block';
     }
@@ -913,7 +926,7 @@ async function handleApplyVoucher() {
   }
 
   btnApply.disabled = true;
-  btnApply.textContent = 'Memeriksa...';
+  btnApply.textContent = isEn ? 'Checking...' : 'Memeriksa...';
   if (feedback) feedback.style.display = 'none';
 
   try {
@@ -937,7 +950,7 @@ async function handleApplyVoucher() {
       };
 
       if (feedback) {
-        feedback.textContent = `✓ ${json.data.message || 'Voucher berhasil diterapkan!'}`;
+        feedback.textContent = `✓ ${json.data.message || (isEn ? 'Voucher applied successfully!' : 'Voucher berhasil diterapkan!')}`;
         feedback.style.color = '#10b981';
         feedback.style.display = 'block';
       }
@@ -945,19 +958,22 @@ async function handleApplyVoucher() {
       input.disabled = true;
       btnApply.style.display = 'none';
       const btnCancel = document.getElementById('btnCancelVoucher');
-      if (btnCancel) btnCancel.style.display = 'inline-block';
+      if (btnCancel) {
+        btnCancel.textContent = isEn ? 'Remove' : 'Batalkan';
+        btnCancel.style.display = 'inline-block';
+      }
       const statusTag = document.getElementById('voucherStatusTag');
       if (statusTag) {
-        statusTag.textContent = `Aktif (${json.data.code})`;
+        statusTag.textContent = `${isEn ? 'Active' : 'Aktif'} (${json.data.code})`;
         statusTag.style.display = 'inline';
       }
 
       triggerPriceRecalcAnimation();
-      showToast(`Voucher ${json.data.code} berhasil diterapkan!`);
+      showToast(isEn ? `Voucher ${json.data.code} applied!` : `Voucher ${json.data.code} berhasil diterapkan!`);
     } else {
       appliedVoucher = null;
       if (feedback) {
-        feedback.textContent = `✕ ${json.error || 'Kode voucher tidak valid atau kuota telah habis'}`;
+        feedback.textContent = `✕ ${json.error || (isEn ? 'Voucher is invalid or limit reached' : 'Kode voucher tidak valid atau kuota telah habis')}`;
         feedback.style.color = '#f87171';
         feedback.style.display = 'block';
       }
@@ -965,18 +981,19 @@ async function handleApplyVoucher() {
     }
   } catch (err) {
     if (feedback) {
-      feedback.textContent = 'Gagal menghubungi server validasi voucher.';
+      feedback.textContent = isEn ? 'Failed to connect to voucher validation server.' : 'Gagal menghubungi server validasi voucher.';
       feedback.style.color = '#f87171';
       feedback.style.display = 'block';
     }
   } finally {
     btnApply.disabled = false;
-    btnApply.textContent = 'Terapkan';
+    btnApply.textContent = isEn ? 'Apply' : 'Terapkan';
   }
 }
 
 function handleCancelVoucher(keepFeedbackMsg = false) {
   appliedVoucher = null;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   const input = document.getElementById('voucherInput');
   if (input) {
     input.disabled = false;
@@ -986,6 +1003,7 @@ function handleCancelVoucher(keepFeedbackMsg = false) {
   const btnApply = document.getElementById('btnApplyVoucher');
   if (btnApply) {
     btnApply.disabled = false;
+    btnApply.textContent = isEn ? 'Apply' : 'Terapkan';
     btnApply.style.display = 'inline-block';
   }
   const btnCancel = document.getElementById('btnCancelVoucher');
@@ -1003,7 +1021,7 @@ function openCheckoutModal() {
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
   if (currentProduct.stock <= 0 || currentProduct.isForceOutOfStock) {
-    alert(isEn ? 'Sorry, this product is currently out of stock.' : 'Mohon maaf, stok produk ini sedang habis atau dinonaktifkan sementara.');
+    showToast(isEn ? 'Sorry, this product is currently out of stock.' : 'Mohon maaf, stok produk ini sedang habis atau dinonaktifkan sementara.');
     return;
   }
   const modal = document.getElementById('checkoutModal');
@@ -1042,12 +1060,23 @@ async function submitCheckout() {
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
   const btn = document.getElementById('btnConfirmCheckout');
-  const email = (document.getElementById('emailInput')?.value || '').trim();
+  const emailInput = document.getElementById('emailInput');
+  const emailErr = document.getElementById('emailInputError');
+  const email = (emailInput?.value || '').trim();
   const contact = (document.getElementById('contactInput')?.value || '').trim();
 
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    alert(isEn ? 'Please enter a valid email address for digital license delivery!' : 'Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!');
-    document.getElementById('emailInput')?.focus();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailPattern.test(email)) {
+    const errMsg = isEn ? 'Please enter a valid email address for digital license delivery!' : 'Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!';
+    if (emailErr) {
+      emailErr.textContent = errMsg;
+      emailErr.style.display = 'block';
+    }
+    if (emailInput) {
+      emailInput.style.borderColor = '#ef4444';
+      emailInput.focus();
+    }
+    showToast(errMsg);
     return;
   }
 
@@ -1062,7 +1091,7 @@ async function submitCheckout() {
     btn.innerText = isEn ? 'Preparing Instant QRIS...' : 'Menyiapkan QRIS ShopeePay...';
   }
 
-  const defaultBtnText = isBinance 
+  const defaultBtnText = isBinance
     ? (isEn ? 'Pay Now via Binance Pay ➔' : 'Bayar Sekarang via Binance Pay ➔')
     : (isBep20
         ? (isEn ? 'Pay Now via USDT (BEP-20) ➔' : 'Bayar Sekarang via USDT (BEP-20) ➔')
@@ -1087,7 +1116,8 @@ async function submitCheckout() {
 
     const data = await res.json();
     if (!data.success) {
-      alert(isEn ? ('Failed to create order: ' + (data.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan')));
+      const errMsg = isEn ? ('Failed to create order: ' + (data.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan'));
+      showToast(errMsg);
       btn.disabled = false;
       btn.innerText = defaultBtnText;
       return;
@@ -1122,7 +1152,7 @@ async function submitCheckout() {
 
   } catch (err) {
     console.error('Checkout error:', err);
-    alert(isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
+    showToast(isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
     btn.disabled = false;
     btn.innerText = defaultBtnText;
   }

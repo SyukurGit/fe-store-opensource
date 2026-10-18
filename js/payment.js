@@ -60,8 +60,12 @@ async function loadPaymentDetails() {
 
   const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   if (!currentInvoice) {
-    alert(isEn ? 'Invoice number not found.' : 'Nomor invoice tidak ditemukan.');
-    window.location.href = isEn ? '/en/' : '/';
+    if (typeof showToast === 'function') {
+      showToast(isEn ? 'Invoice number not found. Redirecting...' : 'Nomor invoice tidak ditemukan. Mengalihkan...');
+    }
+    setTimeout(() => {
+      window.location.href = isEn ? '/en/' : '/';
+    }, 1000);
     return;
   }
 

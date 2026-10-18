@@ -353,7 +353,7 @@
           <div id="dProdTerms" class="detail-terms-text">
             Purchase implies acceptance of all store terms.
           </div>
-          <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.8rem; color: #94a3b8;">
+          <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); font-size: 0.8rem; color: #94a3b8;">
             ✓ Account license / serial key is delivered immediately upon payment verification.<br>
             ✓ Order invoice and claim details are automatically emailed to the buyer.<br>
             ✓ Ensure your account or target region matches the stated product region.
@@ -493,6 +493,7 @@
           <div class="form-group" style="margin-bottom: 0.75rem;">
             <label class="form-label" for="emailInput">Buyer Email <span style="color:#ef4444;">*</span> (Required for delivery)</label>
             <input type="email" id="emailInput" class="form-input" placeholder="e.g. name@gmail.com" required style="min-height: 40px;">
+            <div id="emailInputError" style="display: none; font-size: 0.75rem; color: #ef4444; margin-top: 4px; font-weight: 500;"></div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">License keys and purchase invoice will be sent automatically to this email.</div>
           </div>
 

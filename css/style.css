@@ -1588,6 +1588,51 @@ select.form-input option:checked {
   letter-spacing: -0.02em;
 }
 
+.bep20-pay-box {
+  background: rgba(11, 14, 17, 0.95);
+  border: 1px solid #2B313A;
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.cex-warning-box {
+  background: rgba(69, 26, 3, 0.4);
+  border: 1px solid rgba(217, 119, 6, 0.5);
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: left;
+  margin-bottom: 1.25rem;
+}
+
+.cex-warning-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #fcd34d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.cex-warning-text {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.reviews-empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 10px;
+  border: 1px dashed var(--border-subtle);
+}
+
 .timer-box {
   display: inline-flex;
   align-items: center;
@@ -5214,9 +5259,9 @@ html[data-theme="light"] .prod-category {
 }
 
 html[data-theme="light"] .prod-sold-badge {
-  background: #f1f5f9 !important;
-  color: #475569 !important;
-  border: 1px solid #e2e8f0 !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #334155 !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
 }
 
 html[data-theme="light"] .badge-stock {
@@ -5723,9 +5768,15 @@ html[data-theme="light"] #uniqueCodeNote {
   color: #475569 !important;
 }
 
-html[data-theme="light"] .binance-pay-box {
+html[data-theme="light"] .binance-pay-box,
+html[data-theme="light"] .bep20-pay-box {
   background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+html[data-theme="light"] .binance-pay-box span,
+html[data-theme="light"] .bep20-pay-box span {
+  color: #475569;
 }
 
 html[data-theme="light"] #binancePayIdDisplay,
@@ -5737,6 +5788,25 @@ html[data-theme="light"] #bep20WalletDisplay {
   background: #f1f5f9 !important;
   border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
+}
+
+html[data-theme="light"] .cex-warning-box {
+  background: #fffbeb !important;
+  border: 1px solid #fcd34d !important;
+}
+
+html[data-theme="light"] .cex-warning-title {
+  color: #b45309 !important;
+}
+
+html[data-theme="light"] .cex-warning-text {
+  color: #78350f !important;
+}
+
+html[data-theme="light"] .reviews-empty-state {
+  background: #f8fafc !important;
+  border: 1px dashed #cbd5e1 !important;
+  color: #64748b !important;
 }
 
 html[data-theme="light"] .claim-info-card {

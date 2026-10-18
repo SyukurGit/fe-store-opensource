@@ -309,7 +309,7 @@
           </div>
 
           <!-- Nominal Eksak Box -->
-          <div style="background: rgba(11, 14, 17, 0.95); border: 1px solid #2B313A; border-radius: 14px; padding: 14px 16px; text-align: left; margin-bottom: 1rem;">
+          <div class="bep20-pay-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span style="font-size: 0.82rem; color: #848E9C;">Jumlah yang WAJIB Diterima:</span>
               <button type="button" id="btnCopyBep20Amount" class="btn-copy-mini" style="color: #f0b90b; border-color: rgba(240, 185, 11, 0.3);">Salin Nominal</button>
@@ -324,7 +324,7 @@
           </div>
 
           <!-- Alamat Dompet Penerima Box -->
-          <div style="background: rgba(11, 14, 17, 0.95); border: 1px solid #2B313A; border-radius: 14px; padding: 14px 16px; text-align: left; margin-bottom: 1rem;">
+          <div class="bep20-pay-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span style="font-size: 0.82rem; color: #848E9C;">Alamat Dompet Penerima (BSC):</span>
               <button type="button" id="btnCopyBep20Wallet" class="btn-copy-mini" style="color: #f0b90b; border-color: rgba(240, 185, 11, 0.3);">Salin Alamat</button>
@@ -334,11 +334,11 @@
           </div>
 
           <!-- KOTAK PERINGATAN BIAYA PENARIKAN CEX -->
-          <div style="background: rgba(69, 26, 3, 0.4); border: 1px solid rgba(217, 119, 6, 0.5); border-radius: 14px; padding: 12px 14px; text-align: left; margin-bottom: 1.25rem;">
-            <div style="font-weight: 700; font-size: 0.82rem; color: #fcd34d; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+          <div class="cex-warning-box">
+            <div class="cex-warning-title">
               <span>⚠️</span> PERINGATAN PENGIRIM DARI EXCHANGE (CEX):
             </div>
-            <p style="font-size: 0.78rem; line-height: 1.5; color: var(--text-main); margin: 0;">
+            <p class="cex-warning-text">
               Jika mengirim dari <strong>Indodax, Tokocrypto, Bybit, atau Binance</strong>, exchange akan memotong biaya penarikan (withdrawal fee). Pastikan <strong>"Jumlah Bersih Diterima" (Receive Amount)</strong> adalah <strong>TEPAT <span id="bep20CexAmount" style="color: #f0b90b; font-weight: 700;">0.000</span> USDT</strong>, bukan nominal kotor sebelum dipotong fee.
             </p>
           </div>
