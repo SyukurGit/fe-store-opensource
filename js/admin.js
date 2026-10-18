@@ -2706,6 +2706,8 @@ async function saveQuickKeys() {
     price_idr: p.price_idr,
     promo_price_idr: p.promo_price_idr,
     has_promo: p.has_promo,
+    stock: stockKeys.length > 0 ? stockKeys.length : p.stock,
+    is_unlimited_stock: stockKeys.length > 0 ? false : !!p.is_unlimited_stock,
     is_active: p.is_active,
     is_force_out_of_stock: p.is_force_out_of_stock,
     stock_keys: stockKeys
