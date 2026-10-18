@@ -2388,13 +2388,17 @@ function renderLocalProductsTable() {
         </td>
         <td>
           <div style="display: flex; align-items: center; gap: 6px;">
-            ${keyCount > 0 ? `
+            ${p.is_unlimited_stock ? `
+              <span class="badge" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); font-size: 0.75rem; font-weight: 700;">
+                ∞ Unlimited
+              </span>
+            ` : keyCount > 0 ? `
               <span class="badge badge-stock" style="font-size: 0.75rem; font-weight: 700;">
                 ● ${keyCount}/10 Key
               </span>
             ` : `
-              <span class="badge" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); font-size: 0.75rem; font-weight: 600;">
-                ○ 0 Key (Auto Kontak CS)
+              <span class="badge badge-stock" style="font-size: 0.75rem; font-weight: 700;">
+                ● ${p.stock ?? 0} Stok (CS)
               </span>
             `}
           </div>
@@ -2439,6 +2443,15 @@ function openCreateLocalProductModal() {
   document.getElementById('lpHasPromo').checked = false;
   document.getElementById('lpPromoOptions').style.display = 'none';
   document.getElementById('lpPromoPriceIDR').value = '';
+
+  const lpStockEl = document.getElementById('lpStock');
+  if (lpStockEl) {
+    lpStockEl.value = '10';
+    lpStockEl.disabled = false;
+  }
+  const lpUnlimEl = document.getElementById('lpIsUnlimitedStock');
+  if (lpUnlimEl) lpUnlimEl.checked = false;
+
   document.getElementById('lpStockKeys').value = '';
   updateLocalKeysCounter();
   document.getElementById('lpDescription').value = '';
@@ -2463,10 +2476,19 @@ function editLocalProduct(id) {
   document.getElementById('lpRegion').value = p.region || 'Global';
   document.getElementById('lpWarranty').value = p.warranty || '';
   document.getElementById('lpPriceIDR').value = p.price_idr || '';
-  document.getElementById('lpRefPriceIDR').value = '';
+  document.getElementById('lpRefPriceIDR').value = p.reference_price_idr || '';
   document.getElementById('lpHasPromo').checked = !!p.has_promo;
   document.getElementById('lpPromoOptions').style.display = p.has_promo ? 'block' : 'none';
   document.getElementById('lpPromoPriceIDR').value = p.promo_price_idr || '';
+
+  const lpStockEl = document.getElementById('lpStock');
+  if (lpStockEl) {
+    lpStockEl.value = (p.stock !== undefined && p.stock !== null) ? p.stock : 10;
+    lpStockEl.disabled = !!p.is_unlimited_stock;
+  }
+  const lpUnlimEl = document.getElementById('lpIsUnlimitedStock');
+  if (lpUnlimEl) lpUnlimEl.checked = !!p.is_unlimited_stock;
+
   document.getElementById('lpStockKeys').value = (p.stock_keys || []).join('\n');
   updateLocalKeysCounter();
   document.getElementById('lpDescription').value = p.description || '';
@@ -2494,6 +2516,13 @@ function updateLocalKeysCounter() {
     } else {
       counterEl.style.color = '#818cf8';
     }
+  }
+
+  // Auto-sync manual stock input with serial keys count if keys are present and not unlimited
+  const lpStockEl = document.getElementById('lpStock');
+  const lpUnlimEl = document.getElementById('lpIsUnlimitedStock');
+  if (lines.length > 0 && lpStockEl && (!lpUnlimEl || !lpUnlimEl.checked)) {
+    lpStockEl.value = lines.length;
   }
 }
 
@@ -2529,6 +2558,11 @@ async function saveLocalProduct() {
   let promoPrice = parseFloat(document.getElementById('lpPromoPriceIDR')?.value) || 0;
   if (!hasPromo) promoPrice = 0;
 
+  const isUnlimitedStock = !!document.getElementById('lpIsUnlimitedStock')?.checked;
+  const rawStock = parseInt(document.getElementById('lpStock')?.value, 10);
+  const stockVal = isNaN(rawStock) ? 10 : Math.max(0, rawStock);
+  const refPriceVal = parseFloat(document.getElementById('lpRefPriceIDR')?.value) || 0;
+
   const payload = {
     name: name,
     slug: document.getElementById('lpSlug')?.value.trim(),
@@ -2539,8 +2573,11 @@ async function saveLocalProduct() {
     description: document.getElementById('lpDescription')?.value.trim(),
     terms: document.getElementById('lpTerms')?.value.trim(),
     price_idr: priceIDR,
+    reference_price_idr: refPriceVal,
     promo_price_idr: promoPrice,
     has_promo: hasPromo,
+    stock: stockVal,
+    is_unlimited_stock: isUnlimitedStock,
     is_active: document.getElementById('lpIsActive')?.checked ?? true,
     is_force_out_of_stock: document.getElementById('lpIsForceOut')?.checked ?? false,
     stock_keys: stockKeys
@@ -2706,6 +2743,19 @@ function setupLocalProductsUI() {
   document.getElementById('lpHasPromo')?.addEventListener('change', (e) => {
     const opt = document.getElementById('lpPromoOptions');
     if (opt) opt.style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  document.getElementById('lpIsUnlimitedStock')?.addEventListener('change', (e) => {
+    const stockEl = document.getElementById('lpStock');
+    if (stockEl) {
+      stockEl.disabled = e.target.checked;
+      if (e.target.checked) {
+        stockEl.dataset.prevVal = stockEl.value;
+        stockEl.value = '9999';
+      } else {
+        stockEl.value = stockEl.dataset.prevVal || '10';
+      }
+    }
   });
 
   document.getElementById('lpStockKeys')?.addEventListener('input', updateLocalKeysCounter);
