@@ -513,6 +513,35 @@ function updateCalculations() {
   if (modalQtyInput && parseInt(modalQtyInput.value, 10) !== currentQty) {
     modalQtyInput.value = currentQty;
   }
+  updateModalStepperButtons();
+}
+
+function updateModalStepperButtons() {
+  const btnMinus = document.getElementById('btnModalQtyMinus');
+  const btnPlus = document.getElementById('btnModalQtyPlus');
+  const maxQty = getMaxAvailableQty();
+
+  if (btnMinus) {
+    const isMin = currentQty <= 1;
+    btnMinus.disabled = isMin;
+    btnMinus.classList.toggle('disabled', isMin);
+    if (isMin) {
+      btnMinus.setAttribute('aria-disabled', 'true');
+    } else {
+      btnMinus.removeAttribute('aria-disabled');
+    }
+  }
+
+  if (btnPlus) {
+    const isMax = currentQty >= maxQty;
+    btnPlus.disabled = isMax;
+    btnPlus.classList.toggle('disabled', isMax);
+    if (isMax) {
+      btnPlus.setAttribute('aria-disabled', 'true');
+    } else {
+      btnPlus.removeAttribute('aria-disabled');
+    }
+  }
 }
 
 function openGwSelectorModal() {
@@ -615,7 +644,7 @@ function setupPaymentSelectorListeners() {
       openQrisRegionNoticeModal();
     } else {
       selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
-      closeGwSelectorModal();
+      setTimeout(closeGwSelectorModal, 80);
     }
   });
 
@@ -625,7 +654,7 @@ function setupPaymentSelectorListeners() {
       return;
     }
     selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', true);
-    closeGwSelectorModal();
+    setTimeout(closeGwSelectorModal, 80);
   });
 
   selBep20?.addEventListener('click', () => {
@@ -634,7 +663,7 @@ function setupPaymentSelectorListeners() {
       return;
     }
     selectPaymentMethod('USDT_BEP20', 'CRYPTO', 'BEP20', true);
-    closeGwSelectorModal();
+    setTimeout(closeGwSelectorModal, 80);
   });
 
   // Region Notice Modal actions
@@ -938,7 +967,7 @@ async function handleApplyVoucher() {
   if (!code) {
     if (feedback) {
       feedback.textContent = isEn ? 'Please enter a voucher code first.' : 'Silakan ketik kode voucher terlebih dahulu.';
-      feedback.style.color = '#f87171';
+      feedback.className = 'voucher-feedback feedback-error';
       feedback.style.display = 'block';
     }
     input?.focus();
@@ -971,7 +1000,7 @@ async function handleApplyVoucher() {
 
       if (feedback) {
         feedback.textContent = `✓ ${json.data.message || (isEn ? 'Voucher applied successfully!' : 'Voucher berhasil diterapkan!')}`;
-        feedback.style.color = '#10b981';
+        feedback.className = 'voucher-feedback feedback-success';
         feedback.style.display = 'block';
       }
 
@@ -994,7 +1023,7 @@ async function handleApplyVoucher() {
       appliedVoucher = null;
       if (feedback) {
         feedback.textContent = `✕ ${json.error || (isEn ? 'Voucher is invalid or limit reached' : 'Kode voucher tidak valid atau kuota telah habis')}`;
-        feedback.style.color = '#f87171';
+        feedback.className = 'voucher-feedback feedback-error';
         feedback.style.display = 'block';
       }
       triggerPriceRecalcAnimation();
@@ -1002,7 +1031,7 @@ async function handleApplyVoucher() {
   } catch (err) {
     if (feedback) {
       feedback.textContent = isEn ? 'Failed to connect to voucher validation server.' : 'Gagal menghubungi server validasi voucher.';
-      feedback.style.color = '#f87171';
+      feedback.className = 'voucher-feedback feedback-error';
       feedback.style.display = 'block';
     }
   } finally {
@@ -1029,7 +1058,10 @@ function handleCancelVoucher(keepFeedbackMsg = false) {
   const btnCancel = document.getElementById('btnCancelVoucher');
   if (btnCancel) btnCancel.style.display = 'none';
   const feedback = document.getElementById('voucherFeedback');
-  if (feedback && !keepFeedbackMsg) feedback.style.display = 'none';
+  if (feedback && !keepFeedbackMsg) {
+    feedback.className = 'voucher-feedback';
+    feedback.style.display = 'none';
+  }
   const statusTag = document.getElementById('voucherStatusTag');
   if (statusTag) statusTag.style.display = 'none';
 

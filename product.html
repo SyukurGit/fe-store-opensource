@@ -449,10 +449,11 @@
                   </div>
                 </div>
                 <div class="modal-prod-stepper-wrap">
+                  <span class="modal-prod-stepper-label">Jumlah Pembelian</span>
                   <div class="qty-stepper compact-stepper">
-                    <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn">−</button>
-                    <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1">
-                    <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn">+</button>
+                    <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn" aria-label="Kurangi kuantitas">−</button>
+                    <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1" aria-label="Jumlah kuantitas">
+                    <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn" aria-label="Tambah kuantitas">+</button>
                   </div>
                 </div>
               </div>
@@ -566,9 +567,12 @@
   <div id="gwSelectorModal" class="modal-overlay" style="z-index: 2100;">
     <div class="modal-card gw-selector-card">
       <div class="modal-sheet-handle"></div>
-      <div class="modal-header">
-        <h3 class="modal-title">Pilih Metode Pembayaran</h3>
-        <button type="button" class="modal-close" id="closeGwSelectorBtn" title="Tutup">&times;</button>
+      <div class="gw-selector-header">
+        <div class="gw-selector-header-info">
+          <h3 class="modal-title">Pilih Metode Pembayaran</h3>
+          <p class="gw-selector-subtitle">Pilih metode bayar otomatis & instan tanpa verifikasi manual</p>
+        </div>
+        <button type="button" class="modal-close" id="closeGwSelectorBtn" title="Tutup" aria-label="Tutup">&times;</button>
       </div>
       <div class="gw-options-list">
         <!-- QRIS Option -->
@@ -580,9 +584,10 @@
           <div class="gw-option-details">
             <div class="gw-option-title-row">
               <span class="gw-option-name">QRIS Instant Multi-Bank</span>
+              <span class="gw-badge-pill gw-badge-green">0% Biaya</span>
               <span class="gw-tag-idr">IDR</span>
             </div>
-            <div class="gw-option-desc">BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay • 0% Fee</div>
+            <div class="gw-option-desc">BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay</div>
           </div>
         </div>
 
@@ -596,9 +601,10 @@
           <div class="gw-option-details">
             <div class="gw-option-title-row">
               <span class="gw-option-name">Binance Pay (Crypto)</span>
-              <span class="gw-tag-usd">USD / USDT</span>
+              <span class="gw-badge-pill gw-badge-amber">Bebas Gas Fee</span>
+              <span class="gw-tag-usd">USDT</span>
             </div>
-            <div class="gw-option-desc">0% Gas Fee • Auto Konfirmasi Cepat via Binance App • Global</div>
+            <div class="gw-option-desc">Auto-konfirmasi instan via Aplikasi Binance • Bebas Potongan</div>
           </div>
         </div>
 
@@ -610,8 +616,9 @@
           </div>
           <div class="gw-option-details">
             <div class="gw-option-title-row">
-              <span class="gw-option-name">USDT BEP-20 (BNB Smart Chain)</span>
-              <span class="gw-tag-usd">USD / Web3</span>
+              <span class="gw-option-name">USDT (BNB Smart Chain)</span>
+              <span class="gw-badge-pill gw-badge-cyan">BEP-20 Web3</span>
+              <span class="gw-tag-usd">Crypto</span>
             </div>
             <div class="gw-option-desc">Transfer desentralisasi via Trust Wallet, Metamask, Binance • Low Gas</div>
           </div>
