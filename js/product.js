@@ -6,6 +6,19 @@ let selectedPaymentGateway = 'PAYMENTG';
 let selectedPaymentMethod = 'QRIS';
 let selectedPaymentChannel = 'SHOPEEPAY';
 let appConfig = { usd_rate: 18000 };
+let initialCheckoutCurrency = 'IDR';
+
+function shouldShowQrisNotice() {
+  // 1. Target: Pengguna yang sebelum checkout mengatur mata uang USD
+  if (initialCheckoutCurrency === 'USD') return true;
+
+  // 2. Target: Pengguna dengan IP Non-Indonesia
+  const clientCountry = (window.digimestClientCountry || sessionStorage.getItem('digimest_client_country') || '').toUpperCase();
+  if (clientCountry && clientCountry !== 'ID') return true;
+
+  // Selain itu (Pengguna dengan mata uang IDR & IP Indonesia), jangan tampilkan notice saat gonta-ganti
+  return false;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initProductPage();
@@ -503,10 +516,12 @@ function updateCalculations() {
 }
 
 function openGwSelectorModal() {
+  document.getElementById('btnOpenGwSelector')?.classList.add('open');
   document.getElementById('gwSelectorModal')?.classList.add('open');
 }
 
 function closeGwSelectorModal() {
+  document.getElementById('btnOpenGwSelector')?.classList.remove('open');
   document.getElementById('gwSelectorModal')?.classList.remove('open');
 }
 
@@ -592,11 +607,11 @@ function setupPaymentSelectorListeners() {
       closeGwSelectorModal();
       return;
     }
-    const isCurrentlyCrypto = (selectedPaymentGateway === 'BINANCE' || selectedPaymentGateway === 'USDT_BEP20' || selectedPaymentMethod === 'BINANCE_PAY' || selectedPaymentMethod === 'CRYPTO');
-    const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
 
-    // If switching from USD/Crypto to QRIS, show region confirmation modal
-    if (isCurrentlyCrypto || activeCur === 'USD') {
+    // Rules:
+    // 1. Target notice: Non-Indonesian IP ATAU mata uang awal sebelum checkout disetel ke USD.
+    // 2. Pengguna Indonesia (mata uang IDR & IP Indo): langsung aktifkan QRIS tanpa interupsi.
+    if (shouldShowQrisNotice()) {
       openQrisRegionNoticeModal();
     } else {
       selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
@@ -1042,6 +1057,7 @@ function openCheckoutModal() {
 
   // Smart default gateway: IDR -> QRIS, USD -> Binance Pay
   const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+  initialCheckoutCurrency = activeCur;
   if (activeCur === 'USD') {
     selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
   } else {
@@ -1061,6 +1077,8 @@ function openCheckoutModal() {
 }
 
 function closeCheckoutModal() {
+  closeGwSelectorModal();
+  closeQrisRegionNoticeModal();
   document.getElementById('checkoutModal')?.classList.remove('open');
   document.body.classList.remove('modal-open');
 }

@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.17">
-  <script src="/js/api-config.js?v=5.9.17"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.18">
+  <script src="/js/api-config.js?v=5.9.18"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -473,7 +473,7 @@
                   <div class="selected-gw-sub" id="activeGwSubtitle">0% Gas Fee • Instant Auto-Detect • USD</div>
                 </div>
                 <button type="button" id="btnOpenGwSelector" class="btn-change-gw" title="Change Payment Method">
-                  <span>Change</span> ▾
+                  <span>Change</span> <span class="gw-chevron">▾</span>
                 </button>
               </div>
             </div>
@@ -565,9 +565,10 @@
   <!-- Payment Gateway Selection Modal (Change Method) -->
   <div id="gwSelectorModal" class="modal-overlay" style="z-index: 2100;">
     <div class="modal-card gw-selector-card">
+      <div class="modal-sheet-handle"></div>
       <div class="modal-header">
         <h3 class="modal-title">Select Payment Method</h3>
-        <button type="button" class="modal-close" id="closeGwSelectorBtn">&times;</button>
+        <button type="button" class="modal-close" id="closeGwSelectorBtn" title="Close">&times;</button>
       </div>
       <div class="gw-options-list">
         <!-- Binance Pay Option -->
@@ -622,22 +623,28 @@
   <!-- Special Confirmation Modal: Switching from USDT to QRIS (Indonesia Region Only) -->
   <div id="qrisRegionNoticeModal" class="modal-overlay" style="z-index: 2200;">
     <div class="modal-card region-notice-card" style="position: relative;">
+      <div class="modal-sheet-handle"></div>
       <button type="button" class="modal-close" id="closeQrisNoticeBtn" style="position: absolute; top: 12px; right: 14px;" title="Close">&times;</button>
       <div class="region-notice-icon-wrap" style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
         <svg viewBox="0 0 24 24" width="34" height="34" stroke="#fbbf24" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </div>
-      <h3 class="region-notice-title" id="qrisNoticeTitle">QRIS Payment Notice (Indonesia Only)</h3>
+      <h3 class="region-notice-title" id="qrisNoticeTitle">QRIS Payment Notice (IDR)</h3>
       <div class="region-notice-body" id="qrisNoticeBody">
-        <strong>QRIS</strong> is exclusively processed through <strong>Indonesian Bank Accounts or Indonesian E-Wallets</strong> (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay).<br><br>
-        Your checkout amount will be converted into Indonesian Rupiah (IDR) at the store exchange rate: <strong>1 USD = Rp <span id="qrisNoticeRate">18,000</span></strong>.<br><br>
-        If you are an Indonesian customer or hold an Indonesian banking/e-wallet account, you may proceed.
+        <div class="qris-notice-point">
+          <span class="qris-notice-bullet">💳</span>
+          <div><strong>Indonesian Bank & E-Wallets Only:</strong> QRIS payments can only be completed using Indonesian banking apps or local e-wallets (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay).</div>
+        </div>
+        <div class="qris-notice-point" style="margin-top: 10px;">
+          <span class="qris-notice-bullet">💱</span>
+          <div><strong>Automatic Conversion:</strong> Your total checkout amount will be converted to Indonesian Rupiah at the store exchange rate: <strong>1 USD = Rp <span id="qrisNoticeRate">18,000</span></strong>.</div>
+        </div>
       </div>
       <div class="region-notice-actions">
         <button type="button" id="btnConfirmSwitchToQRIS" class="btn-submit" style="margin-top: 0; padding: 0.75rem 1.25rem;">
-          Proceed with QRIS (IDR) ➔
+          Continue with QRIS (IDR) ➔
         </button>
         <button type="button" id="btnCancelSwitchToQRIS" class="btn-nav" style="width: 100%; justify-content: center; padding: 0.65rem 1.25rem; cursor: pointer;">
-          Cancel, Keep USDT
+          Back to Previous Payment Method
         </button>
       </div>
     </div>
@@ -698,7 +705,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.17"></script>
-  <script src="/js/product.js?v=5.9.17"></script>
+  <script src="/js/order-history.js?v=5.9.18"></script>
+  <script src="/js/product.js?v=5.9.18"></script>
 </body>
 </html>

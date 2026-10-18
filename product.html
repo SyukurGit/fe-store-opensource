@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.17">
-  <script src="/js/api-config.js?v=5.9.17"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.18">
+  <script src="/js/api-config.js?v=5.9.18"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -473,7 +473,7 @@
                   <div class="selected-gw-sub" id="activeGwSubtitle">BCA, Mandiri, BRI, GoPay, OVO, Dana • 0% Fee</div>
                 </div>
                 <button type="button" id="btnOpenGwSelector" class="btn-change-gw" title="Ganti Metode Pembayaran">
-                  <span>Ganti</span> ▾
+                  <span>Ganti</span> <span class="gw-chevron">▾</span>
                 </button>
               </div>
             </div>
@@ -565,9 +565,10 @@
   <!-- Modal Pemilihan Payment Gateway (Ganti Metode) -->
   <div id="gwSelectorModal" class="modal-overlay" style="z-index: 2100;">
     <div class="modal-card gw-selector-card">
+      <div class="modal-sheet-handle"></div>
       <div class="modal-header">
         <h3 class="modal-title">Pilih Metode Pembayaran</h3>
-        <button type="button" class="modal-close" id="closeGwSelectorBtn">&times;</button>
+        <button type="button" class="modal-close" id="closeGwSelectorBtn" title="Tutup">&times;</button>
       </div>
       <div class="gw-options-list">
         <!-- QRIS Option -->
@@ -622,22 +623,28 @@
   <!-- Modal Konfirmasi Khusus: Switch dari USDT ke QRIS (Indonesia Region Only) -->
   <div id="qrisRegionNoticeModal" class="modal-overlay" style="z-index: 2200;">
     <div class="modal-card region-notice-card" style="position: relative;">
+      <div class="modal-sheet-handle"></div>
       <button type="button" class="modal-close" id="closeQrisNoticeBtn" style="position: absolute; top: 12px; right: 14px;" title="Tutup">&times;</button>
       <div class="region-notice-icon-wrap" style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
         <svg viewBox="0 0 24 24" width="34" height="34" stroke="#fbbf24" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </div>
-      <h3 class="region-notice-title" id="qrisNoticeTitle">Pembayaran QRIS Khusus Region Indonesia</h3>
+      <h3 class="region-notice-title" id="qrisNoticeTitle">Konfirmasi Pembayaran QRIS (IDR)</h3>
       <div class="region-notice-body" id="qrisNoticeBody">
-        Metode <strong>QRIS</strong> hanya dapat diproses menggunakan <strong>Rekening Bank Indonesia atau E-Wallet Indonesia</strong> (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay).<br><br>
-        Total transaksi Anda akan dikonversi ke Rupiah sesuai kurs toko: <strong>1 USD = Rp <span id="qrisNoticeRate">18.000</span></strong>.<br><br>
-        Jika Anda adalah pembeli dari Indonesia atau memiliki rekening bank Indonesia, silakan lanjutkan.
+        <div class="qris-notice-point">
+          <span class="qris-notice-bullet">💳</span>
+          <div><strong>Khusus Rekening & E-Wallet Indonesia:</strong> QRIS hanya dapat diproses menggunakan m-Banking atau E-Wallet domestik Indonesia (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay).</div>
+        </div>
+        <div class="qris-notice-point" style="margin-top: 10px;">
+          <span class="qris-notice-bullet">💱</span>
+          <div><strong>Konversi Kurs Otomatis:</strong> Tagihan Anda akan dikonversi ke Rupiah sesuai kurs resmi toko: <strong>1 USD = Rp <span id="qrisNoticeRate">18.000</span></strong>.</div>
+        </div>
       </div>
       <div class="region-notice-actions">
         <button type="button" id="btnConfirmSwitchToQRIS" class="btn-submit" style="margin-top: 0; padding: 0.75rem 1.25rem;">
           Lanjutkan via QRIS (IDR) ➔
         </button>
         <button type="button" id="btnCancelSwitchToQRIS" class="btn-nav" style="width: 100%; justify-content: center; padding: 0.65rem 1.25rem; cursor: pointer;">
-          Batal, Tetap Pakai USDT
+          Kembali ke Metode Sebelumnya
         </button>
       </div>
     </div>
@@ -698,7 +705,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.17"></script>
-  <script src="/js/product.js?v=5.9.17"></script>
+  <script src="/js/order-history.js?v=5.9.18"></script>
+  <script src="/js/product.js?v=5.9.18"></script>
 </body>
 </html>
