@@ -185,24 +185,27 @@ window.digimestApi = function(endpoint) {
     .catch(() => {});
 })();
 
-// Current App Build Version
-window.STOREKU_BUILD_VERSION = '5.9.12';
+// Current App Build Version (Synchronized with /version.json)
+window.STOREKU_BUILD_VERSION = '5.9.13';
 
 // Background Auto-Reload Checker when user returns to tab
 (function initVersionWatcher() {
   if (typeof window === 'undefined' || !window.addEventListener) return;
-  
+
+  // Never auto-reload admin pages to prevent wiping unsaved edits/forms
+  if (window.location.pathname.includes('/admin')) return;
+
   let isChecking = false;
   let lastCheckedTime = 0;
-  
+
   function checkLatestVersion() {
     const now = Date.now();
     // Throttle check to at most once per 60 seconds
     if (isChecking || (now - lastCheckedTime < 60000)) return;
-    
+
     isChecking = true;
     lastCheckedTime = now;
-    
+
     fetch('/version.json?t=' + now, {
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
@@ -213,6 +216,16 @@ window.STOREKU_BUILD_VERSION = '5.9.12';
       })
       .then(data => {
         if (data && data.version && data.version !== window.STOREKU_BUILD_VERSION) {
+          // Check if user is actively filling a form or has a modal open
+          const hasOpenModal = document.querySelector('.modal.open, .modal-overlay.open, #checkoutModal.open');
+          const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+          if (hasOpenModal || isTyping) {
+            // Postpone reload to prevent wiping user input
+            console.log('[Storeku] Versi baru tersedia:', data.version, ', ditunda karena pengguna sedang aktif mengisi form/modal.');
+            return;
+          }
+
           console.log('[Storeku] Versi baru terdeteksi:', data.version, '(Versi saat ini:', window.STOREKU_BUILD_VERSION, ')');
           window.location.reload(true);
         }
