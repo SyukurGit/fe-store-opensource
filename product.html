@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.11">
-  <script src="/js/api-config.js?v=5.9.11"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.12">
+  <script src="/js/api-config.js?v=5.9.12"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -283,19 +283,28 @@
 
         <!-- Main Buy Button (Opens Checkout Modal) -->
         <button id="btnOpenCheckoutFromDetail" class="btn-submit detail-buy-btn">
-          Beli Sekarang ➔
+          Beli Sekarang
         </button>
 
         <!-- Guarantee badges -->
-        <div class="detail-guarantee-list" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #10b981;">⚡</span> Proses Otomatis 24/7 Langsung Terbit
+        <div class="detail-guarantee-list">
+          <div class="detail-guarantee-item">
+            <span class="guarantee-icon-wrap icon-bolt">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </span>
+            <span class="guarantee-text">Proses Otomatis 24/7 Langsung Terbit</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #60a5fa;">💳</span> QRIS (Semua Bank/E-Wallet) & Binance Pay (USDT)
+          <div class="detail-guarantee-item">
+            <span class="guarantee-icon-wrap icon-card">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            </span>
+            <span class="guarantee-text">QRIS Multi-Bank, Binance Pay & USDT</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #a855f7;">✉️</span> Bukti & Kode Klaim Otomatis ke Email
+          <div class="detail-guarantee-item">
+            <span class="guarantee-icon-wrap icon-mail">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </span>
+            <span class="guarantee-text">Bukti & Kode Klaim Otomatis ke Email</span>
           </div>
         </div>
       </div>
@@ -501,15 +510,7 @@
           <div class="checkout-trust-row">
             <span class="trust-item">
               <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              <span>Enkripsi 256-Bit</span>
-            </span>
-            <span class="trust-item">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              <span>Lisensi Otomatis</span>
-            </span>
-            <span class="trust-item">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-              <span>Garansi Resmi</span>
+              <span>Pembayaran Aman & Terenkripsi 256-Bit SSL</span>
             </span>
           </div>
 
@@ -655,7 +656,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.11"></script>
-  <script src="/js/product.js?v=5.9.11"></script>
+  <script src="/js/order-history.js?v=5.9.12"></script>
+  <script src="/js/product.js?v=5.9.12"></script>
 </body>
 </html>

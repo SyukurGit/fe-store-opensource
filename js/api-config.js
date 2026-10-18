@@ -163,7 +163,7 @@ window.digimestApi = function(endpoint) {
 })();
 
 // Current App Build Version
-window.STOREKU_BUILD_VERSION = '5.9.11';
+window.STOREKU_BUILD_VERSION = '5.9.12';
 
 // Background Auto-Reload Checker when user returns to tab
 (function initVersionWatcher() {
