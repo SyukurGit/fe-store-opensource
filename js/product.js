@@ -1049,6 +1049,8 @@ function openCheckoutModal() {
   }
 
   updateCalculations();
+  const modalBody = modal?.querySelector('.checkout-modal-body');
+  if (modalBody) modalBody.scrollTop = 0;
   modal?.classList.add('open');
   document.body.classList.add('modal-open');
 
@@ -1083,6 +1085,9 @@ async function submitCheckout() {
     if (emailInput) {
       emailInput.style.borderColor = '#ef4444';
       emailInput.focus();
+      try {
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (e) {}
     }
     showToast(errMsg);
     return;
