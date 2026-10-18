@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.14">
-  <script src="/js/api-config.js?v=5.9.14"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.15">
+  <script src="/js/api-config.js?v=5.9.15"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -420,130 +420,145 @@
   <!-- Modal Konfirmasi Checkout & Pembayaran -->
   <div class="modal-overlay" id="checkoutModal">
     <div class="modal-card checkout-modal-card">
-      <div class="modal-sheet-handle"></div>
-      <div class="modal-header">
-        <h3 class="modal-title">Konfirmasi & Detail Pembelian</h3>
-        <button class="modal-close" id="closeCheckoutBtn">&times;</button>
+
+      <!-- 1. Sticky Header -->
+      <div class="checkout-modal-header">
+        <div class="modal-sheet-handle"></div>
+        <div class="checkout-header-bar">
+          <h3 class="modal-title">Konfirmasi & Detail Pembelian</h3>
+          <button type="button" class="modal-close" id="closeCheckoutBtn" aria-label="Tutup">&times;</button>
+        </div>
       </div>
 
-      <!-- 2-Column Responsive Layout for Desktop & Mobile -->
-      <div class="checkout-grid-layout">
-        
-        <!-- Left Column: Product, Quantity, Single Active Gateway, Voucher -->
-        <div class="checkout-col checkout-col-left">
-          
-          <!-- Integrated Product & Quantity Card -->
-          <div class="modal-product-card">
-            <div class="modal-product-row">
-              <img id="mProdLogo" src="" alt="" class="modal-prod-img">
-              <div class="modal-prod-details">
-                <div id="mProdName" class="modal-prod-name"></div>
-                <div class="modal-prod-sub-row">
-                  <span id="mProdType" class="modal-prod-badge"></span>
-                  <span id="mModalStockNote" class="modal-prod-stock">Stok Tersedia</span>
+      <!-- 2. Scrollable Body Area -->
+      <div class="checkout-modal-body">
+        <div class="checkout-grid-layout">
+
+          <!-- Left Column: Product, Quantity, Single Active Gateway, Voucher -->
+          <div class="checkout-col checkout-col-left">
+
+            <!-- Integrated Product & Quantity Card -->
+            <div class="modal-product-card">
+              <div class="modal-product-row">
+                <img id="mProdLogo" src="" alt="" class="modal-prod-img">
+                <div class="modal-prod-details">
+                  <div id="mProdName" class="modal-prod-name"></div>
+                  <div class="modal-prod-sub-row">
+                    <span id="mProdType" class="modal-prod-badge"></span>
+                    <span id="mModalStockNote" class="modal-prod-stock">Stok Tersedia</span>
+                  </div>
+                </div>
+                <div class="modal-prod-stepper-wrap">
+                  <div class="qty-stepper compact-stepper">
+                    <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn">−</button>
+                    <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1">
+                    <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn">+</button>
+                  </div>
                 </div>
               </div>
-              <div class="modal-prod-stepper-wrap">
-                <div class="qty-stepper compact-stepper">
-                  <button id="btnModalQtyMinus" type="button" class="qty-stepper-btn">−</button>
-                  <input type="number" id="modalQtyInput" class="qty-stepper-input" min="1" max="100" value="1">
-                  <button id="btnModalQtyPlus" type="button" class="qty-stepper-btn">+</button>
+            </div>
+
+            <!-- Single Active Payment Gateway Card with Change Button -->
+            <div class="form-group checkout-section-group">
+              <label class="form-label checkout-label-row">
+                <span>Metode Pembayaran</span>
+                <span id="mCurrencyBadge" class="checkout-currency-badge">IDR (Rupiah)</span>
+              </label>
+              <div class="selected-gateway-card" id="selectedGatewayCard">
+                <div class="selected-gw-icon" id="activeGwIconWrap">
+                  <img id="activeGwLogo" src="/logo/kris.png" alt="QRIS" class="selected-gw-img">
                 </div>
+                <div class="selected-gw-info">
+                  <div class="selected-gw-title" id="activeGwTitle">QRIS Instant Multi-Bank</div>
+                  <div class="selected-gw-sub" id="activeGwSubtitle">BCA, Mandiri, BRI, GoPay, OVO, Dana • 0% Fee</div>
+                </div>
+                <button type="button" id="btnOpenGwSelector" class="btn-change-gw" title="Ganti Metode Pembayaran">
+                  <span>Ganti</span> ▾
+                </button>
               </div>
             </div>
+
+            <!-- Voucher Promo Code Box -->
+            <div class="form-group checkout-section-group voucher-group">
+              <label class="form-label" for="voucherInput">Kode Promo / Voucher</label>
+              <div class="voucher-input-card">
+                <div class="voucher-input-row">
+                  <input type="text" id="voucherInput" class="form-input voucher-field" placeholder="KODE VOUCHER (OPSIONAL)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                  <button type="button" id="btnApplyVoucher" class="btn-voucher-apply">Terapkan</button>
+                  <button type="button" id="btnCancelVoucher" class="btn-voucher-cancel" style="display: none;" title="Hapus voucher">✕ Batalkan</button>
+                </div>
+                <div id="voucherFeedback" class="voucher-feedback" style="display: none;"></div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Single Active Payment Gateway Card with Change Button -->
-          <div class="form-group checkout-section-group">
-            <label class="form-label checkout-label-row">
-              <span>Metode Pembayaran</span>
-              <span id="mCurrencyBadge" class="checkout-currency-badge">IDR (Rupiah)</span>
-            </label>
-            <div class="selected-gateway-card" id="selectedGatewayCard">
-              <div class="selected-gw-icon" id="activeGwIconWrap">
-                <img id="activeGwLogo" src="/logo/kris.png" alt="QRIS" class="selected-gw-img">
-              </div>
-              <div class="selected-gw-info">
-                <div class="selected-gw-title" id="activeGwTitle">QRIS Instant Multi-Bank</div>
-                <div class="selected-gw-sub" id="activeGwSubtitle">BCA, Mandiri, BRI, GoPay, OVO, Dana • 0% Fee</div>
-              </div>
-              <button type="button" id="btnOpenGwSelector" class="btn-change-gw" title="Ganti Metode Pembayaran">
-                <span>Ganti</span> ▾
-              </button>
-            </div>
-          </div>
+          <!-- Right Column: Buyer Details, Financial Summary -->
+          <div class="checkout-col checkout-col-right">
 
-          <!-- Voucher Promo Code Box -->
-          <div class="form-group checkout-section-group voucher-group">
-            <label class="form-label" for="voucherInput">Kode Promo / Voucher</label>
-            <div class="voucher-input-card">
-              <div class="voucher-input-row">
-                <input type="text" id="voucherInput" class="form-input voucher-field" placeholder="KODE VOUCHER (OPSIONAL)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
-                <button type="button" id="btnApplyVoucher" class="btn-voucher-apply">Terapkan</button>
-                <button type="button" id="btnCancelVoucher" class="btn-voucher-cancel" style="display: none;" title="Hapus voucher">✕ Batalkan</button>
-              </div>
-              <div id="voucherFeedback" class="voucher-feedback" style="display: none;"></div>
+            <div class="form-group checkout-section-group">
+              <label class="form-label" for="emailInput">Email Pembeli <span style="color:#ef4444;">*</span> (Wajib untuk Lisensi)</label>
+              <input type="email" id="emailInput" class="form-input" placeholder="contoh: nama@gmail.com" required>
+              <div id="emailInputError" class="checkout-input-error" style="display: none;"></div>
+              <div class="form-input-hint">Lisensi dikirim otomatis ke email ini segera setelah pembayaran diverifikasi.</div>
             </div>
+
+            <div class="form-group checkout-section-group">
+              <label class="form-label" for="contactInput">WhatsApp / Telegram <span class="form-label-opt">(Opsional)</span></label>
+              <input type="text" id="contactInput" class="form-input" placeholder="08xxxxxxxxxx atau @username">
+            </div>
+
+            <div class="order-summary-box" id="orderSummaryBox" style="margin-top: 0.5rem; margin-bottom: 0.85rem;">
+              <div class="summary-row">
+                <span>Harga Satuan</span>
+                <span id="mUnitPrice">Rp 0</span>
+              </div>
+              <div class="summary-row">
+                <span>Jumlah</span>
+                <span id="mQtyDisplay">x 1</span>
+              </div>
+              <div class="summary-row" id="mVoucherRow" style="display: none; color: #10b981; font-weight: 600;">
+                <span>Potongan Voucher (<span id="mVoucherCodeTag"></span>)</span>
+                <span id="mVoucherDiscountAmount">-Rp 0</span>
+              </div>
+              <div class="summary-row">
+                <span>Metode Bayar</span>
+                <span id="mSummaryPaymentMethod" style="color: #60a5fa; font-weight: 600;">QRIS Multi-Bank</span>
+              </div>
+              <div class="summary-row" id="mSummaryUsdRateRow" style="display: none; color: #94a3b8; font-size: 0.8rem;">
+                <span>Kurs Konversi</span>
+                <span>1 USD = Rp <span id="mSummaryUsdRate">18.000</span></span>
+              </div>
+              <div class="summary-row total">
+                <span>Total Pembayaran</span>
+                <span id="mSummaryTotalPrice" class="m-total-price-val" style="color: #10b981; font-weight: 800; font-size: 1.15rem;">Rp 0</span>
+              </div>
+            </div>
+
           </div>
 
         </div>
+      </div>
 
-        <!-- Right Column: Buyer Details, Financial Summary & Submit Button -->
-        <div class="checkout-col checkout-col-right">
-
-          <div class="form-group checkout-section-group">
-            <label class="form-label" for="emailInput">Email Pembeli <span style="color:#ef4444;">*</span> (Wajib untuk Lisensi)</label>
-            <input type="email" id="emailInput" class="form-input" placeholder="contoh: nama@gmail.com" required>
-            <div id="emailInputError" class="checkout-input-error" style="display: none;"></div>
-            <div class="form-input-hint">Lisensi dikirim otomatis ke email ini segera setelah pembayaran diverifikasi.</div>
+      <!-- 3. Sticky Footer -->
+      <div class="checkout-sticky-footer">
+        <div class="checkout-footer-content">
+          <div class="checkout-footer-total-row">
+            <span class="footer-total-label">Total Pembayaran</span>
+            <span id="mTotalPrice" class="footer-total-amount m-total-price-val">Rp 0</span>
           </div>
-
-          <div class="form-group checkout-section-group">
-            <label class="form-label" for="contactInput">WhatsApp / Telegram <span class="form-label-opt">(Opsional)</span></label>
-            <input type="text" id="contactInput" class="form-input" placeholder="08xxxxxxxxxx atau @username">
-          </div>
-
-          <div class="order-summary-box" id="orderSummaryBox" style="margin-top: 0.5rem; margin-bottom: 0.85rem;">
-            <div class="summary-row">
-              <span>Harga Satuan</span>
-              <span id="mUnitPrice">Rp 0</span>
-            </div>
-            <div class="summary-row">
-              <span>Jumlah</span>
-              <span id="mQtyDisplay">x 1</span>
-            </div>
-            <div class="summary-row" id="mVoucherRow" style="display: none; color: #10b981; font-weight: 600;">
-              <span>Potongan Voucher (<span id="mVoucherCodeTag"></span>)</span>
-              <span id="mVoucherDiscountAmount">-Rp 0</span>
-            </div>
-            <div class="summary-row">
-              <span>Metode Bayar</span>
-              <span id="mSummaryPaymentMethod" style="color: #60a5fa; font-weight: 600;">QRIS Multi-Bank</span>
-            </div>
-            <div class="summary-row" id="mSummaryUsdRateRow" style="display: none; color: #94a3b8; font-size: 0.8rem;">
-              <span>Kurs Konversi</span>
-              <span>1 USD = Rp <span id="mSummaryUsdRate">18.000</span></span>
-            </div>
-            <div class="summary-row total">
-              <span>Total Pembayaran</span>
-              <span id="mTotalPrice" style="color: #10b981; font-weight: 800; font-size: 1.15rem;">Rp 0</span>
-            </div>
-          </div>
-
-          <button id="btnConfirmCheckout" class="btn-submit" style="margin-top: 0.25rem;">
+          <button type="button" id="btnConfirmCheckout" class="btn-submit checkout-submit-btn">
             Bayar Sekarang via QRIS
           </button>
-
-          <div class="checkout-trust-row">
-            <span class="trust-item">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              <span>Pembayaran Aman & Terenkripsi 256-Bit SSL</span>
-            </span>
-          </div>
-
         </div>
-
+        <div class="checkout-trust-row">
+          <span class="trust-item">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Pembayaran Aman & Terenkripsi 256-Bit SSL</span>
+          </span>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -683,7 +698,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.14"></script>
-  <script src="/js/product.js?v=5.9.14"></script>
+  <script src="/js/order-history.js?v=5.9.15"></script>
+  <script src="/js/product.js?v=5.9.15"></script>
 </body>
 </html>

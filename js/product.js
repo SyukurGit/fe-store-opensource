@@ -458,22 +458,26 @@ function updateCalculations() {
   }
 
   // Pure USD vs IDR pricing formatting (No IDR leakage for international/crypto buyers)
+  let formattedTotal = '';
   if (isPureUSD) {
     const usdAmount = (finalTotal / usdRate).toFixed(2);
     const unitUsd = (unitPrice / usdRate).toFixed(2);
     document.getElementById('mUnitPrice').textContent = `$${unitUsd} USDT`;
-    document.getElementById('mTotalPrice').textContent = `$${usdAmount} USDT`;
+    formattedTotal = `$${usdAmount} USDT`;
   } else {
     if (activeCur === 'USD') {
       const usdAmount = (finalTotal / usdRate).toFixed(2);
       const unitUsd = (unitPrice / usdRate).toFixed(2);
       document.getElementById('mUnitPrice').textContent = `$${unitUsd} (~Rp ${Number(unitPrice).toLocaleString('id-ID')})`;
-      document.getElementById('mTotalPrice').textContent = `Rp ${Number(finalTotal).toLocaleString('id-ID')} (~$${usdAmount})`;
+      formattedTotal = `Rp ${Number(finalTotal).toLocaleString('id-ID')} (~$${usdAmount})`;
     } else {
       document.getElementById('mUnitPrice').textContent = 'Rp ' + Number(unitPrice).toLocaleString('id-ID');
-      document.getElementById('mTotalPrice').textContent = 'Rp ' + Number(finalTotal).toLocaleString('id-ID');
+      formattedTotal = 'Rp ' + Number(finalTotal).toLocaleString('id-ID');
     }
   }
+  document.querySelectorAll('.m-total-price-val, #mTotalPrice').forEach(el => {
+    el.textContent = formattedTotal;
+  });
   document.getElementById('mQtyDisplay').textContent = `x ${currentQty}`;
 
   const rateRow = document.getElementById('mSummaryUsdRateRow');
@@ -520,14 +524,15 @@ function closeQrisRegionNoticeModal() {
 let recalcTimer = null;
 function triggerPriceRecalcAnimation(callback) {
   const summaryBox = document.getElementById('orderSummaryBox');
-  const totalPrice = document.getElementById('mTotalPrice');
+  const totalEls = document.querySelectorAll('.m-total-price-val, #mTotalPrice');
   const vAmount = document.getElementById('mVoucherDiscountAmount');
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
 
   if (recalcTimer) clearTimeout(recalcTimer);
 
-  if (totalPrice) {
-    totalPrice.innerHTML = `<span class="price-calc-spinner"><svg class="spin-svg" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10" stroke-opacity="0.2"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg> <span>${isEn ? 'Calculating...' : 'Menghitung...'}</span></span>`;
+  if (totalEls.length > 0) {
+    const spinnerHTML = `<span class="price-calc-spinner"><svg class="spin-svg" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="12" cy="12" r="10" stroke-opacity="0.2"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg> <span>${isEn ? 'Calculating...' : 'Menghitung...'}</span></span>`;
+    totalEls.forEach(el => { el.innerHTML = spinnerHTML; });
   }
   if (vAmount && appliedVoucher) {
     vAmount.innerHTML = `<span class="calc-pulse-dots">•••</span>`;
@@ -545,11 +550,11 @@ function triggerPriceRecalcAnimation(callback) {
       updateCalculations();
     }
     if (summaryBox) summaryBox.classList.remove('quote-calculating');
-    if (totalPrice) {
-      totalPrice.classList.remove('price-pop-in');
-      void totalPrice.offsetWidth;
-      totalPrice.classList.add('price-pop-in');
-    }
+    totalEls.forEach(el => {
+      el.classList.remove('price-pop-in');
+      void el.offsetWidth;
+      el.classList.add('price-pop-in');
+    });
     if (vAmount && appliedVoucher) {
       vAmount.classList.remove('price-pop-in');
       void vAmount.offsetWidth;
@@ -1045,6 +1050,7 @@ function openCheckoutModal() {
 
   updateCalculations();
   modal?.classList.add('open');
+  document.body.classList.add('modal-open');
 
   // Only auto-focus email on desktop to avoid squishing the modal on mobile touchscreens
   if (emailInput && !emailInput.value && window.innerWidth > 768) {
@@ -1054,6 +1060,7 @@ function openCheckoutModal() {
 
 function closeCheckoutModal() {
   document.getElementById('checkoutModal')?.classList.remove('open');
+  document.body.classList.remove('modal-open');
 }
 
 async function submitCheckout() {
