@@ -12,8 +12,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.13">
-  <script src="/js/api-config.js?v=5.9.13"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.14">
+  <script src="/js/api-config.js?v=5.9.14"></script>
 </head>
 <body class="has-sticky-bar detail-page-body">
 
@@ -454,8 +454,8 @@
           </div>
 
           <!-- Single Active Payment Gateway Card with Change Button -->
-          <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div class="form-group checkout-section-group">
+            <label class="form-label checkout-label-row">
               <span>Payment Method</span>
               <span id="mCurrencyBadge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; font-weight: 700;">USD / USDT</span>
             </label>
@@ -474,15 +474,16 @@
           </div>
 
           <!-- Voucher Promo Code Box -->
-          <div class="voucher-input-card">
-            <div class="voucher-input-row">
-              <div style="position: relative; flex: 1;">
-                <input type="text" id="voucherInput" class="form-input" placeholder="PROMO CODE (OPTIONAL)" style="text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.05em; min-height: 38px; font-size: 0.82rem; padding: 6px 12px;" autocomplete="off">
+          <div class="form-group checkout-section-group voucher-group">
+            <label class="form-label" for="voucherInput">Promo Code / Voucher</label>
+            <div class="voucher-input-card">
+              <div class="voucher-input-row">
+                <input type="text" id="voucherInput" class="form-input voucher-field" placeholder="PROMO CODE (OPTIONAL)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+                <button type="button" id="btnApplyVoucher" class="btn-voucher-apply">Apply</button>
+                <button type="button" id="btnCancelVoucher" class="btn-voucher-cancel" style="display: none;" title="Remove voucher">✕ Remove</button>
               </div>
-              <button type="button" id="btnApplyVoucher" class="btn-nav" style="white-space: nowrap; padding: 0 14px; font-weight: 600; border-color: rgba(99, 102, 241, 0.4); color: #818cf8; cursor: pointer; min-height: 38px; font-size: 0.82rem;">Apply</button>
-              <button type="button" id="btnCancelVoucher" class="btn-nav" style="display: none; padding: 0 10px; color: #f87171; border-color: rgba(239, 68, 68, 0.3); cursor: pointer; min-height: 38px;" title="Remove voucher">✕</button>
+              <div id="voucherFeedback" class="voucher-feedback" style="display: none;"></div>
             </div>
-            <div id="voucherFeedback" style="font-size: 0.75rem; margin-top: 6px; display: none;"></div>
           </div>
 
         </div>
@@ -490,16 +491,16 @@
         <!-- Right Column: Buyer Details, Financial Summary & Submit Button -->
         <div class="checkout-col checkout-col-right">
 
-          <div class="form-group" style="margin-bottom: 0.75rem;">
+          <div class="form-group checkout-section-group">
             <label class="form-label" for="emailInput">Buyer Email <span style="color:#ef4444;">*</span> (Required for delivery)</label>
-            <input type="email" id="emailInput" class="form-input" placeholder="e.g. name@gmail.com" required style="min-height: 40px;">
-            <div id="emailInputError" style="display: none; font-size: 0.75rem; color: #ef4444; margin-top: 4px; font-weight: 500;"></div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">License keys and purchase invoice will be sent automatically to this email.</div>
+            <input type="email" id="emailInput" class="form-input" placeholder="e.g. name@gmail.com" required>
+            <div id="emailInputError" class="checkout-input-error" style="display: none;"></div>
+            <div class="form-input-hint">License keys and purchase invoice will be sent automatically to this email.</div>
           </div>
 
-          <div class="form-group" style="margin-bottom: 0.75rem;">
-            <label class="form-label" for="contactInput">WhatsApp / Telegram (Optional)</label>
-            <input type="text" id="contactInput" class="form-input" placeholder="+123456789 or @username" style="min-height: 40px;">
+          <div class="form-group checkout-section-group">
+            <label class="form-label" for="contactInput">WhatsApp / Telegram <span class="form-label-opt">(Optional)</span></label>
+            <input type="text" id="contactInput" class="form-input" placeholder="+123456789 or @username">
           </div>
 
           <div class="order-summary-box" id="orderSummaryBox" style="margin-top: 0.5rem; margin-bottom: 0.85rem;">
@@ -682,7 +683,7 @@
   </footer>
 
   <div id="toast" class="toast-notice"></div>
-  <script src="/js/order-history.js?v=5.9.13"></script>
-  <script src="/js/product.js?v=5.9.13"></script>
+  <script src="/js/order-history.js?v=5.9.14"></script>
+  <script src="/js/product.js?v=5.9.14"></script>
 </body>
 </html>

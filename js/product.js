@@ -959,8 +959,8 @@ async function handleApplyVoucher() {
       btnApply.style.display = 'none';
       const btnCancel = document.getElementById('btnCancelVoucher');
       if (btnCancel) {
-        btnCancel.textContent = isEn ? 'Remove' : 'Batalkan';
-        btnCancel.style.display = 'inline-block';
+        btnCancel.textContent = isEn ? '✕ Remove' : '✕ Batalkan';
+        btnCancel.style.display = 'inline-flex';
       }
       const statusTag = document.getElementById('voucherStatusTag');
       if (statusTag) {
@@ -1004,7 +1004,7 @@ function handleCancelVoucher(keepFeedbackMsg = false) {
   if (btnApply) {
     btnApply.disabled = false;
     btnApply.textContent = isEn ? 'Apply' : 'Terapkan';
-    btnApply.style.display = 'inline-block';
+    btnApply.style.display = 'inline-flex';
   }
   const btnCancel = document.getElementById('btnCancelVoucher');
   if (btnCancel) btnCancel.style.display = 'none';
@@ -1046,7 +1046,8 @@ function openCheckoutModal() {
   updateCalculations();
   modal?.classList.add('open');
 
-  if (emailInput && !emailInput.value) {
+  // Only auto-focus email on desktop to avoid squishing the modal on mobile touchscreens
+  if (emailInput && !emailInput.value && window.innerWidth > 768) {
     setTimeout(() => emailInput.focus(), 150);
   }
 }
