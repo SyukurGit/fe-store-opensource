@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -80,6 +80,11 @@
             </button>
           </div>
         </div>
+
+        <!-- Desktop Theme Direct Toggle Button (Single Click) -->
+        <button type="button" class="theme-toggle-btn nav-desktop-item" id="desktopThemeToggleBtn" aria-label="Ganti Tema Tampilan (Terang / Gelap)" title="Ganti Tema" onclick="window.toggleDigimestTheme()">
+          <span class="theme-toggle-icon" id="desktopThemeIcon">☀️</span>
+        </button>
 
         <!-- Mobile Animated Hamburger Button -->
         <button type="button" class="nav-hamburger-btn" id="navHamburgerBtn" aria-label="Buka Menu">
@@ -173,6 +178,26 @@
                 <span>USD (Dollar)</span>
               </span>
               <span class="currency-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Tema Tampilan / Theme</div>
+          <div class="drawer-theme-grid">
+            <button type="button" class="drawer-theme-btn active" data-theme-val="dark" onclick="window.setDigimestTheme('dark')">
+              <span class="drawer-theme-left">
+                <span class="theme-symbol-badge">🌙</span>
+                <span>Mode Gelap</span>
+              </span>
+              <span class="theme-check">✓</span>
+            </button>
+            <button type="button" class="drawer-theme-btn" data-theme-val="light" onclick="window.setDigimestTheme('light')">
+              <span class="drawer-theme-left">
+                <span class="theme-symbol-badge">☀️</span>
+                <span>Mode Terang</span>
+              </span>
+              <span class="theme-check" style="visibility: hidden;">✓</span>
             </button>
           </div>
         </div>

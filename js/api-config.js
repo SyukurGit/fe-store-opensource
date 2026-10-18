@@ -7,6 +7,19 @@
 window.digimestUSDRate = parseFloat(sessionStorage.getItem('digimest_usd_rate')) || 18000.0;
 window.digimestClientCountry = sessionStorage.getItem('digimest_client_country') || '';
 
+// Immediate Theme Preference Initialization (Zero-FOUC, runs in <head> before page rendering)
+(function initThemePreference() {
+  if (typeof window === 'undefined') return;
+  try {
+    const savedTheme = localStorage.getItem('digimest_theme');
+    if (savedTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  } catch (e) {}
+})();
+
 // Immediate Language & Currency Preference Sync & Routing (runs before page rendering)
 (function initLocaleAndCurrencyPreference() {
   if (typeof window === 'undefined') return;
@@ -210,3 +223,78 @@ window.STOREKU_BUILD_VERSION = '5.9.12';
   // Check on window focus
   window.addEventListener('focus', checkLatestVersion);
 })();
+
+// ==========================================================================
+// DIGIMEST THEME SWITCHER ENGINE (LIGHT & DARK DUAL MODE)
+// ==========================================================================
+
+/**
+ * Synchronize UI state across Desktop single-click icon & Mobile drawer buttons
+ */
+window.updateDigimestThemeUI = function() {
+  if (typeof document === 'undefined') return;
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') ||
+               (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/en'));
+
+  // 1. Desktop Single-Click Icon Button
+  const desktopIcon = document.getElementById('desktopThemeIcon');
+  const desktopBtn = document.getElementById('desktopThemeToggleBtn');
+  if (desktopIcon) {
+    desktopIcon.textContent = isLight ? '🌙' : '☀️';
+  }
+  if (desktopBtn) {
+    const titleText = isLight
+      ? (isEn ? 'Switch to Dark Mode' : 'Beralih ke Mode Gelap')
+      : (isEn ? 'Switch to Light Mode' : 'Beralih ke Mode Terang');
+    desktopBtn.title = titleText;
+    desktopBtn.setAttribute('aria-label', titleText);
+  }
+
+  // 2. Mobile Drawer Buttons (Matching drawer-currency-btn style)
+  const drawerThemeBtns = document.querySelectorAll('.drawer-theme-btn');
+  drawerThemeBtns.forEach(btn => {
+    const val = btn.dataset.themeVal;
+    const isActive = (isLight && val === 'light') || (!isLight && val === 'dark');
+    btn.classList.toggle('active', isActive);
+    const check = btn.querySelector('.theme-check');
+    if (check) {
+      check.style.visibility = isActive ? 'visible' : 'hidden';
+    }
+  });
+};
+
+/**
+ * Set theme explicitly ('light' or 'dark')
+ */
+window.setDigimestTheme = function(theme) {
+  const isLight = theme === 'light';
+  if (isLight) {
+    document.documentElement.setAttribute('data-theme', 'light');
+    try { localStorage.setItem('digimest_theme', 'light'); } catch (e) {}
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem('digimest_theme', 'dark'); } catch (e) {}
+  }
+  window.updateDigimestThemeUI();
+  window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: isLight ? 'light' : 'dark' } }));
+};
+
+/**
+ * Toggle theme between 'light' and 'dark' (Single Click)
+ */
+window.toggleDigimestTheme = function() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const nextTheme = current === 'light' ? 'dark' : 'light';
+  window.setDigimestTheme(nextTheme);
+};
+
+// Auto-sync Theme UI when DOM loads
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.updateDigimestThemeUI);
+  } else {
+    window.updateDigimestThemeUI();
+  }
+}
+
