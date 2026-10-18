@@ -4937,7 +4937,7 @@ html[data-theme="light"] {
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
   --bg-card-hover: #f1f5f9;
-  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-subtle: #e2e8f0;
   --border-active: rgba(99, 102, 241, 0.6);
   --primary: #4f46e5;
   --primary-hover: #4338ca;
@@ -5177,61 +5177,68 @@ html[data-theme="light"] .tag-btn.active {
 /* 5. Product Cards & Catalog */
 html[data-theme="light"] .product-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04) !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05) !important;
 }
 
 html[data-theme="light"] .product-card:hover {
   background: #ffffff !important;
-  border-color: rgba(99, 102, 241, 0.4) !important;
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.06) !important;
 }
 
 html[data-theme="light"] .product-card.out-of-stock {
   background: #f8fafc !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border: 1.5px solid #e2e8f0 !important;
   opacity: 0.82;
 }
 
 html[data-theme="light"] .prod-logo {
-  background: #f1f5f9;
-  border-color: rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
 html[data-theme="light"] .prod-title {
   color: #0f172a !important;
+  font-weight: 700 !important;
 }
 
 html[data-theme="light"] .prod-desc {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .prod-category {
-  color: #4f46e5 !important;
-  background: rgba(79, 70, 229, 0.08) !important;
+  color: #4338ca !important;
+  background: #eef2ff !important;
+  border: 1px solid #c7d2fe !important;
 }
 
 html[data-theme="light"] .prod-sold-badge {
-  background: rgba(15, 23, 42, 0.05) !important;
+  background: #f1f5f9 !important;
   color: #475569 !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .badge-stock {
-  background: rgba(5, 150, 105, 0.08) !important;
-  border-color: rgba(5, 150, 105, 0.2) !important;
-  color: #059669 !important;
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
 }
 
-html[data-theme="light"] .badge-warranty,
+html[data-theme="light"] .badge-warranty {
+  background: #eef2ff !important;
+  border: 1px solid #c7d2fe !important;
+  color: #4338ca !important;
+}
+
 html[data-theme="light"] .badge-region {
-  background: rgba(15, 23, 42, 0.04) !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-  color: #475569 !important;
+  background: #fef3c7 !important;
+  border: 1px solid #fde68a !important;
+  color: #b45309 !important;
 }
 
 html[data-theme="light"] .prod-footer {
-  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
+  border-top: 1px solid #f1f5f9 !important;
 }
 
 html[data-theme="light"] .price-label {
@@ -5272,13 +5279,13 @@ html[data-theme="light"] .detail-card-header,
 html[data-theme="light"] .detail-card-content,
 html[data-theme="light"] .detail-sidebar-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
 }
 
 html[data-theme="light"] .detail-big-logo {
   background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
 html[data-theme="light"] .detail-title {
@@ -5310,14 +5317,14 @@ html[data-theme="light"] .detail-unit-price-val {
 }
 
 html[data-theme="light"] .detail-stock-badge {
-  background: rgba(79, 70, 229, 0.08) !important;
-  border-color: rgba(79, 70, 229, 0.2) !important;
-  color: #4f46e5 !important;
+  background: #eef2ff !important;
+  border: 1px solid #c7d2fe !important;
+  color: #4338ca !important;
 }
 
 html[data-theme="light"] .detail-stock-badge.empty {
-  background: rgba(220, 38, 38, 0.08) !important;
-  border-color: rgba(220, 38, 38, 0.2) !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
   color: #dc2626 !important;
 }
 
@@ -5326,8 +5333,8 @@ html[data-theme="light"] .detail-action-qty-label {
 }
 
 html[data-theme="light"] .qty-stepper {
-  background: #f1f5f9 !important;
-  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
 }
 
 html[data-theme="light"] .qty-stepper-btn {
@@ -5335,32 +5342,33 @@ html[data-theme="light"] .qty-stepper-btn {
 }
 
 html[data-theme="light"] .qty-stepper-btn:hover {
-  background: rgba(15, 23, 42, 0.06) !important;
+  background: #e2e8f0 !important;
 }
 
 html[data-theme="light"] .qty-stepper-input {
   color: #0f172a !important;
   background: transparent !important;
+  font-weight: 700 !important;
 }
 
 html[data-theme="light"] .order-summary-box {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .summary-row {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .summary-row span {
-  color: #64748b;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .summary-row.total,
 html[data-theme="light"] .summary-row.total span,
 html[data-theme="light"] #dSubtotalDisplay {
   color: #0f172a !important;
-  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  border-top: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] #dBlockContent h3 {
@@ -5369,63 +5377,64 @@ html[data-theme="light"] #dBlockContent h3 {
 
 html[data-theme="light"] #dProdDesc {
   background: #f8fafc !important;
-  color: #334155 !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .detail-terms-box {
-  background: rgba(79, 70, 229, 0.04) !important;
-  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
 }
 
 html[data-theme="light"] .detail-terms-title {
-  color: #4338ca !important;
+  color: #1e40af !important;
 }
 
 html[data-theme="light"] .detail-terms-text {
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
 html[data-theme="light"] .detail-terms-box div {
-  border-top-color: rgba(79, 70, 229, 0.15) !important;
-  color: #64748b !important;
+  border-top-color: #bfdbfe !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .detail-guarantee-list {
-  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  border-top: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .detail-guarantee-item,
 html[data-theme="light"] .guarantee-text {
-  color: #475569 !important;
+  color: #334155 !important;
 }
 
 html[data-theme="light"] .guarantee-icon-wrap.icon-bolt {
-  background: rgba(5, 150, 105, 0.1) !important;
-  border-color: rgba(5, 150, 105, 0.25) !important;
-  color: #059669 !important;
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
 }
 
 html[data-theme="light"] .guarantee-icon-wrap.icon-card {
-  background: rgba(79, 70, 229, 0.1) !important;
-  border-color: rgba(79, 70, 229, 0.25) !important;
-  color: #4f46e5 !important;
+  background: #eef2ff !important;
+  border: 1px solid #c7d2fe !important;
+  color: #4338ca !important;
 }
 
 html[data-theme="light"] .guarantee-icon-wrap.icon-mail {
-  background: rgba(168, 85, 247, 0.1) !important;
-  border-color: rgba(168, 85, 247, 0.25) !important;
-  color: #7c3aed !important;
+  background: #faf5ff !important;
+  border: 1px solid #e9d5ff !important;
+  color: #7e22ce !important;
 }
 
 /* 7. Customer Reviews Section */
 html[data-theme="light"] .detail-reviews-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
 }
 
 html[data-theme="light"] .reviews-header {
-  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .reviews-header-title h3 {
@@ -5433,24 +5442,24 @@ html[data-theme="light"] .reviews-header-title h3 {
 }
 
 html[data-theme="light"] .reviews-notice-banner {
-  background: rgba(79, 70, 229, 0.04) !important;
-  border: 1px solid rgba(79, 70, 229, 0.2) !important;
-  color: #334155 !important;
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  color: #1e3a8a !important;
 }
 
 html[data-theme="light"] .reviews-notice-badge {
-  background: rgba(79, 70, 229, 0.1) !important;
-  color: #4338ca !important;
-  border-color: rgba(79, 70, 229, 0.25) !important;
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #93c5fd !important;
 }
 
 html[data-theme="light"] .reviews-notice-link {
-  color: #4f46e5 !important;
+  color: #2563eb !important;
 }
 
 html[data-theme="light"] .reviews-summary-grid {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .reviews-score-big {
@@ -5463,16 +5472,16 @@ html[data-theme="light"] .bar-track {
 
 html[data-theme="light"] .bar-star-label,
 html[data-theme="light"] .bar-count {
-  color: #64748b !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .review-item-card {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .review-avatar {
-  background: rgba(79, 70, 229, 0.1) !important;
+  background: #eef2ff !important;
   color: #4338ca !important;
 }
 
@@ -5481,7 +5490,7 @@ html[data-theme="light"] .review-author-name {
 }
 
 html[data-theme="light"] .review-comment {
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
 html[data-theme="light"] .review-date-val {
@@ -5489,14 +5498,14 @@ html[data-theme="light"] .review-date-val {
 }
 
 html[data-theme="light"] .verified-buyer-badge {
-  background: rgba(5, 150, 105, 0.1) !important;
-  border-color: rgba(5, 150, 105, 0.25) !important;
-  color: #059669 !important;
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
 }
 
 html[data-theme="light"] #moreReviewsWrap .btn-nav {
   background: #ffffff !important;
-  border-color: rgba(217, 119, 6, 0.35) !important;
+  border: 1px solid #fde68a !important;
   color: #b45309 !important;
 }
 
@@ -5504,12 +5513,12 @@ html[data-theme="light"] #moreReviewsWrap .btn-nav {
 html[data-theme="light"] .modal-card,
 html[data-theme="light"] .checkout-modal-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.1) !important;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
 }
 
 html[data-theme="light"] .modal-header {
-  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .modal-title {
@@ -5517,18 +5526,18 @@ html[data-theme="light"] .modal-title {
 }
 
 html[data-theme="light"] .modal-close {
-  background: rgba(15, 23, 42, 0.04) !important;
-  color: #64748b !important;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .modal-product-card {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .modal-prod-img {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .modal-prod-name {
@@ -5536,17 +5545,17 @@ html[data-theme="light"] .modal-prod-name {
 }
 
 html[data-theme="light"] .modal-prod-stock {
-  color: #059669 !important;
+  color: #047857 !important;
 }
 
 html[data-theme="light"] .selected-gateway-card {
   background: #f8fafc !important;
-  border: 1.5px solid rgba(79, 70, 229, 0.35) !important;
+  border: 1.5px solid #6366f1 !important;
 }
 
 html[data-theme="light"] .selected-gw-icon {
   background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .selected-gw-title {
@@ -5558,14 +5567,14 @@ html[data-theme="light"] .selected-gw-sub {
 }
 
 html[data-theme="light"] .btn-change-gw {
-  background: rgba(79, 70, 229, 0.08) !important;
-  color: #4f46e5 !important;
-  border-color: rgba(79, 70, 229, 0.25) !important;
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
 }
 
 html[data-theme="light"] .voucher-input-card {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .form-input,
@@ -5576,14 +5585,14 @@ html[data-theme="light"] input[type="number"],
 html[data-theme="light"] textarea,
 html[data-theme="light"] select {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  border: 1.5px solid #cbd5e1 !important;
   color: #0f172a !important;
 }
 
 html[data-theme="light"] .form-input:focus,
 html[data-theme="light"] .form-control:focus {
   border-color: #4f46e5 !important;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
 }
 
 html[data-theme="light"] .form-label {
@@ -5592,22 +5601,22 @@ html[data-theme="light"] .form-label {
 
 html[data-theme="light"] .gw-selector-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.12) !important;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
 }
 
 html[data-theme="light"] .gw-option-item {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .gw-option-item:hover {
   background: #f1f5f9 !important;
-  border-color: rgba(79, 70, 229, 0.3) !important;
+  border-color: #6366f1 !important;
 }
 
 html[data-theme="light"] .gw-option-item.active {
-  background: rgba(79, 70, 229, 0.06) !important;
+  background: #eef2ff !important;
   border-color: #4f46e5 !important;
 }
 
@@ -5621,13 +5630,13 @@ html[data-theme="light"] .gw-option-desc {
 
 html[data-theme="light"] .gw-option-logo-wrap {
   background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .region-notice-card {
   background: #ffffff !important;
-  border: 1px solid rgba(217, 119, 6, 0.35) !important;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18) !important;
+  border: 1.5px solid #f59e0b !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
 }
 
 html[data-theme="light"] .region-notice-title {
@@ -5635,26 +5644,26 @@ html[data-theme="light"] .region-notice-title {
 }
 
 html[data-theme="light"] .region-notice-body {
-  background: rgba(245, 158, 11, 0.05) !important;
-  border: 1px solid rgba(245, 158, 11, 0.2) !important;
-  color: #334155 !important;
+  background: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+  color: #92400e !important;
 }
 
 html[data-theme="light"] .region-notice-actions .btn-nav {
   background: #f8fafc !important;
-  border-color: rgba(15, 23, 42, 0.1) !important;
+  border: 1px solid #cbd5e1 !important;
   color: #475569 !important;
 }
 
 /* 9. Order History Modal */
 html[data-theme="light"] .order-history-card {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .order-history-card.active-card:hover {
   background: #f1f5f9 !important;
-  border-color: rgba(79, 70, 229, 0.3) !important;
+  border-color: #6366f1 !important;
 }
 
 html[data-theme="light"] .order-card-title {
@@ -5672,13 +5681,13 @@ html[data-theme="light"] .order-card-sub {
 /* 10. Payment Page & QRIS Scanner Container */
 html[data-theme="light"] .payment-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08) !important;
 }
 
 html[data-theme="light"] .payment-meta-header {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .payment-meta-inv {
@@ -5691,8 +5700,8 @@ html[data-theme="light"] #timerText {
 
 html[data-theme="light"] .timer-box {
   background: #f1f5f9 !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-  color: #64748b !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
 }
 
 html[data-theme="light"] #qrisPendingContainer h2,
@@ -5702,8 +5711,8 @@ html[data-theme="light"] #bep20PendingContainer h2 {
 }
 
 html[data-theme="light"] .highlight-amount-box {
-  background: rgba(245, 158, 11, 0.06) !important;
-  border-color: rgba(245, 158, 11, 0.25) !important;
+  background: #fffbeb !important;
+  border: 1.5px solid #fcd34d !important;
 }
 
 html[data-theme="light"] .amount-huge {
@@ -5716,7 +5725,7 @@ html[data-theme="light"] #uniqueCodeNote {
 
 html[data-theme="light"] .binance-pay-box {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] #binancePayIdDisplay,
@@ -5726,24 +5735,24 @@ html[data-theme="light"] #cryptoCurrencyDisplay {
 
 html[data-theme="light"] #bep20WalletDisplay {
   background: #f1f5f9 !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
 }
 
 html[data-theme="light"] .claim-info-card {
-  background: linear-gradient(145deg, rgba(168, 85, 247, 0.06), rgba(59, 130, 246, 0.04)) !important;
-  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+  background: linear-gradient(145deg, #faf5ff, #eff6ff) !important;
+  border: 1.5px solid #d8b4fe !important;
 }
 
 html[data-theme="light"] .claim-card-title {
-  color: #7c3aed !important;
+  color: #7e22ce !important;
 }
 
 html[data-theme="light"] .claim-code-value {
-  background: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: rgba(168, 85, 247, 0.4) !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
+  background: #ffffff !important;
+  color: #7e22ce !important;
+  border: 2px dashed #9333ea !important;
+  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.12) !important;
 }
 
 html[data-theme="light"] .claim-card-hint {
@@ -5759,26 +5768,26 @@ html[data-theme="light"] .claim-direct-url-text {
 }
 
 html[data-theme="light"] .success-reveal-box {
-  background: rgba(5, 150, 105, 0.04) !important;
-  border-color: rgba(5, 150, 105, 0.25) !important;
+  background: #ecfdf5 !important;
+  border: 1.5px solid #a7f3d0 !important;
 }
 
 html[data-theme="light"] .license-item-box {
-  background: #f8fafc !important;
-  border-color: rgba(15, 23, 42, 0.1) !important;
-  color: #059669 !important;
+  background: #ffffff !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
 }
 
 html[data-theme="light"] .copy-mini-btn {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  border: 1px solid #cbd5e1 !important;
   color: #334155 !important;
 }
 
 /* 11. Claim Page */
 html[data-theme="light"] #claimForm .form-input {
   background: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.15) !important;
+  border: 1.5px solid #cbd5e1 !important;
   color: #0f172a !important;
 }
 
@@ -5788,13 +5797,14 @@ html[data-theme="light"] #resCreatedAt {
 }
 
 html[data-theme="light"] #claimResult > div {
-  background: #f8fafc !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05) !important;
 }
 
 html[data-theme="light"] .claim-review-box {
-  background: rgba(79, 70, 229, 0.04) !important;
-  border-color: rgba(79, 70, 229, 0.2) !important;
+  background: #eef2ff !important;
+  border: 1px solid #c7d2fe !important;
 }
 
 html[data-theme="light"] .claim-review-header strong {
@@ -5813,8 +5823,8 @@ html[data-theme="light"] .star-btn.hovered {
 /* 12. Informational Pages (About, How-To, Warranty, Privacy, Terms) */
 html[data-theme="light"] .brand-showcase-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
 }
 
 html[data-theme="light"] .brand-hero-title {
@@ -5827,8 +5837,8 @@ html[data-theme="light"] .brand-hero-desc {
 
 html[data-theme="light"] .info-card {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
 }
 
 html[data-theme="light"] .info-card h2,
@@ -5844,7 +5854,7 @@ html[data-theme="light"] .info-card ol {
 
 html[data-theme="light"] .step-card {
   background: #f8fafc !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 html[data-theme="light"] .step-card h4 {
@@ -5856,14 +5866,14 @@ html[data-theme="light"] .step-card p {
 }
 
 html[data-theme="light"] .step-number {
-  background: rgba(79, 70, 229, 0.1) !important;
+  background: #eef2ff !important;
   color: #4338ca !important;
-  border: 1px solid rgba(79, 70, 229, 0.25) !important;
+  border: 1px solid #c7d2fe !important;
 }
 
 html[data-theme="light"] .info-highlight-box {
-  background: rgba(5, 150, 105, 0.06) !important;
-  border: 1px solid rgba(5, 150, 105, 0.2) !important;
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
 }
 
 html[data-theme="light"] .info-highlight-box h3 {
@@ -5877,7 +5887,7 @@ html[data-theme="light"] .info-highlight-box p {
 /* 13. Site Footer & Mobile Sticky Buy Bar */
 html[data-theme="light"] .site-footer {
   background: #f1f5f9 !important;
-  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-top: 1px solid #e2e8f0 !important;
   color: #64748b !important;
 }
 
@@ -5912,13 +5922,13 @@ html[data-theme="light"] .footer-cs-link {
 }
 
 html[data-theme="light"] .footer-bottom-simple {
-  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  border-top-color: #e2e8f0 !important;
   color: #94a3b8 !important;
 }
 
 html[data-theme="light"] .mobile-sticky-buy-bar {
   background: rgba(255, 255, 255, 0.95) !important;
-  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-top: 1px solid #e2e8f0 !important;
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.08) !important;
 }
 
@@ -5933,5 +5943,24 @@ html[data-theme="light"] .mobile-sticky-price {
 html[data-theme="light"] .floating-telegram-btn {
   background: #0088cc;
   box-shadow: 0 8px 25px rgba(0, 136, 204, 0.35);
+}
+
+/* ==========================================================================
+   ADMIN PANEL FAIL-SAFE ISOLATION (SELALU DARK MODE MURNI)
+   ========================================================================== */
+.admin-shell,
+.admin-shell *,
+body:has(.admin-shell),
+html:has(.admin-shell),
+html[data-admin="true"],
+html[data-admin="true"] body,
+html[data-admin="true"] * {
+  --bg-main: #0b0f19 !important;
+  --bg-card: rgba(22, 30, 49, 0.75) !important;
+  --bg-card-hover: rgba(30, 41, 67, 0.9) !important;
+  --text-main: #f8fafc !important;
+  --text-muted: #94a3b8 !important;
+  --border-subtle: rgba(255, 255, 255, 0.08) !important;
+  color-scheme: dark !important;
 }
 

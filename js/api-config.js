@@ -11,6 +11,16 @@ window.digimestClientCountry = sessionStorage.getItem('digimest_client_country')
 (function initThemePreference() {
   if (typeof window === 'undefined') return;
   try {
+    const path = window.location.pathname || '';
+    // 1. ATURAN MUTLAK: Seluruh halaman admin SELALU dipaksa Mode Gelap (Dark Mode)!
+    if (path.startsWith('/admin') || path.includes('/admin/')) {
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.setAttribute('data-admin', 'true');
+      return;
+    }
+    document.documentElement.removeAttribute('data-admin');
+
+    // 2. DEFAULT UTAMA TOKO ADALAH GELAP (Hanya aktifkan light jika tersimpan 'light')
     const savedTheme = localStorage.getItem('digimest_theme');
     if (savedTheme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
@@ -233,6 +243,13 @@ window.STOREKU_BUILD_VERSION = '5.9.12';
  */
 window.updateDigimestThemeUI = function() {
   if (typeof document === 'undefined') return;
+  const path = (typeof window !== 'undefined' && window.location) ? (window.location.pathname || '') : '';
+  if (path.startsWith('/admin') || path.includes('/admin/')) {
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.setAttribute('data-admin', 'true');
+    return;
+  }
+
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const isEn = (document.documentElement && document.documentElement.lang === 'en') ||
                (typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/en'));
@@ -268,6 +285,13 @@ window.updateDigimestThemeUI = function() {
  * Set theme explicitly ('light' or 'dark')
  */
 window.setDigimestTheme = function(theme) {
+  const path = (typeof window !== 'undefined' && window.location) ? (window.location.pathname || '') : '';
+  if (path.startsWith('/admin') || path.includes('/admin/')) {
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.setAttribute('data-admin', 'true');
+    return;
+  }
+
   const isLight = theme === 'light';
   if (isLight) {
     document.documentElement.setAttribute('data-theme', 'light');
@@ -284,10 +308,39 @@ window.setDigimestTheme = function(theme) {
  * Toggle theme between 'light' and 'dark' (Single Click)
  */
 window.toggleDigimestTheme = function() {
+  const path = (typeof window !== 'undefined' && window.location) ? (window.location.pathname || '') : '';
+  if (path.startsWith('/admin') || path.includes('/admin/')) {
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.setAttribute('data-admin', 'true');
+    return;
+  }
+
   const current = document.documentElement.getAttribute('data-theme');
   const nextTheme = current === 'light' ? 'dark' : 'light';
   window.setDigimestTheme(nextTheme);
 };
+
+// Cross-tab theme sync with admin safety check
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'digimest_theme') {
+      const path = window.location.pathname || '';
+      if (path.startsWith('/admin') || path.includes('/admin/')) {
+        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.setAttribute('data-admin', 'true');
+        return;
+      }
+      if (e.newValue === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      if (typeof window.updateDigimestThemeUI === 'function') {
+        window.updateDigimestThemeUI();
+      }
+    }
+  });
+}
 
 // Auto-sync Theme UI when DOM loads
 if (typeof document !== 'undefined') {
