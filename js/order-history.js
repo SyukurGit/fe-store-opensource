@@ -335,7 +335,7 @@ const DigimestOrders = (() => {
       container.innerHTML = `
         <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
           <div style="font-size: 2.2rem; margin-bottom: 0.5rem; opacity: 0.7;">📦</div>
-          <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">${emptyTitle}</div>
+          <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">${emptyTitle}</div>
           <div style="font-size: 0.82rem; margin-bottom: 1.25rem;">${emptyDesc}</div>
           <a href="${catalogHref}" class="btn-buy" style="display: inline-block; padding: 0.55rem 1.4rem; font-size: 0.85rem; text-decoration: none;" onclick="document.getElementById('historyModal')?.classList.remove('open'); document.body.style.overflow = '';">
             ${exploreBtnText}

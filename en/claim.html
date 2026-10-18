@@ -215,7 +215,7 @@
   <div class="payment-container" style="max-width: 680px;">
     <div class="payment-card">
       <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔑</div>
-      <h1 style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">Claim / Retrieve License</h1>
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">Claim / Retrieve License</h1>
       <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.75rem;">
         Enter the <strong>Pickup Code from your email</strong> (e.g., <code>CLM-8X9P4K</code>) or your <strong>Invoice Number</strong> to view your purchased digital license.
       </p>
@@ -238,7 +238,7 @@
           
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
             <div>
-              <div id="resProductName" style="font-size: 1.15rem; font-weight: 800; color: #fff;"></div>
+              <div id="resProductName" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);"></div>
               <div id="resInvoice" style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);"></div>
             </div>
             <div id="resStatusBadge" class="badge"></div>
@@ -254,7 +254,7 @@
           </div>
 
           <div style="margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-            <span>Transaction Date: <strong id="resCreatedAt" style="color: #fff;"></strong></span>
+            <span>Transaction Date: <strong id="resCreatedAt" style="color: var(--text-main);"></strong></span>
             <!-- Hidden dummy fallback so legacy or cached scripts accessing resViewUrlWrap never throw null.style -->
             <span id="resViewUrlWrap" style="display: none;"><a id="resViewUrl" href="#" target="_blank" style="color: var(--primary);"></a></span>
           </div>
@@ -264,7 +264,7 @@
             <div class="claim-review-header">
               <span style="font-size: 1.35rem;">⭐</span>
               <div>
-                <strong style="color: #fff; font-size: 0.95rem;">Rate & Review This Product</strong>
+                <strong style="color: var(--text-main); font-size: 0.95rem;">Rate & Review This Product</strong>
                 <div style="color: var(--text-muted); font-size: 0.78rem;">Share your purchase experience with other buyers</div>
               </div>
             </div>
@@ -272,7 +272,7 @@
             <!-- Review Form -->
             <form id="claimReviewForm" style="margin-top: 1rem;">
               <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Select Star Rating *</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Select Star Rating *</label>
                 <div class="star-picker" id="starPicker">
                   <span class="star-btn active" data-rating="1">★</span>
                   <span class="star-btn active" data-rating="2">★</span>
@@ -284,12 +284,12 @@
               </div>
 
               <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Your Name (Optional)</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Your Name (Optional)</label>
                 <input type="text" id="reviewAuthorInput" class="form-input" style="font-size: 0.85rem;" placeholder="e.g. John Doe (leave empty for anonymous)">
               </div>
 
               <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0;">Your Review / Testimonial</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Your Review / Testimonial</label>
                 <textarea id="reviewTextInput" class="form-input" rows="3" style="font-size: 0.85rem;" placeholder="Share your experience regarding instant delivery speed or account quality..."></textarea>
               </div>
 

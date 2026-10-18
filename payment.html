@@ -98,7 +98,7 @@
       </div>
 
       <div id="emailNotice" style="display: none; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 1.25rem; font-size: 0.8rem; color: #a5b4fc; text-align: center;">
-        ✉️ Bukti lunas & kode ambil pesanan otomatis dikirim ke: <strong id="buyerEmailDisplay" style="color: #fff;"></strong>
+        ✉️ Bukti lunas & kode ambil pesanan otomatis dikirim ke: <strong id="buyerEmailDisplay" style="color: var(--text-main);"></strong>
       </div>
 
       <!-- Pending State View -->
@@ -109,12 +109,12 @@
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
           <span>Sisa Waktu Bayar: </span>
-          <strong id="timerText" style="color: #fff;">15:00</strong>
+          <strong id="timerText" style="color: var(--text-main);">15:00</strong>
         </div>
 
         <!-- 1. QRIS Payment Container -->
         <div id="qrisPendingContainer">
-          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">Scan QRIS</h2>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">Scan QRIS</h2>
           <p style="font-size: 0.85rem; color: var(--text-muted);">Buka aplikasi Shopee, BCA, GoPay, OVO, Dana, atau mobile banking Anda dan scan QR di bawah ini.</p>
 
           <!-- QRIS Image Box -->
@@ -128,7 +128,7 @@
               ⚠️ Pastikan Nominal Transfer Wajib Tepat
             </div>
             <div id="totalAmountText" class="amount-huge">Rp 0</div>
-            <div id="uniqueCodeNote" style="font-size: 0.82rem; color: #d1d5db; margin-top: 6px;">
+            <div id="uniqueCodeNote" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 6px;">
               Termasuk 3 digit kode unik. <strong>Jangan bulatkan transfer</strong> agar otomatis terverifikasi sistem!
             </div>
           </div>
@@ -136,7 +136,7 @@
 
         <!-- 2. Binance Pay Container -->
         <div id="binancePendingContainer" style="display: none;">
-          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span style="color: #F3BA2F;">⚡</span> Binance Pay (USDT)
           </h2>
           <p style="font-size: 0.85rem; color: var(--text-muted);">Buka aplikasi Binance (Scan QR) atau transfer via Binance Pay ID di bawah ini.</p>
@@ -163,7 +163,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: #848E9C;">Binance Pay ID:</span>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span id="binancePayIdDisplay" style="font-family: var(--font-mono); font-weight: 700; color: #fff;">-</span>
+                  <span id="binancePayIdDisplay" style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">-</span>
                   <button type="button" id="btnCopyPayId" class="btn-copy-mini">Salin</button>
                 </div>
               </div>
@@ -180,7 +180,7 @@
           <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: rgba(240, 185, 11, 0.15); color: #f0b90b; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px;">
             <span>🟡</span> BNB Smart Chain (BEP-20)
           </div>
-          <h2 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;">
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
             Pembayaran USDT BEP-20
           </h2>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Scan QR atau transfer nominal eksak ke alamat wallet di bawah ini.</p>
@@ -211,7 +211,7 @@
               <span style="font-size: 0.82rem; color: #848E9C;">Alamat Dompet Penerima (BSC):</span>
               <button type="button" id="btnCopyBep20Wallet" class="btn-copy-mini" style="color: #f0b90b; border-color: rgba(240, 185, 11, 0.3);">Salin Alamat</button>
             </div>
-            <div id="bep20WalletDisplay" style="font-family: var(--font-mono); font-size: 0.8rem; color: #f1f5f9; word-break: break-all; user-select: all; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">0x...</div>
+            <div id="bep20WalletDisplay" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-main); word-break: break-all; user-select: all; background: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">0x...</div>
             <div style="font-size: 0.72rem; color: #64748b; margin-top: 6px;">Kontrak Token: <span style="font-family: var(--font-mono); color: #94a3b8;">0x55d398326f99059fF775485246999027B3197955</span></div>
           </div>
 
@@ -220,7 +220,7 @@
             <div style="font-weight: 700; font-size: 0.82rem; color: #fcd34d; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
               <span>⚠️</span> PERINGATAN PENGIRIM DARI EXCHANGE (CEX):
             </div>
-            <p style="font-size: 0.78rem; line-height: 1.5; color: #cbd5e1; margin: 0;">
+            <p style="font-size: 0.78rem; line-height: 1.5; color: var(--text-main); margin: 0;">
               Jika mengirim dari <strong>Indodax, Tokocrypto, Bybit, atau Binance</strong>, exchange akan memotong biaya penarikan (withdrawal fee). Pastikan <strong>"Jumlah Bersih Diterima" (Receive Amount)</strong> adalah <strong>TEPAT <span id="bep20CexAmount" style="color: #f0b90b; font-weight: 700;">0.000</span> USDT</strong>, bukan nominal kotor sebelum dipotong fee.
             </p>
           </div>
@@ -278,7 +278,7 @@
         </div>
 
         <div class="success-reveal-box">
-          <div style="font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
             <span>Produk: <span id="sProdName" style="color: #60a5fa;"></span></span>
             <span id="sProdWarranty" class="badge badge-warranty"></span>
           </div>

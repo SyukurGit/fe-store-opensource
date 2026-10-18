@@ -4931,7 +4931,7 @@ body.has-sticky-bar .floating-telegram-btn,
 }
 
 /* ==========================================================================
-   DIGIMEST LIGHT MODE DESIGN TOKENS & ADAPTIVE COMPONENT OVERRIDES
+   DIGIMEST LIGHT MODE DESIGN TOKENS & ADAPTIVE COMPONENT OVERRIDES (V2 PRO)
    ========================================================================== */
 html[data-theme="light"] {
   --bg-main: #f8fafc;
@@ -4955,8 +4955,8 @@ html[data-theme="light"] body {
   background-color: var(--bg-main);
   color: var(--text-main);
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
 }
 
 /* 1. Navbar & Header */
@@ -5176,88 +5176,396 @@ html[data-theme="light"] .tag-btn.active {
 
 /* 5. Product Cards & Catalog */
 html[data-theme="light"] .product-card {
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04) !important;
 }
 
 html[data-theme="light"] .product-card:hover {
-  background: #ffffff;
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+  background: #ffffff !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-theme="light"] .product-card.out-of-stock {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  opacity: 0.82;
+}
+
+html[data-theme="light"] .prod-logo {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 html[data-theme="light"] .prod-title {
-  color: #0f172a;
+  color: #0f172a !important;
 }
 
 html[data-theme="light"] .prod-desc {
-  color: #64748b;
+  color: #64748b !important;
 }
 
 html[data-theme="light"] .prod-category {
-  color: #4f46e5;
-  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5 !important;
+  background: rgba(79, 70, 229, 0.08) !important;
 }
 
 html[data-theme="light"] .prod-sold-badge {
-  background: rgba(15, 23, 42, 0.05);
-  color: #475569;
+  background: rgba(15, 23, 42, 0.05) !important;
+  color: #475569 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
 html[data-theme="light"] .badge-stock {
-  background: rgba(5, 150, 105, 0.08);
-  border-color: rgba(5, 150, 105, 0.2);
-  color: #059669;
+  background: rgba(5, 150, 105, 0.08) !important;
+  border-color: rgba(5, 150, 105, 0.2) !important;
+  color: #059669 !important;
 }
 
 html[data-theme="light"] .badge-warranty,
 html[data-theme="light"] .badge-region {
-  background: rgba(15, 23, 42, 0.04);
-  border-color: rgba(15, 23, 42, 0.08);
-  color: #475569;
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .prod-footer {
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
 }
 
 html[data-theme="light"] .price-label {
-  color: #64748b;
+  color: #64748b !important;
 }
 
 html[data-theme="light"] .price-amount {
-  color: #0f172a;
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .price-amount.promo-highlight {
+  color: #d97706 !important;
 }
 
 html[data-theme="light"] .price-original-striked {
-  color: #94a3b8;
+  color: #94a3b8 !important;
 }
 
-/* 6. Product Detail Page & Modals */
-html[data-theme="light"] .product-detail-card,
-html[data-theme="light"] .detail-card,
-html[data-theme="light"] .hero-preview-box,
-html[data-theme="light"] .info-card,
-html[data-theme="light"] .checkout-modal-card,
-html[data-theme="light"] .modal-card,
-html[data-theme="light"] .history-card,
-html[data-theme="light"] .order-history-modal-card,
-html[data-theme="light"] .payment-card,
-html[data-theme="light"] .claim-card {
+/* 6. Product Detail Page & Components (DEEP COMPREHENSIVE FIX) */
+html[data-theme="light"] .breadcrumb-bar {
+  color: #64748b;
+}
+
+html[data-theme="light"] .breadcrumb-bar a {
+  color: #4f46e5;
+}
+
+html[data-theme="light"] #bcProductName {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #productLoading h3 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .detail-card-main,
+html[data-theme="light"] .detail-card-header,
+html[data-theme="light"] .detail-card-content,
+html[data-theme="light"] .detail-sidebar-card {
   background: #ffffff !important;
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
 }
 
-html[data-theme="light"] .modal-header,
-html[data-theme="light"] .modal-footer {
-  border-color: rgba(15, 23, 42, 0.08);
+html[data-theme="light"] .detail-big-logo {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-html[data-theme="light"] .modal-close-btn {
-  background: rgba(15, 23, 42, 0.05);
-  color: #475569;
+html[data-theme="light"] .detail-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .detail-rating-link strong {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .detail-rating-count {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .detail-dot-sep {
+  color: #cbd5e1;
+}
+
+html[data-theme="light"] .detail-sold-text {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .detail-price-label {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .detail-unit-price-val {
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .detail-stock-badge {
+  background: rgba(79, 70, 229, 0.08) !important;
+  border-color: rgba(79, 70, 229, 0.2) !important;
+  color: #4f46e5 !important;
+}
+
+html[data-theme="light"] .detail-stock-badge.empty {
+  background: rgba(220, 38, 38, 0.08) !important;
+  border-color: rgba(220, 38, 38, 0.2) !important;
+  color: #dc2626 !important;
+}
+
+html[data-theme="light"] .detail-action-qty-label {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .qty-stepper {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] .qty-stepper-btn {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .qty-stepper-btn:hover {
+  background: rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .qty-stepper-input {
+  color: #0f172a !important;
+  background: transparent !important;
+}
+
+html[data-theme="light"] .order-summary-box {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .summary-row {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .summary-row span {
+  color: #64748b;
+}
+
+html[data-theme="light"] .summary-row.total,
+html[data-theme="light"] .summary-row.total span,
+html[data-theme="light"] #dSubtotalDisplay {
+  color: #0f172a !important;
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] #dBlockContent h3 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #dProdDesc {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .detail-terms-box {
+  background: rgba(79, 70, 229, 0.04) !important;
+  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+}
+
+html[data-theme="light"] .detail-terms-title {
+  color: #4338ca !important;
+}
+
+html[data-theme="light"] .detail-terms-text {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .detail-terms-box div {
+  border-top-color: rgba(79, 70, 229, 0.15) !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .detail-guarantee-list {
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .detail-guarantee-item,
+html[data-theme="light"] .guarantee-text {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .guarantee-icon-wrap.icon-bolt {
+  background: rgba(5, 150, 105, 0.1) !important;
+  border-color: rgba(5, 150, 105, 0.25) !important;
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .guarantee-icon-wrap.icon-card {
+  background: rgba(79, 70, 229, 0.1) !important;
+  border-color: rgba(79, 70, 229, 0.25) !important;
+  color: #4f46e5 !important;
+}
+
+html[data-theme="light"] .guarantee-icon-wrap.icon-mail {
+  background: rgba(168, 85, 247, 0.1) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+  color: #7c3aed !important;
+}
+
+/* 7. Customer Reviews Section */
+html[data-theme="light"] .detail-reviews-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .reviews-header {
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .reviews-header-title h3 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .reviews-notice-banner {
+  background: rgba(79, 70, 229, 0.04) !important;
+  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .reviews-notice-badge {
+  background: rgba(79, 70, 229, 0.1) !important;
+  color: #4338ca !important;
+  border-color: rgba(79, 70, 229, 0.25) !important;
+}
+
+html[data-theme="light"] .reviews-notice-link {
+  color: #4f46e5 !important;
+}
+
+html[data-theme="light"] .reviews-summary-grid {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .reviews-score-big {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .bar-track {
+  background: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .bar-star-label,
+html[data-theme="light"] .bar-count {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .review-item-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .review-avatar {
+  background: rgba(79, 70, 229, 0.1) !important;
+  color: #4338ca !important;
+}
+
+html[data-theme="light"] .review-author-name {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .review-comment {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .review-date-val {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .verified-buyer-badge {
+  background: rgba(5, 150, 105, 0.1) !important;
+  border-color: rgba(5, 150, 105, 0.25) !important;
+  color: #059669 !important;
+}
+
+html[data-theme="light"] #moreReviewsWrap .btn-nav {
+  background: #ffffff !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  color: #b45309 !important;
+}
+
+/* 8. Modals, Checkout, Gateway Selector & Region Notice */
+html[data-theme="light"] .modal-card,
+html[data-theme="light"] .checkout-modal-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+}
+
+html[data-theme="light"] .modal-header {
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .modal-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .modal-close {
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .modal-product-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .modal-prod-img {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .modal-prod-name {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .modal-prod-stock {
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .selected-gateway-card {
+  background: #f8fafc !important;
+  border: 1.5px solid rgba(79, 70, 229, 0.35) !important;
+}
+
+html[data-theme="light"] .selected-gw-icon {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .selected-gw-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .selected-gw-sub {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .btn-change-gw {
+  background: rgba(79, 70, 229, 0.08) !important;
+  color: #4f46e5 !important;
+  border-color: rgba(79, 70, 229, 0.25) !important;
+}
+
+html[data-theme="light"] .voucher-input-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
 
 html[data-theme="light"] .form-input,
@@ -5267,102 +5575,363 @@ html[data-theme="light"] input[type="email"],
 html[data-theme="light"] input[type="number"],
 html[data-theme="light"] textarea,
 html[data-theme="light"] select {
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.15);
-  color: #0f172a;
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
 }
 
 html[data-theme="light"] .form-input:focus,
 html[data-theme="light"] .form-control:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12) !important;
 }
 
-html[data-theme="light"] .qty-btn {
-  background: #f1f5f9;
-  border-color: rgba(15, 23, 42, 0.1);
-  color: #0f172a;
+html[data-theme="light"] .form-label {
+  color: #334155 !important;
 }
 
-html[data-theme="light"] .qty-btn:hover {
-  background: #e2e8f0;
+html[data-theme="light"] .gw-selector-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18) !important;
 }
 
-html[data-theme="light"] .qty-input {
-  background: #ffffff;
-  color: #0f172a;
-  border-color: rgba(15, 23, 42, 0.1);
+html[data-theme="light"] .gw-option-item {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
 
-html[data-theme="light"] .guarantee-item {
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+html[data-theme="light"] .gw-option-item:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(79, 70, 229, 0.3) !important;
 }
 
-html[data-theme="light"] .guarantee-title {
-  color: #0f172a;
+html[data-theme="light"] .gw-option-item.active {
+  background: rgba(79, 70, 229, 0.06) !important;
+  border-color: #4f46e5 !important;
 }
 
-html[data-theme="light"] .guarantee-desc {
-  color: #64748b;
+html[data-theme="light"] .gw-option-name {
+  color: #0f172a !important;
 }
 
-/* 7. Payment Box & QRIS Scanner Container */
-html[data-theme="light"] .qris-box,
-html[data-theme="light"] .qr-container,
-html[data-theme="light"] .payment-instructions-box,
-html[data-theme="light"] .crypto-details-box {
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+html[data-theme="light"] .gw-option-desc {
+  color: #64748b !important;
 }
 
-html[data-theme="light"] .payment-method-selector-card {
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+html[data-theme="light"] .gw-option-logo-wrap {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
-html[data-theme="light"] .payment-method-selector-card:hover {
-  border-color: #4f46e5;
-  background: rgba(79, 70, 229, 0.02);
+html[data-theme="light"] .region-notice-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18) !important;
 }
 
-html[data-theme="light"] .payment-method-selector-card.selected {
-  border-color: #4f46e5;
-  background: rgba(79, 70, 229, 0.04);
+html[data-theme="light"] .region-notice-title {
+  color: #b45309 !important;
 }
 
-/* 8. Floating CS Button & Footer */
-html[data-theme="light"] .floating-telegram-btn {
-  background: #0088cc;
-  box-shadow: 0 8px 25px rgba(0, 136, 204, 0.35);
+html[data-theme="light"] .region-notice-body {
+  background: rgba(245, 158, 11, 0.05) !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+  color: #334155 !important;
 }
 
-html[data-theme="light"] .footer-streamlined {
-  background: #f1f5f9;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+html[data-theme="light"] .region-notice-actions .btn-nav {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #475569 !important;
 }
 
-html[data-theme="light"] .footer-col-title {
-  color: #0f172a;
+/* 9. Order History Modal */
+html[data-theme="light"] .order-history-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
 
-html[data-theme="light"] .footer-link {
-  color: #64748b;
+html[data-theme="light"] .order-history-card.active-card:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(79, 70, 229, 0.3) !important;
 }
 
-html[data-theme="light"] .footer-link:hover {
-  color: #4f46e5;
+html[data-theme="light"] .order-card-title {
+  color: #0f172a !important;
 }
 
-html[data-theme="light"] .footer-bottom {
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+html[data-theme="light"] .order-card-meta {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .order-card-sub {
+  color: #475569 !important;
+}
+
+/* 10. Payment Page & QRIS Scanner Container */
+html[data-theme="light"] .payment-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .payment-meta-header {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .payment-meta-inv {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #timerText {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .timer-box {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] #qrisPendingContainer h2,
+html[data-theme="light"] #binancePendingContainer h2,
+html[data-theme="light"] #bep20PendingContainer h2 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .highlight-amount-box {
+  background: rgba(245, 158, 11, 0.06) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+html[data-theme="light"] .amount-huge {
+  color: #b45309 !important;
+}
+
+html[data-theme="light"] #uniqueCodeNote {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .binance-pay-box {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme="light"] #binancePayIdDisplay,
+html[data-theme="light"] #cryptoCurrencyDisplay {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #bep20WalletDisplay {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .claim-info-card {
+  background: linear-gradient(145deg, rgba(168, 85, 247, 0.06), rgba(59, 130, 246, 0.04)) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+}
+
+html[data-theme="light"] .claim-card-title {
+  color: #7c3aed !important;
+}
+
+html[data-theme="light"] .claim-code-value {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .claim-card-hint {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .claim-direct-label {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .claim-direct-url-text {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .success-reveal-box {
+  background: rgba(5, 150, 105, 0.04) !important;
+  border-color: rgba(5, 150, 105, 0.25) !important;
+}
+
+html[data-theme="light"] .license-item-box {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .copy-mini-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #334155 !important;
+}
+
+/* 11. Claim Page */
+html[data-theme="light"] #claimForm .form-input {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #resProductName,
+html[data-theme="light"] #resCreatedAt {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #claimResult > div {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .claim-review-box {
+  background: rgba(79, 70, 229, 0.04) !important;
+  border-color: rgba(79, 70, 229, 0.2) !important;
+}
+
+html[data-theme="light"] .claim-review-header strong {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .star-btn {
   color: #94a3b8;
 }
 
-/* 9. Mobile Sticky Bottom Buy Bar */
-html[data-theme="light"] .mobile-buy-bar {
-  background: rgba(255, 255, 255, 0.94);
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.06);
+html[data-theme="light"] .star-btn.active,
+html[data-theme="light"] .star-btn.hovered {
+  color: #d97706 !important;
+}
+
+/* 12. Informational Pages (About, How-To, Warranty, Privacy, Terms) */
+html[data-theme="light"] .brand-showcase-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-theme="light"] .brand-hero-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .brand-hero-desc {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .info-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-theme="light"] .info-card h2,
+html[data-theme="light"] .info-card h3 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .info-card p,
+html[data-theme="light"] .info-card ul,
+html[data-theme="light"] .info-card ol {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .step-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .step-card h4 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .step-card p {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .step-number {
+  background: rgba(79, 70, 229, 0.1) !important;
+  color: #4338ca !important;
+  border: 1px solid rgba(79, 70, 229, 0.25) !important;
+}
+
+html[data-theme="light"] .info-highlight-box {
+  background: rgba(5, 150, 105, 0.06) !important;
+  border: 1px solid rgba(5, 150, 105, 0.2) !important;
+}
+
+html[data-theme="light"] .info-highlight-box h3 {
+  color: #065f46 !important;
+}
+
+html[data-theme="light"] .info-highlight-box p {
+  color: #047857 !important;
+}
+
+/* 13. Site Footer & Mobile Sticky Buy Bar */
+html[data-theme="light"] .site-footer {
+  background: #f1f5f9 !important;
+  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .footer-col-links h5,
+html[data-theme="light"] .footer-col-action h5 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .footer-nav-links a {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .footer-nav-links a:hover {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .footer-reseller-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.12) 100%) !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+}
+
+html[data-theme="light"] .reseller-title {
+  color: #b45309 !important;
+}
+
+html[data-theme="light"] .reseller-sub {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .footer-cs-link {
+  color: #0284c7 !important;
+}
+
+html[data-theme="light"] .footer-bottom-simple {
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+html[data-theme="light"] .mobile-sticky-buy-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .mobile-sticky-label {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .mobile-sticky-price {
+  color: #059669 !important;
+}
+
+html[data-theme="light"] .floating-telegram-btn {
+  background: #0088cc;
+  box-shadow: 0 8px 25px rgba(0, 136, 204, 0.35);
 }
 

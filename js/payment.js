@@ -344,8 +344,8 @@ function showSuccessView(order) {
       emailNotice.style.borderColor = 'rgba(16, 185, 129, 0.35)';
       emailNotice.style.color = '#34d399';
       emailNotice.innerHTML = isEn 
-        ? `✉️ Order pickup code & details have been sent to email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`
-        : `✉️ Kode ambil pesanan & rincian telah dikirim ke email: <strong style="color:#fff;">${escapeHtml(order.customer_email)}</strong>`;
+        ? `✉️ Order pickup code & details have been sent to email: <strong style="color:var(--text-main);">${escapeHtml(order.customer_email)}</strong>`
+        : `✉️ Kode ambil pesanan & rincian telah dikirim ke email: <strong style="color:var(--text-main);">${escapeHtml(order.customer_email)}</strong>`;
       emailNotice.style.display = 'block';
     }
   }
