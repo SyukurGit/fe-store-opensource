@@ -86,12 +86,12 @@ function renderProducts(products) {
           </div>
 
           <div class="prod-tags-row">
-            ${p.hasPromo ? `<span class="badge badge-promo">🔥 ${p.discountPercent}% OFF</span>` : ''}
+            ${p.hasPromo ? `<span class="badge badge-promo">${p.discountPercent}% OFF</span>` : ''}
             <span class="badge badge-stock ${isOut ? 'empty' : ''}">
               ● ${stockDisplay}
             </span>
-            ${p.warranty ? `<span class="badge badge-warranty">🛡️ ${escapeHtml(p.warranty)}</span>` : ''}
-            ${p.region ? `<span class="badge badge-region">🌐 ${escapeHtml(p.region)}</span>` : ''}
+            ${p.warranty ? `<span class="badge badge-warranty">${escapeHtml(p.warranty)}</span>` : ''}
+            ${p.region ? `<span class="badge badge-region">${escapeHtml(p.region)}</span>` : ''}
           </div>
 
           <div class="prod-desc">${escapeHtml(p.description || (isEn ? 'Instant premium digital license delivered.' : 'Lisensi akun premium langsung aktif.'))}</div>
@@ -478,3 +478,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 });
+

@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pembayaran QRIS - Digimest</title>
+  <title>Pembayaran - Digimest</title>
   <link rel="icon" type="image/png" href="/logo/digimest_icon.png">
   <link rel="apple-touch-icon" href="/logo/digimest_icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=5.9.12">
-  <script src="/js/api-config.js?v=5.9.12"></script>
+  <link rel="stylesheet" href="/css/style.css?v=5.9.13">
+  <script src="/js/api-config.js?v=5.9.13"></script>
 </head>
 <body>
 
@@ -26,8 +26,8 @@
           <span class="nav-text-mobile">← Toko</span>
         </a>
         <a href="/claim" class="btn-nav">
-          <span class="nav-text-desktop">🔑 Klaim Produk</span>
-          <span class="nav-text-mobile">🔑 Klaim</span>
+          <span class="nav-text-desktop">Klaim Produk</span>
+          <span class="nav-text-mobile">Klaim</span>
         </a>
 
         <!-- Currency Dropdown (Desktop Only) -->
@@ -75,10 +75,128 @@
         <!-- Theme Direct Toggle Button (Single Click) -->
         <button type="button" class="theme-toggle-btn" id="desktopThemeToggleBtn" aria-label="Ganti Tema Tampilan (Terang / Gelap)" title="Ganti Tema" onclick="window.toggleDigimestTheme()">
           <span class="theme-toggle-icon" id="desktopThemeIcon">☀️</span>
+                <!-- Mobile Animated Hamburger Button -->
+        <button type="button" class="nav-hamburger-btn" id="navHamburgerBtn" aria-label="Buka Menu">
+          <span class="hamburger-line line-1"></span>
+          <span class="hamburger-line line-2"></span>
+          <span class="hamburger-line line-3"></span>
+          <span id="hamburgerHistoryBadge" class="hamburger-badge-dot history-badge-count" style="display:none;"></span>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Slide-Over Glass Navigation Drawer -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay">
+    <div class="mobile-drawer-panel" id="mobileDrawerPanel">
+      <div class="drawer-header">
+        <a href="/" class="drawer-logo-wrap">
+          <img src="/logo/digimest.png" alt="Digimest" style="height: 28px; width: auto; object-fit: contain;">
+        </a>
+        <button type="button" class="drawer-close-btn" id="drawerCloseBtn" aria-label="Tutup Menu">
+          ✕
+        </button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Navigasi Utama</div>
+          <a href="/" class="drawer-nav-item">
+            <span class="drawer-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 01-8 0"></path></svg></span>
+            <span class="drawer-item-text">Katalog Produk</span>
+          </a>
+          <a href="/claim" class="drawer-nav-item">
+            <span class="drawer-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg></span>
+            <span class="drawer-item-text">Ambil / Klaim Lisensi</span>
+          </a>
+          <button type="button" class="drawer-nav-item" id="drawerOpenHistoryBtn">
+            <span class="drawer-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span>
+            <span class="drawer-item-text">Riwayat Pesanan Saya</span>
+            <span id="drawerHistoryBadge" class="badge-counter history-badge-count" style="display:none; margin-left: auto;">0</span>
+          </button>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Kemitraan &amp; Bantuan</div>
+          <a href="https://t.me/Digimestsupport?text=Halo%20Digimest%2C%20saya%20tertarik%20join%20Reseller%20(Harga%20Lebih%20Murah)" target="_blank" rel="noopener noreferrer" class="drawer-nav-item drawer-item-reseller" data-tele-drawer-reseller>
+            <span class="drawer-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87"></path><path d="M16 3.13a4 4 0 010 7.75"></path></svg></span>
+            <div style="display: flex; flex-direction: column;">
+              <span class="drawer-item-text">Join Reseller</span>
+              <span style="font-size: 0.72rem; color: #fbbf24;">Harga Khusus Jauh Lebih Murah ➔</span>
+            </div>
+          </a>
+          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener noreferrer" class="drawer-nav-item" data-tele-drawer-cs>
+            <span class="drawer-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg></span>
+            <span class="drawer-item-text">Chat CS Telegram</span>
+          </a>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Pilihan Bahasa / Language</div>
+          <div class="drawer-lang-grid">
+            <button type="button" class="drawer-lang-btn active" data-lang="id">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="20" fill="#e11d48"/><rect y="20" width="60" height="20" fill="#ffffff"/></svg>
+                <span>Indonesia</span>
+              </span>
+              <span class="lang-check">✓</span>
+            </button>
+            <button type="button" class="drawer-lang-btn" data-lang="en">
+              <span class="drawer-lang-left">
+                <svg class="svg-flag" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#c8102e" stroke-width="3.5"/><path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#c8102e" stroke-width="7"/></svg>
+                <span>English</span>
+              </span>
+              <span class="lang-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Mata Uang / Currency</div>
+          <div class="drawer-currency-grid">
+            <button type="button" class="drawer-currency-btn active" data-currency="IDR">
+              <span class="drawer-currency-left">
+                <span class="currency-symbol-badge">Rp</span>
+                <span>IDR (Rupiah)</span>
+              </span>
+              <span class="currency-check">✓</span>
+            </button>
+            <button type="button" class="drawer-currency-btn" data-currency="USD">
+              <span class="drawer-currency-left">
+                <span class="currency-symbol-badge">$</span>
+                <span>USD (Dollar)</span>
+              </span>
+              <span class="currency-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-nav-group">
+          <div class="drawer-group-label">Tema Tampilan / Theme</div>
+          <div class="drawer-theme-grid">
+            <button type="button" class="drawer-theme-btn active" data-theme-val="dark" onclick="window.setDigimestTheme('dark')">
+              <span class="drawer-theme-left">
+                <span class="theme-symbol-badge">🌙</span>
+                <span>Mode Gelap</span>
+              </span>
+              <span class="theme-check">✓</span>
+            </button>
+            <button type="button" class="drawer-theme-btn" data-theme-val="light" onclick="window.setDigimestTheme('light')">
+              <span class="drawer-theme-left">
+                <span class="theme-symbol-badge">☀️</span>
+                <span>Mode Terang</span>
+              </span>
+              <span class="theme-check" style="visibility: hidden;">✓</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <div>&copy; 2026 Digimest. Lisensi Digital 24/7.</div>
+      </div>
+    </div>
+  </div>
 
   <div class="payment-container">
     <div class="payment-card" id="paymentCard">
@@ -255,7 +373,7 @@
 
         <!-- KARTU KODE AMBIL PESANAN & DIRECT LINK KHUSUS -->
         <div class="claim-info-card">
-          <div class="claim-card-title">🔑 KODE AMBIL PESANAN ANDA</div>
+          <div class="claim-card-title"> KODE AMBIL PESANAN ANDA</div>
           <div class="claim-code-row">
             <span id="paidClaimCodeDisplay" class="claim-code-value">...</span>
             <button type="button" id="btnCopyClaimCode" class="btn-copy-claim">
@@ -268,7 +386,7 @@
           
           <div class="claim-direct-wrap">
             <div class="claim-direct-label">
-              🔗 Atau Anda bisa klik link di bawah ini untuk mengambil produk Anda:
+              Atau Anda bisa klik link di bawah ini untuk mengambil produk Anda:
             </div>
             <a id="paidDirectClaimLink" href="#" target="_blank" class="direct-claim-btn">
               <span>Buka & Ambil Produk via Link Langsung ➔</span>
@@ -289,7 +407,7 @@
           </div>
 
           <div id="warrantyAlert" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 0.85rem; margin-top: 1rem; font-size: 0.82rem; color: #fbbf24;">
-            💡 <strong>Panduan Aktivasi:</strong> Segera lakukan klaim/aktivasi lisensi sesuai batas waktu garansi di atas.
+            <strong>Panduan Aktivasi:</strong> Segera lakukan klaim/aktivasi lisensi sesuai batas waktu garansi di atas.
           </div>
         </div>
 
@@ -301,12 +419,12 @@
 
       <!-- Expired View -->
       <div id="expiredView" style="display: none;">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">⌛</div>
+        
         <h2 style="font-size: 1.35rem; font-weight: 800; color: #f87171; margin-bottom: 0.5rem;">Tagihan QRIS Kedaluwarsa</h2>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">Batas waktu 15 menit telah habis. Jika Anda baru saja transfer atau mengalami keterlambatan mutasi, periksa status pesanan Anda.</p>
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           <button type="button" id="btnCheckExpiredLate" class="btn-submit" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; cursor: pointer;">
-            ⚡ Saya Sudah Transfer (Cek Ulang Status)
+            Saya Sudah Transfer (Cek Ulang Status)
           </button>
           <a href="/" class="btn-nav" style="text-decoration: none; text-align: center; display: block; padding: 10px;">Buat Pesanan Baru</a>
         </div>
@@ -314,7 +432,7 @@
 
       <!-- Cancelled View -->
       <div id="cancelledView" style="display: none;">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">✕</div>
+        
         <h2 style="font-size: 1.35rem; font-weight: 800; color: #94a3b8; margin-bottom: 0.5rem;">Pesanan Telah Dibatalkan</h2>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">Transaksi ini telah dibatalkan. Tagihan QRIS tidak lagi berlaku dan tidak dapat dibayar.</p>
         <a href="/" class="btn-submit" style="text-decoration: none; display: block;">Kembali ke Katalog Toko</a>
@@ -330,7 +448,7 @@
   <!-- Modal Konfirmasi Batal Pesanan -->
   <div class="modal-overlay" id="cancelConfirmModal">
     <div class="modal-card cancel-modal-card">
-      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">⚠️</div>
+      
       <h3 class="cancel-modal-title">Batalkan Pesanan Ini?</h3>
       <p class="cancel-modal-desc">
         Tagihan QRIS ini akan dinonaktifkan. Anda dapat membuat pesanan baru kapan saja jika berubah pikiran.
@@ -351,7 +469,7 @@
       100% { opacity: 0.4; transform: scale(0.9); }
     }
   </style>
-  <script src="/js/order-history.js?v=5.9.12"></script>
-  <script src="/js/payment.js?v=5.9.12"></script>
+  <script src="/js/order-history.js?v=5.9.13"></script>
+  <script src="/js/payment.js?v=5.9.13"></script>
 </body>
 </html>
