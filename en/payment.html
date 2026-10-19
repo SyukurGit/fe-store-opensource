@@ -204,85 +204,73 @@
   <div class="payment-container">
     <div class="payment-card" id="paymentCard">
       
-      <!-- Top Meta Details (Clean Parallel Header) -->
-      <div class="payment-meta-header">
-        <div class="payment-meta-col col-invoice">
-          <div class="payment-meta-label">Invoice Number</div>
-          <div id="invDisplay" class="payment-meta-inv">...</div>
+      <!-- Compact Top Meta Bar: Invoice, Email, Timer, and Status in ONE Row -->
+      <div class="payment-top-bar">
+        <div class="payment-top-left">
+          <div class="payment-top-inv-wrap">
+            <span class="payment-meta-label">Invoice:</span>
+            <span id="invDisplay" class="payment-meta-inv">...</span>
+          </div>
+          <div id="emailNotice" class="payment-top-email-wrap" style="display: none;">
+            <span>✉️</span>
+            <span id="buyerEmailDisplay" class="payment-top-email-text"></span>
+          </div>
         </div>
-        <div class="payment-meta-col col-status">
-          <div class="payment-meta-label">Transaction Status</div>
+        <div class="payment-top-right">
+          <div class="timer-box-inline">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span class="payment-meta-label" style="font-size: 0.68rem;">Time Left:</span>
+            <strong id="timerText" class="timer-val-inline">15:00</strong>
+          </div>
           <div id="statusBadgeDisplay" class="payment-meta-badge">
             ⏳ Awaiting Payment
           </div>
         </div>
       </div>
 
-      <div id="emailNotice" style="display: none; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 6px 12px; margin-bottom: 1.25rem; font-size: 0.8rem; color: #a5b4fc; text-align: center;">
-        ✉️ Payment receipt & pickup code automatically sent to: <strong id="buyerEmailDisplay" style="color: var(--text-main);"></strong>
-      </div>
-
       <!-- Pending State View -->
       <div id="pendingView">
-
-        <!-- Top Timer Countdown Box (Common to all pending methods) -->
-        <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
-          <div class="timer-box">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>Payment Time Left: </span>
-            <strong id="timerText" style="color: var(--text-main);">15:00</strong>
-          </div>
-        </div>
 
         <div class="payment-split-grid">
           <!-- LEFT COLUMN: VISUAL / QR CODE -->
           <div class="payment-col-visual">
             
             <!-- 1. QRIS Visual -->
-            <div id="qrisVisualBox" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div id="qrisVisualBox" class="visual-gateway-pane">
               <div class="payment-method-badge-pill pill-qris">
                 <span>🇮🇩</span> QRIS National Payment
               </div>
-              <h2 class="payment-method-title">Scan QRIS</h2>
-              <p class="payment-method-sub">ShopeePay, BCA, GoPay, OVO, Dana, LinkAja, or Mobile Banking.</p>
               <div class="qris-box">
                 <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
               </div>
               <div class="payment-scan-hint">
-                Scan the barcode above with your payment app.
+                Scan via Shopee, BCA, GoPay, OVO, Dana, LinkAja, or M-Banking.
               </div>
             </div>
 
             <!-- 2. Binance Visual -->
-            <div id="binanceVisualBox" style="width: 100%; display: none; flex-direction: column; align-items: center;">
+            <div id="binanceVisualBox" class="visual-gateway-pane" style="display: none;">
               <div class="payment-method-badge-pill pill-binance">
                 <span>⚡</span> Binance Pay (USDT)
               </div>
-              <h2 class="payment-method-title">Binance Pay</h2>
-              <p class="payment-method-sub">Scan QR directly from your Binance App.</p>
               <div class="qris-box">
                 <img id="binanceQrCode" src="" alt="Binance Pay QR Loading..." class="qris-img">
               </div>
               <div class="payment-scan-hint">
-                Open Binance App ➔ Top-right Scan Icon ➔ Confirm payment.
+                Open Binance App ➔ Scan icon at top right ➔ Confirm payment.
               </div>
             </div>
 
             <!-- 3. USDT BEP-20 Visual -->
-            <div id="bep20VisualBox" style="width: 100%; display: none; flex-direction: column; align-items: center;">
+            <div id="bep20VisualBox" class="visual-gateway-pane" style="display: none;">
               <div class="payment-method-badge-pill pill-bep20">
                 <span>🟡</span> BNB Smart Chain (BEP-20)
               </div>
-              <h2 class="payment-method-title">USDT Payment</h2>
-              <p class="payment-method-sub">Scan QR or transfer directly to the wallet address.</p>
               <div class="qris-box">
                 <img id="bep20QrCode" src="" alt="USDT BEP-20 QR Loading..." class="qris-img">
               </div>
               <div class="payment-scan-hint">
-                Scan via Binance, TrustWallet, MetaMask, OKX, Bybit, or Web3 Wallet.
+                Scan via Binance, TrustWallet, MetaMask, OKX, Bybit, or Web3 App.
               </div>
             </div>
 
@@ -294,132 +282,143 @@
             <!-- Product Snippet -->
             <div class="payment-product-snippet">
               <div style="min-width: 0;">
-                <div class="payment-card-label" style="margin-bottom: 2px;">Your Order</div>
+                <div class="payment-card-label" style="margin-bottom: 1px;">Your Order</div>
                 <div class="payment-product-snippet-name" id="pendingProductName">Loading order details...</div>
               </div>
               <span class="payment-product-snippet-badge" id="pendingProductQty">1x</span>
             </div>
 
             <!-- 1. QRIS Details -->
-            <div id="qrisPendingContainer" style="display: flex; flex-direction: column; gap: 0.85rem;">
-              <div class="payment-detail-card card-amount">
-                <div class="payment-card-header-row">
-                  <span class="payment-card-label">Total Exact Amount to Pay</span>
+            <div id="qrisPendingContainer" style="display: flex; flex-direction: column;">
+              <div class="payment-unified-card">
+                <div class="unified-card-row">
+                  <div class="unified-row-left">
+                    <span class="unified-row-label">Total Exact Amount to Pay</span>
+                    <div class="unified-row-value">
+                      <div id="totalAmountText" class="payment-amount-display">Rp 0</div>
+                    </div>
+                  </div>
                   <button type="button" id="btnCopyQrisAmount" class="btn-copy-action">📋 Copy Amount</button>
                 </div>
-                <div class="payment-card-value-row">
-                  <div id="totalAmountText" class="payment-amount-display">Rp 0</div>
-                </div>
-                <div id="uniqueCodeNote" class="payment-card-subhint hint-warning">
+
+                <div class="unified-card-divider"></div>
+
+                <div id="uniqueCodeNote" class="unified-card-footer-hint" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #fbbf24; border-radius: 4px; padding: 5px 8px; color: #fcd34d;">
                   ⚠️ Includes 3-digit unique code. <strong>Do not round transfer</strong> for automatic instant verification!
                 </div>
-              </div>
 
-              <div class="payment-detail-card" style="background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.06);">
-                <div class="payment-card-label">QRIS Payment Guide</div>
-                <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.55;">
-                  1. Open your banking or e-wallet app.<br>
-                  2. Choose <strong>Scan / Pay QR</strong> and point camera to the QR code on the left.<br>
-                  3. Verify exact nominal matches including the unique code digits.<br>
-                  4. Once sent, our system automatically verifies mutation and releases your license.
+                <div class="unified-sub-meta" style="font-size: 0.74rem; color: #94a3b8; line-height: 1.4;">
+                  💡 Open your M-Banking/E-Wallet app ➔ Scan barcode on the left ➔ License is fulfilled instantly.
                 </div>
               </div>
             </div>
 
-            <!-- 2. Binance Pay Details -->
-            <div id="binancePendingContainer" style="display: none; flex-direction: column; gap: 0.85rem;">
-              <div class="payment-detail-card card-amount">
-                <div class="payment-card-header-row">
-                  <span class="payment-card-label">Exact Transfer Amount</span>
+            <!-- 2. Binance Pay Details (Unified Nominal & Pay ID) -->
+            <div id="binancePendingContainer" style="display: none; flex-direction: column;">
+              <div class="payment-unified-card">
+                
+                <!-- Nominal -->
+                <div class="unified-card-row">
+                  <div class="unified-row-left">
+                    <span class="unified-row-label">Exact Transfer Amount</span>
+                    <div class="unified-row-value">
+                      <span id="cryptoAmountDisplay" class="payment-amount-display" style="color: #F3BA2F;">0.000</span>
+                      <span id="cryptoCurrencyDisplay" class="payment-currency-tag">USDT</span>
+                    </div>
+                  </div>
                   <button type="button" id="btnCopyCryptoAmount" class="btn-copy-action">📋 Copy Amount</button>
                 </div>
-                <div class="payment-card-value-row">
-                  <div style="display: flex; align-items: baseline;">
-                    <span id="cryptoAmountDisplay" class="payment-amount-display" style="color: #F3BA2F;">0.000</span>
-                    <span id="cryptoCurrencyDisplay" class="payment-currency-tag">USDT</span>
-                  </div>
-                </div>
-                <div class="payment-card-subhint hint-warning">
-                  ⚠️ Send <strong>exact amount</strong> above (do not round) for instant automatic detection!
-                </div>
-              </div>
 
-              <div class="payment-detail-card card-address">
-                <div class="payment-card-header-row">
-                  <span class="payment-card-label">Recipient Binance Pay ID</span>
+                <div class="unified-card-divider"></div>
+
+                <!-- Pay ID -->
+                <div class="unified-card-row">
+                  <div class="unified-row-left" style="min-width: 0;">
+                    <span class="unified-row-label">Recipient Binance Pay ID</span>
+                    <div class="unified-address-inline">
+                      <span id="binancePayIdDisplay" class="unified-id-text">-</span>
+                    </div>
+                    <div class="unified-sub-meta">
+                      <span style="color: #94a3b8;">Account Name:</span>
+                      <span id="binanceAccountNameDisplay" style="font-weight: 700; color: #34d399;">-</span>
+                    </div>
+                  </div>
                   <button type="button" id="btnCopyPayId" class="btn-copy-action">📋 Copy Pay ID</button>
                 </div>
-                <div class="payment-address-box" style="font-size: 1.1rem; font-weight: 800; color: #fff;">
-                  <span id="binancePayIdDisplay">-</span>
+
+                <div class="unified-card-divider"></div>
+
+                <div class="unified-card-footer-hint">
+                  ⚡ Send <strong>exact amount</strong> above (do not round) for instant automatic detection!
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; margin-top: 2px;">
-                  <span style="color: #94a3b8;">Recipient Account Name:</span>
-                  <span id="binanceAccountNameDisplay" style="font-weight: 700; color: #34d399;">-</span>
-                </div>
+
               </div>
             </div>
 
-            <!-- 3. USDT BEP-20 Details -->
-            <div id="bep20PendingContainer" style="display: none; flex-direction: column; gap: 0.85rem;">
-              <div class="payment-detail-card card-amount">
-                <div class="payment-card-header-row">
-                  <span class="payment-card-label">Amount to Receive (EXACT)</span>
+            <!-- 3. USDT BEP-20 Details (Unified Nominal & Wallet Address) -->
+            <div id="bep20PendingContainer" style="display: none; flex-direction: column;">
+              <div class="payment-unified-card">
+                
+                <!-- Nominal -->
+                <div class="unified-card-row">
+                  <div class="unified-row-left">
+                    <span class="unified-row-label">Amount to Receive (Exact Amount)</span>
+                    <div class="unified-row-value">
+                      <span id="bep20AmountDisplay" class="payment-amount-display">0.000</span>
+                      <span class="payment-currency-tag">USDT</span>
+                    </div>
+                  </div>
                   <button type="button" id="btnCopyBep20Amount" class="btn-copy-action">📋 Copy Amount</button>
                 </div>
-                <div class="payment-card-value-row">
-                  <div style="display: flex; align-items: baseline;">
-                    <span id="bep20AmountDisplay" class="payment-amount-display">0.000</span>
-                    <span class="payment-currency-tag">USDT</span>
-                  </div>
-                </div>
-                <div class="payment-card-subhint hint-warning">
-                  ⚠️ <strong>Exact 3 decimals required</strong> for automatic on-chain verification!
-                </div>
-              </div>
 
-              <div class="payment-detail-card card-address">
-                <div class="payment-card-header-row">
-                  <span class="payment-card-label">Recipient Wallet Address (BSC BEP-20)</span>
+                <div class="unified-card-divider"></div>
+
+                <!-- Wallet Address -->
+                <div class="unified-card-row">
+                  <div class="unified-row-left" style="min-width: 0;">
+                    <span class="unified-row-label">Recipient Wallet Address (BSC BEP-20)</span>
+                    <div id="bep20WalletDisplay" class="unified-address-box">0x...</div>
+                    <div class="unified-sub-meta">
+                      <span>Network: <strong style="color: #f0b90b;">BNB Smart Chain (BEP-20)</strong></span>
+                      <span style="color: #64748b;">Contract: 0x55d3...7955</span>
+                    </div>
+                  </div>
                   <button type="button" id="btnCopyBep20Wallet" class="btn-copy-action">📋 Copy Address</button>
                 </div>
-                <div id="bep20WalletDisplay" class="payment-address-box">0x...</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #64748b; margin-top: 2px;">
-                  <span>Network: <strong style="color: #f0b90b;">BNB Smart Chain (BEP-20)</strong></span>
-                  <span title="USDT BSC Contract">Contract: 0x55d3...7955</span>
-                </div>
-              </div>
 
-              <!-- CEX WITHDRAWAL FEE WARNING -->
-              <div class="cex-warning-box">
-                <div class="cex-warning-title">
-                  <span>⚠️</span> CEX WITHDRAWAL FEE WARNING:
+                <!-- Inline CEX Alert -->
+                <div class="unified-cex-alert">
+                  <span>⚠️</span>
+                  <div>
+                    Sending from Exchange (Indodax, Bybit, Binance, Tokocrypto)? Ensure <strong>"Receive Amount" (Net Amount)</strong> after fee is <strong>EXACTLY <span id="bep20CexAmount" style="color: #f0b90b; font-weight: 700;">0.000</span> USDT</strong>.
+                  </div>
                 </div>
-                <p class="cex-warning-text">
-                  If sending from <strong>Indodax, Tokocrypto, Bybit, or Binance</strong>, the exchange will deduct a withdrawal fee. Please ensure the <strong>"Receive Amount" (Net Amount)</strong> is <strong>EXACTLY <span id="bep20CexAmount" style="color: #f0b90b; font-weight: 700;">0.000</span> USDT</strong>, not the gross amount before fee deduction.
-                </p>
+
               </div>
             </div>
 
-            <!-- ACTION BUTTONS (Common across all gateways) -->
+            <!-- ACTION BUTTONS & COMPACT STATUS -->
             <div class="payment-actions-box">
-              <button type="button" id="btnManualCheck" class="btn-check-paid">
+              <button type="button" id="btnManualCheck" class="btn-check-paid compact-btn">
                 <span class="btn-check-spinner" id="manualCheckSpinner" style="display: none;">🔄</span>
                 <span class="btn-check-icon" id="manualCheckIcon">⚡</span>
                 <span id="manualCheckText">I Have Paid (Check Status Now)</span>
               </button>
 
-              <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 0.15rem;">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite;"></span>
-                System automatically checks payment status every 3 seconds...
+              <div class="payment-auto-status">
+                <span class="pulse-dot"></span>
+                <span>System automatically checks payment status every 3 seconds...</span>
               </div>
 
-              <button type="button" id="btnCancelOrder" class="btn-cancel-order">
-                ✕ Cancel This Order
-              </button>
-
-              <a href="/en/" style="display: block; text-align: center; font-size: 0.8rem; color: #94a3b8; text-decoration: none; margin-top: 2px; padding: 4px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
-                ← Continue Shopping in Catalog (Order remains saved in 'My Orders')
-              </a>
+              <div class="payment-secondary-actions">
+                <button type="button" id="btnCancelOrder" class="btn-cancel-order-link">
+                  ✕ Cancel This Order
+                </button>
+                <span class="action-divider">•</span>
+                <a href="/en/" class="btn-return-link">
+                  ← Continue Shopping in Catalog
+                </a>
+              </div>
             </div>
 
           </div>
