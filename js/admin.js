@@ -4214,3 +4214,402 @@ function setupSilvexUI() {
 window.openEditSilvexModal = openEditSilvexModal;
 window.closeEditSilvexModal = closeEditSilvexModal;
 
+// ==========================================================================
+// STORE ANNOUNCEMENT ADMIN CONTROLLER
+// ==========================================================================
+let currentAnnouncementData = null;
+
+async function initAnnouncementPage() {
+  const titleInputID = document.getElementById('announcementTitleID');
+  if (!titleInputID) return; // Not on announcement page
+
+  await loadAnnouncementData();
+  setupAnnouncementEvents();
+}
+
+async function loadAnnouncementData() {
+  try {
+    const res = await adminFetch('/api/admin/announcement');
+    if (!res) return;
+    const json = await res.json();
+    if (!json.success || !json.data) return;
+
+    currentAnnouncementData = json.data;
+    populateAnnouncementForm(currentAnnouncementData);
+  } catch (err) {
+    showToast('Gagal memuat data pengumuman: ' + err.message);
+  }
+}
+
+function updateAnnouncementStatusUI(isActive) {
+  const headerWrap = document.getElementById('statusHeaderWrap');
+  const badgePill = document.getElementById('statusBadgePill');
+  const descText = document.getElementById('statusDescText');
+
+  if (isActive) {
+    if (headerWrap) {
+      headerWrap.classList.remove('is-inactive');
+      headerWrap.classList.add('is-active');
+    }
+    if (badgePill) {
+      badgePill.className = 'status-badge-pill active';
+      badgePill.textContent = '● AKTIF (Toko Menampilkan Popup)';
+    }
+    if (descText) {
+      descText.textContent = 'Pengumuman saat ini AKTIF dan akan ditampilkan ke pengunjung saat membuka halaman utama toko.';
+    }
+  } else {
+    if (headerWrap) {
+      headerWrap.classList.remove('is-active');
+      headerWrap.classList.add('is-inactive');
+    }
+    if (badgePill) {
+      badgePill.className = 'status-badge-pill inactive';
+      badgePill.textContent = '○ NONAKTIF (Popup Disembunyikan)';
+    }
+    if (descText) {
+      descText.textContent = 'Saat ini popup pengumuman disembunyikan dan tidak akan muncul di toko.';
+    }
+  }
+}
+
+function populateAnnouncementForm(ann) {
+  const isActiveToggle = document.getElementById('announcementIsActive');
+  const bannerUrlInput = document.getElementById('announcementBannerUrl');
+  const bannerPreview = document.getElementById('announcementBannerPreview');
+  const titleID = document.getElementById('announcementTitleID');
+  const titleEN = document.getElementById('announcementTitleEN');
+  const contentID = document.getElementById('announcementContentID');
+  const contentEN = document.getElementById('announcementContentEN');
+  const actionTextID = document.getElementById('announcementActionTextID');
+  const actionTextEN = document.getElementById('announcementActionTextEN');
+  const actionUrl = document.getElementById('announcementActionUrl');
+  const lastUpdatedEl = document.getElementById('announcementLastUpdatedText');
+
+  const isActive = !!ann.is_active;
+  if (isActiveToggle) isActiveToggle.checked = isActive;
+  updateAnnouncementStatusUI(isActive);
+
+  const banner = ann.banner_url || '/logo/gambar/alert.png';
+  if (bannerUrlInput) bannerUrlInput.value = banner;
+  if (bannerPreview) bannerPreview.src = banner;
+
+  // Sync preset chip active state
+  document.querySelectorAll('.preset-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.url === banner);
+  });
+
+  if (titleID) titleID.value = ann.title || '';
+  if (titleEN) titleEN.value = ann.title_en || '';
+  if (contentID) contentID.value = ann.content || '';
+  if (contentEN) contentEN.value = ann.content_en || '';
+  if (actionTextID) actionTextID.value = ann.action_text || '';
+  if (actionTextEN) actionTextEN.value = ann.action_text_en || '';
+  if (actionUrl) actionUrl.value = ann.action_url || '';
+
+  // Auto expand English section if it has data
+  if (ann.title_en || ann.content_en) {
+    const enContent = document.getElementById('englishAccordionContent');
+    const arrow = document.getElementById('accordionArrow');
+    if (enContent) enContent.classList.add('open');
+    if (arrow) arrow.textContent = '▲ Klik untuk Tutup';
+  }
+
+  if (lastUpdatedEl) {
+    if (ann.updated_at) {
+      const d = new Date(ann.updated_at * 1000);
+      lastUpdatedEl.textContent = '🕒 Terakhir Diperbarui: ' + d.toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) + ' WIB';
+    } else {
+      lastUpdatedEl.textContent = '🕒 Belum pernah disimpan';
+    }
+  }
+}
+
+function setupAnnouncementEvents() {
+  // Status switch toggle
+  const isActiveToggle = document.getElementById('announcementIsActive');
+  isActiveToggle?.addEventListener('change', () => {
+    updateAnnouncementStatusUI(isActiveToggle.checked);
+  });
+
+  // Preset chips click
+  const bannerUrlInput = document.getElementById('announcementBannerUrl');
+  const bannerPreview = document.getElementById('announcementBannerPreview');
+  document.querySelectorAll('.preset-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const url = chip.dataset.url;
+      if (bannerUrlInput) bannerUrlInput.value = url;
+      if (bannerPreview) bannerPreview.src = url;
+    });
+  });
+
+  // Banner URL input typing
+  bannerUrlInput?.addEventListener('input', () => {
+    const val = bannerUrlInput.value.trim() || '/logo/gambar/alert.png';
+    if (bannerPreview) bannerPreview.src = val;
+    document.querySelectorAll('.preset-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.url === val);
+    });
+  });
+
+  // Banner file upload
+  const fileInput = document.getElementById('announcementFileInput');
+  const uploadStatus = document.getElementById('uploadStatusText');
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    if (uploadStatus) {
+      uploadStatus.textContent = 'Mengupload gambar banner... ⏳';
+      uploadStatus.style.display = 'block';
+      uploadStatus.style.color = '#60a5fa';
+    }
+
+    const formData = new FormData();
+    formData.append('banner', file);
+
+    try {
+      const res = await adminFetch('/api/admin/announcement/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res) return;
+      const json = await res.json();
+      if (json.success && json.url) {
+        if (bannerUrlInput) bannerUrlInput.value = json.url;
+        if (bannerPreview) bannerPreview.src = json.url;
+        document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+        if (uploadStatus) {
+          uploadStatus.textContent = 'Gambar banner berhasil diupload! ✅';
+          uploadStatus.style.color = '#34d399';
+        }
+        showToast('Banner berhasil di-upload! 🖼️');
+      } else {
+        if (uploadStatus) {
+          uploadStatus.textContent = 'Gagal upload: ' + (json.error || 'Server error');
+          uploadStatus.style.color = '#f87171';
+        }
+        alert('Gagal upload banner: ' + (json.error || 'Error'));
+      }
+    } catch (err) {
+      if (uploadStatus) {
+        uploadStatus.textContent = 'Error: ' + err.message;
+        uploadStatus.style.color = '#f87171';
+      }
+      alert('Upload error: ' + err.message);
+    }
+  });
+
+  // Accordion English toggle
+  const btnToggleEnglish = document.getElementById('btnToggleEnglishSection');
+  const enContent = document.getElementById('englishAccordionContent');
+  const arrow = document.getElementById('accordionArrow');
+  btnToggleEnglish?.addEventListener('click', () => {
+    const isOpen = enContent?.classList.toggle('open');
+    if (arrow) {
+      arrow.textContent = isOpen ? '▲ Klik untuk Tutup' : '▼ Klik untuk Buka';
+    }
+  });
+
+  // Save buttons (Top & Bottom)
+  document.getElementById('btnSaveAnnouncementTop')?.addEventListener('click', saveAnnouncementData);
+  document.getElementById('btnSaveAnnouncementBottom')?.addEventListener('click', saveAnnouncementData);
+
+  // Test Modal triggers (Top & Bottom)
+  document.getElementById('btnTestModalTop')?.addEventListener('click', openAnnouncementTestModal);
+  document.getElementById('btnTestModalBottom')?.addEventListener('click', openAnnouncementTestModal);
+
+  // Test Modal close handlers
+  const testModal = document.getElementById('announcementTestModal');
+  function closeTestModal() {
+    if (!testModal) return;
+    testModal.classList.remove('open');
+    setTimeout(() => {
+      testModal.style.display = 'none';
+    }, 200);
+  }
+
+  document.getElementById('btnTestModalClose')?.addEventListener('click', closeTestModal);
+  document.getElementById('btnTestModalOk')?.addEventListener('click', closeTestModal);
+  document.getElementById('btnTestModalNever')?.addEventListener('click', closeTestModal);
+
+  testModal?.addEventListener('click', (e) => {
+    if (e.target === testModal) closeTestModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && testModal?.classList.contains('open')) {
+      closeTestModal();
+    }
+  });
+}
+
+function openAnnouncementTestModal() {
+  const modal = document.getElementById('announcementTestModal');
+  if (!modal) return;
+
+  const bannerUrl = (document.getElementById('announcementBannerUrl')?.value || '').trim() || '/logo/gambar/alert.png';
+  const title = (document.getElementById('announcementTitleID')?.value || '').trim() || 'JUDUL PENGUMUMAN';
+  const content = (document.getElementById('announcementContentID')?.value || '').trim() || 'Isi pesan pengumuman toko Anda akan muncul di sini secara rapi dan profesional.';
+  const actionText = (document.getElementById('announcementActionTextID')?.value || '').trim();
+  const actionUrl = (document.getElementById('announcementActionUrl')?.value || '').trim();
+
+  const imgEl = document.getElementById('testModalBannerImg');
+  const titleEl = document.getElementById('testModalTitle');
+  const bodyEl = document.getElementById('testModalBody');
+  const dateEl = document.getElementById('testModalDateText');
+  const actionWrap = document.getElementById('testModalActionWrap');
+  const actionLink = document.getElementById('testModalActionLink');
+
+  if (imgEl) imgEl.src = bannerUrl;
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl) bodyEl.textContent = content;
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  if (actionWrap && actionLink) {
+    if (actionUrl) {
+      actionLink.textContent = actionText || 'Lihat Selengkapnya ➔';
+      actionWrap.style.display = 'block';
+    } else {
+      actionWrap.style.display = 'none';
+    }
+  }
+
+  modal.style.display = 'flex';
+  void modal.offsetWidth; // Reflow
+  modal.classList.add('open');
+}
+
+async function saveAnnouncementData() {
+  const isActive = !!document.getElementById('announcementIsActive')?.checked;
+  const title = (document.getElementById('announcementTitleID')?.value || '').trim();
+  const titleEN = (document.getElementById('announcementTitleEN')?.value || '').trim();
+  const content = (document.getElementById('announcementContentID')?.value || '').trim();
+  const contentEN = (document.getElementById('announcementContentEN')?.value || '').trim();
+  const bannerUrl = (document.getElementById('announcementBannerUrl')?.value || '').trim() || '/logo/gambar/alert.png';
+  const actionText = (document.getElementById('announcementActionTextID')?.value || '').trim();
+  const actionTextEN = (document.getElementById('announcementActionTextEN')?.value || '').trim();
+  const actionUrl = (document.getElementById('announcementActionUrl')?.value || '').trim();
+
+  if (isActive && !title) {
+    alert('Judul Pengumuman (Bahasa Indonesia) wajib diisi jika status pengumuman aktif!');
+    document.getElementById('announcementTitleID')?.focus();
+    return;
+  }
+
+  const payload = {
+    is_active: isActive,
+    title: title,
+    title_en: titleEN,
+    content: content,
+    content_en: contentEN,
+    banner_url: bannerUrl,
+    action_text: actionText,
+    action_text_en: actionTextEN,
+    action_url: actionUrl
+  };
+
+  const btnTop = document.getElementById('btnSaveAnnouncementTop');
+  const btnBottom = document.getElementById('btnSaveAnnouncementBottom');
+  const buttons = [btnTop, btnBottom].filter(Boolean);
+
+  // Set visual Saving State on buttons
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Menyimpan...';
+    btn.classList.remove('btn-saved-success');
+  });
+
+  try {
+    const res = await adminFetch('/api/admin/announcement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res) {
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Simpan Pengumuman';
+      });
+      return;
+    }
+
+    const json = await res.json();
+    if (json.success && json.data) {
+      currentAnnouncementData = json.data;
+
+      // Set visual Success State on buttons
+      buttons.forEach(btn => {
+        btn.innerHTML = '✅ Tersimpan!';
+        btn.classList.add('btn-saved-success');
+      });
+
+      showToast('Pengumuman berhasil disimpan & dipublikasikan! 📢');
+
+      updateAnnouncementStatusUI(json.data.is_active);
+
+      const lastUpdatedEl = document.getElementById('announcementLastUpdatedText');
+      if (lastUpdatedEl && json.data.updated_at) {
+        const d = new Date(json.data.updated_at * 1000);
+        lastUpdatedEl.textContent = '🕒 Terakhir Diperbarui: ' + d.toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' WIB';
+      }
+
+      // Revert buttons back to normal after 2.5s
+      setTimeout(() => {
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          btn.innerHTML = '💾 Simpan Pengumuman';
+          btn.classList.remove('btn-saved-success');
+        });
+      }, 2500);
+
+    } else {
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = '❌ Gagal Simpan';
+      });
+      alert('Gagal menyimpan pengumuman: ' + (json.error || 'Server error'));
+      setTimeout(() => {
+        buttons.forEach(btn => {
+          btn.innerHTML = '💾 Simpan Pengumuman';
+        });
+      }, 2500);
+    }
+  } catch (err) {
+    buttons.forEach(btn => {
+      btn.disabled = false;
+      btn.innerHTML = '❌ Gagal Simpan';
+    });
+    alert('Error koneksi ke server: ' + err.message);
+    setTimeout(() => {
+      buttons.forEach(btn => {
+        btn.innerHTML = '💾 Simpan Pengumuman';
+      });
+    }, 2500);
+  }
+}
+
+window.initAnnouncementPage = initAnnouncementPage;
+
+

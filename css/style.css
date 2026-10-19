@@ -5824,25 +5824,25 @@ body.modal-open {
    ========================================================================== */
 .payment-partners-bar {
   max-width: 1200px;
-  margin: 3.5rem auto 1.5rem;
+  margin: 2.25rem auto 1.25rem;
   padding: 0 1.5rem;
   text-align: center;
 }
 
 .payment-partners-title {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--text-muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .payment-partners-logos {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
+  gap: 2rem;
   flex-wrap: wrap;
 }
 
@@ -5855,7 +5855,7 @@ body.modal-open {
 }
 
 .partner-logo-item:hover {
-  transform: translateY(-3px) scale(1.05);
+  transform: translateY(-2px);
 }
 
 .partner-logo-img {
@@ -5863,26 +5863,26 @@ body.modal-open {
   object-fit: contain;
 }
 
-/* Big prominent logo styles */
+/* Elegant standard logo styles */
 .partner-logo-img.logo-qris-img {
-  height: 64px;
+  height: 30px;
   width: auto;
   background: #ffffff;
-  border-radius: 14px;
-  padding: 6px 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  border-radius: 7px;
+  padding: 3px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .partner-logo-img.logo-binance-img {
-  height: 64px;
+  height: 30px;
   width: auto;
-  filter: drop-shadow(0 6px 18px rgba(243, 186, 47, 0.25));
+  filter: drop-shadow(0 2px 8px rgba(243, 186, 47, 0.2));
 }
 
 .partner-logo-img.logo-usdt-img {
-  height: 64px;
+  height: 30px;
   width: auto;
-  filter: drop-shadow(0 6px 18px rgba(38, 161, 123, 0.25));
+  filter: drop-shadow(0 2px 8px rgba(38, 161, 123, 0.2));
 }
 
 /* CHECKOUT MODAL PAYMENT METHOD LOGO STYLES */
@@ -5929,27 +5929,27 @@ body.modal-open {
 /* RESPONSIVE MOBILE TWEAKS */
 @media (max-width: 640px) {
   .payment-partners-bar {
-    margin: 2.25rem auto 1rem;
+    margin: 1.5rem auto 0.75rem;
     padding: 0 1rem;
   }
   .payment-partners-title {
-    font-size: 0.72rem;
-    margin-bottom: 1rem;
+    font-size: 0.68rem;
+    margin-bottom: 0.65rem;
   }
   .payment-partners-logos {
-    gap: 1.5rem;
+    gap: 1.25rem;
     justify-content: center;
   }
   .partner-logo-img.logo-qris-img {
-    height: 44px;
-    padding: 4px 10px;
-    border-radius: 10px;
+    height: 22px;
+    padding: 2px 6px;
+    border-radius: 5px;
   }
   .partner-logo-img.logo-binance-img {
-    height: 44px;
+    height: 22px;
   }
   .partner-logo-img.logo-usdt-img {
-    height: 44px;
+    height: 22px;
   }
 }
 
@@ -7634,4 +7634,317 @@ html[data-theme="light"] .crypto-amount-display {
 html[data-theme="light"] .toast-notice {
   background: #0f172a !important;
   color: #f8fafc !important;
+}
+
+/* ==========================================================================
+   STORE ANNOUNCEMENT MODAL (RESPONSIVE FLOATING CARD, PROPORTIONAL BANNER)
+   ========================================================================== */
+.announcement-modal-overlay {
+  z-index: 2500 !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.25rem !important;
+  box-sizing: border-box !important;
+}
+
+.announcement-modal-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: min(92dvh, 640px);
+  margin: auto;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85), 0 0 35px rgba(79, 70, 229, 0.15);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.92);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.modal-overlay.open .announcement-modal-card {
+  transform: scale(1);
+}
+
+/* Banner container with exact proportional aspect-ratio matching alert.png (1254x854 ≈ 16:10) */
+.announcement-banner-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #090d16;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.announcement-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Close round button top-right */
+.announcement-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 15;
+  line-height: 1;
+  padding: 0;
+}
+
+.announcement-close-btn:hover {
+  background: rgba(239, 68, 68, 0.85);
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.announcement-content-wrap {
+  padding: 1.15rem 1.25rem 0.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.announcement-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.announcement-meta {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.announcement-body {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+  white-space: pre-line;
+  word-break: break-word;
+  margin-top: 4px;
+}
+
+.announcement-content-wrap::-webkit-scrollbar {
+  width: 4px;
+}
+.announcement-content-wrap::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+.announcement-content-wrap::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.announcement-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  background: rgba(79, 70, 229, 0.12);
+  border: 1px solid rgba(79, 70, 229, 0.35);
+  color: #818cf8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.announcement-action-btn:hover {
+  background: rgba(79, 70, 229, 0.22);
+  border-color: #818cf8;
+  color: #a5b4fc;
+}
+
+/* Footer buttons matching contoh alert.png */
+.announcement-footer {
+  padding: 0.85rem 1.25rem 1.15rem 1.25rem;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.45);
+  flex-shrink: 0;
+}
+
+.btn-announcement-dismiss {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-announcement-dismiss:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-announcement-ok {
+  flex: 1.1;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-announcement-ok:hover {
+  background: #4338ca;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Light Mode Overrides for Announcement Modal */
+html[data-theme="light"] .announcement-modal-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 25px 60px -12px rgba(15, 23, 42, 0.3), 0 0 25px rgba(79, 70, 229, 0.08) !important;
+}
+
+html[data-theme="light"] .announcement-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .announcement-body {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .announcement-meta {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .announcement-footer {
+  border-top-color: #f1f5f9 !important;
+  background: #f8fafc !important;
+}
+
+html[data-theme="light"] .btn-announcement-dismiss {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .btn-announcement-dismiss:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Mobile Responsive Optimization (< 540px) - ANTI-MELEBAR */
+@media (max-width: 540px) {
+  .announcement-modal-overlay {
+    padding: 1rem 0.75rem !important;
+    align-items: center !important;
+  }
+  .announcement-modal-card {
+    /* Critical: NOT 100% width! Keep floating dialog with margins */
+    width: calc(100vw - 32px) !important;
+    max-width: 360px !important;
+    margin: auto !important;
+    max-height: calc(100dvh - 2rem) !important;
+    border-radius: 16px !important;
+  }
+  .announcement-banner-wrap {
+    aspect-ratio: 16 / 10 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+  .announcement-content-wrap {
+    padding: 0.95rem 1rem 0.4rem 1rem !important;
+  }
+  .announcement-title {
+    font-size: 0.95rem !important;
+  }
+  .announcement-body {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+  }
+  .announcement-footer {
+    padding: 0.75rem 1rem 1rem 1rem !important;
+    gap: 8px !important;
+  }
+  .btn-announcement-dismiss {
+    font-size: 0.74rem !important;
+    padding: 0.6rem 0.4rem !important;
+  }
+  .btn-announcement-ok {
+    font-size: 0.76rem !important;
+    padding: 0.6rem 0.5rem !important;
+  }
+}
+
+/* Extra narrow screens (< 330px) */
+@media (max-width: 330px) {
+  .announcement-footer {
+    flex-direction: column-reverse !important;
+    gap: 6px !important;
+  }
+  .btn-announcement-ok {
+    width: 100% !important;
+  }
+  .btn-announcement-dismiss {
+    width: 100% !important;
+  }
 }

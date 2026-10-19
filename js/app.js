@@ -69,7 +69,10 @@ function renderProducts(products) {
       ? (isEn ? 'Out of Stock' : 'Habis')
       : (p.stockCapped ? (isEn ? '>1000 In Stock' : '>1000 Stok') : (isEn ? `${p.stock} In Stock` : `${p.stock} Stok`));
     const logoSrc = p.logo || 'https://via.placeholder.com/46?text=DC';
-    const prodLink = prodBaseUrl + encodeURIComponent(p.slug);
+    const salesCountVal = (p.salesCount !== undefined && p.salesCount !== null)
+      ? p.salesCount
+      : ((p.sales_count !== undefined && p.sales_count !== null) ? p.sales_count : 10);
+    const prodLink = prodBaseUrl + encodeURIComponent(p.slug || '');
 
     return `
       <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='${prodLink}'" style="cursor: pointer;">
@@ -79,7 +82,7 @@ function renderProducts(products) {
             <div class="prod-title-wrap">
               <div class="prod-header-meta">
                 <span class="prod-category">${escapeHtml(p.type || 'Digital License')}</span>
-                <span class="prod-sold-badge">${p.salesCount || 10} ${isEn ? 'sold' : 'terjual'}</span>
+                <span class="prod-sold-badge">${salesCountVal} ${isEn ? 'sold' : 'terjual'}</span>
               </div>
               <h3 class="prod-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
             </div>
@@ -477,5 +480,132 @@ document.addEventListener('DOMContentLoaded', async () => {
       applyFilterAndSearch();
     }
   });
+
+  // Store Announcement Popup Init
+  initStoreAnnouncement();
 });
+
+// ==========================================================================
+// STORE ANNOUNCEMENT POPUP ENGINE (ROOT PAGE ONLY, ANTI-SPAM, AUTO-RENEW)
+// ==========================================================================
+async function initStoreAnnouncement() {
+  const modal = document.getElementById('announcementModal');
+  if (!modal) return;
+
+  // 1. Only run on root page
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const isRoot = path === '/' || path === '/index.html' || path === '/en' || path === '/en/index.html';
+  if (!isRoot) return;
+
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || path.startsWith('/en');
+
+  try {
+    const apiUrl = window.digimestApi ? window.digimestApi('/api/announcement') : '/api/announcement';
+    const res = await fetch(apiUrl);
+    if (!res.ok) return;
+    const json = await res.json();
+    if (!json.success || !json.data) return;
+
+    const ann = json.data;
+    if (!ann.is_active || !ann.title) return;
+
+    const annVersion = String(ann.updated_at || '1');
+    const dismissedVer = localStorage.getItem('digimest_announcement_dismissed_ver');
+    const sessionClosedVer = sessionStorage.getItem('digimest_announcement_session_closed');
+
+    // If dismissed permanently for this version OR closed in this session -> don't show
+    if (dismissedVer === annVersion || sessionClosedVer === annVersion) {
+      return;
+    }
+
+    // Populate data
+    const titleEl = document.getElementById('announcementTitle');
+    const bodyEl = document.getElementById('announcementBody');
+    const bannerEl = document.getElementById('announcementBannerImg');
+    const dateTextEl = document.getElementById('announcementDateText');
+    const actionWrap = document.getElementById('announcementActionWrap');
+    const actionLink = document.getElementById('announcementActionLink');
+
+    const displayTitle = (isEn && ann.title_en) ? ann.title_en : ann.title;
+    const displayContent = (isEn && ann.content_en) ? ann.content_en : (ann.content || '');
+    const displayActionText = (isEn && ann.action_text_en) ? ann.action_text_en : (ann.action_text || (isEn ? 'Learn More ➔' : 'Lihat Selengkapnya ➔'));
+
+    if (titleEl) titleEl.textContent = displayTitle;
+    if (bodyEl) bodyEl.textContent = displayContent;
+
+    const btnDismiss = document.getElementById('btnAnnouncementNever');
+    const btnOk = document.getElementById('btnAnnouncementOk');
+    if (btnDismiss) btnDismiss.textContent = isEn ? "Don't show again" : "Jangan tampilkan lagi";
+    if (btnOk) btnOk.textContent = isEn ? "OK, Understood" : "OK, Mengerti";
+
+    if (bannerEl && ann.banner_url) {
+      bannerEl.src = ann.banner_url;
+    }
+
+    if (dateTextEl && ann.updated_at) {
+      try {
+        const d = new Date(ann.updated_at * 1000);
+        dateTextEl.textContent = d.toLocaleDateString(isEn ? 'en-US' : 'id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+      } catch (e) {
+        dateTextEl.textContent = '-';
+      }
+    }
+
+    if (actionWrap && actionLink) {
+      if (ann.action_url) {
+        actionLink.href = ann.action_url;
+        actionLink.textContent = displayActionText;
+        actionWrap.style.display = 'block';
+      } else {
+        actionWrap.style.display = 'none';
+      }
+    }
+
+    // Open Modal with smooth transition
+    modal.style.display = 'flex';
+    void modal.offsetWidth; // Reflow
+    modal.classList.add('open');
+
+    function closeModal(actionType) {
+      modal.classList.remove('open');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 250);
+
+      if (actionType === 'never' || actionType === 'ok') {
+        // Suppress across reloads until admin publishes new updated_at version
+        localStorage.setItem('digimest_announcement_dismissed_ver', annVersion);
+        sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
+      } else {
+        // Closed with (✕) or overlay: suppress for current browser tab session
+        sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
+      }
+    }
+
+    // Button event listeners
+    document.getElementById('btnAnnouncementNever')?.addEventListener('click', () => closeModal('never'));
+    document.getElementById('btnAnnouncementOk')?.addEventListener('click', () => closeModal('ok'));
+    document.getElementById('btnAnnouncementClose')?.addEventListener('click', () => closeModal('close'));
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal('close');
+      }
+    });
+
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) {
+        closeModal('close');
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+
+  } catch (err) {
+    console.debug('Announcement check skipped:', err);
+  }
+}
 

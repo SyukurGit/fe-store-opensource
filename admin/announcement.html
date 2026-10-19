@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Pengumuman - Admin Digimest</title>
+  <link rel="icon" type="image/png" href="/logo/digimest_icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .announcement-container {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Status Banner Card */
+    .status-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .status-card-header.is-active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .status-card-header.is-inactive {
+      background: linear-gradient(135deg, rgba(100, 116, 139, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border-color: rgba(100, 116, 139, 0.25);
+    }
+
+    .status-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+    .status-badge-pill.active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .status-badge-pill.inactive {
+      background: rgba(148, 163, 184, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    /* Banner Image Preview Box */
+    .banner-preview-box {
+      width: 100%;
+      max-width: 440px;
+      aspect-ratio: 16 / 10;
+      background: #090e17;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto 1rem;
+    }
+    .banner-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    /* Preset Quick Buttons */
+    .preset-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 0.75rem;
+    }
+    .preset-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .preset-chip:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .preset-chip.active {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: #60a5fa;
+      color: #93c5fd;
+    }
+
+    /* Collapsible English Box */
+    .accordion-toggle-btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .accordion-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    .accordion-content {
+      display: none;
+      padding-top: 1.25rem;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .accordion-content.open {
+      display: flex;
+    }
+
+    /* Sticky Bottom Floating Bar */
+    .announcement-bottom-bar {
+      position: sticky;
+      bottom: 1.5rem;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    /* Success pulse animation for save button */
+    @keyframes saveSuccessPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    .btn-saved-success {
+      background: #10b981 !important;
+      border-color: #059669 !important;
+      color: #ffffff !important;
+      animation: saveSuccessPulse 0.4s ease;
+    }
+
+    /* Form Grid Bilingual */
+    .form-grid-bilingual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Mobile Responsive Optimizations (< 640px) */
+    @media (max-width: 640px) {
+      .announcement-container {
+        gap: 1rem;
+      }
+      .form-grid-bilingual {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+      }
+
+      .status-card-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.85rem !important;
+        padding: 1rem !important;
+      }
+      .status-card-header .switch-container {
+        align-self: flex-end;
+      }
+
+      .banner-preview-box {
+        max-height: 185px !important;
+        height: auto !important;
+      }
+      .banner-preview-box img {
+        max-height: 185px !important;
+      }
+
+      .preset-chips-wrap {
+        gap: 6px !important;
+      }
+      .preset-chip {
+        flex: 1 1 calc(50% - 6px);
+        justify-content: center;
+        text-align: center;
+        font-size: 0.74rem !important;
+        padding: 6px 8px !important;
+      }
+
+      #btnTestModalTop {
+        display: none !important;
+      }
+      #btnSaveAnnouncementTop {
+        padding: 0.42rem 0.8rem !important;
+        font-size: 0.78rem !important;
+      }
+
+      .announcement-bottom-bar {
+        bottom: 0.75rem !important;
+        padding: 0.65rem 0.85rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.45rem !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+      }
+      .announcement-bottom-bar > div:first-child {
+        display: none !important;
+      }
+      .announcement-bottom-bar > div:last-child {
+        display: flex !important;
+        width: 100% !important;
+        gap: 8px !important;
+      }
+      #btnTestModalBottom {
+        flex: 1 !important;
+        padding: 0.62rem 0.5rem !important;
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+      }
+      #btnSaveAnnouncementBottom {
+        flex: 1.4 !important;
+        padding: 0.62rem 0.75rem !important;
+        font-size: 0.82rem !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-shell">
+    
+    <!-- Backdrop Overlay for Mobile Drawer -->
+    <div class="admin-drawer-overlay" id="adminDrawerOverlay"></div>
+
+    <!-- 1. LEFT SIDEBAR -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-sidebar-header">
+        <a href="/admin" class="admin-sidebar-brand" title="Digimest Admin">
+          <img src="/logo/digimest.png" alt="Digimest" class="admin-sidebar-logo">
+          <span class="admin-brand-tag">ADMIN</span>
+        </a>
+      </div>
+
+      <div class="admin-sidebar-content">
+        <!-- Group 1: OVERVIEW -->
+        <div class="admin-nav-group">
+          <div class="admin-nav-group-title">Overview</div>
+          <a href="/admin" class="admin-sidebar-link">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+        </div>
+
+        <!-- Group 2: KATALOG PRODUK -->
+        <div class="admin-nav-group">
+          <div class="admin-nav-group-title">Katalog Produk</div>
+          <a href="/admin/products" class="admin-sidebar-link">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Produk DigitalCore</span>
+          </a>
+          <a href="/admin/silvex-products" class="admin-sidebar-link">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">Produk Silvex AI</span>
+          </a>
+          <a href="/admin/custom-products" class="admin-sidebar-link">
+            <span class="nav-icon">✨</span>
+            <span class="nav-label">Produk Mandiri / Lokal</span>
+          </a>
+          <a href="/admin/reviews" class="admin-sidebar-link">
+            <span class="nav-icon">⭐</span>
+            <span class="nav-label">Ulasan & Etalase</span>
+          </a>
+          <a href="/admin/translations" class="admin-sidebar-link">
+            <span class="nav-icon">🌐</span>
+            <span class="nav-label">Terjemahan (EN)</span>
+          </a>
+        </div>
+
+        <!-- Group 3: PENJUALAN & TRANSAKSI -->
+        <div class="admin-nav-group">
+          <div class="admin-nav-group-title">Penjualan & Promosi</div>
+          <a href="/admin/orders" class="admin-sidebar-link">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">Riwayat Pesanan</span>
+          </a>
+          <a href="/admin/vouchers" class="admin-sidebar-link">
+            <span class="nav-icon">🎟️</span>
+            <span class="nav-label">Kelola Voucher</span>
+          </a>
+          <a href="/admin/announcement" class="admin-sidebar-link active">
+            <span class="nav-icon">📢</span>
+            <span class="nav-label">Popup Pengumuman</span>
+          </a>
+        </div>
+
+        <!-- Group 4: SISTEM & PENGATURAN -->
+        <div class="admin-nav-group">
+          <div class="admin-nav-group-title">Sistem & Pengaturan</div>
+          <a href="/admin/settings" class="admin-sidebar-link">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Pengaturan Toko</span>
+          </a>
+          <a href="/admin/security" class="admin-sidebar-link">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Log Keamanan & Login</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="admin-sidebar-footer">
+        <div class="admin-session-box" id="adminLastLoginBadge" title="Informasi sesi login admin terakhir">
+          <span class="last-login-dot">●</span>
+          <div style="flex: 1; min-width: 0; line-height: 1.2;">
+            <div style="color: #cbd5e1; font-weight: 600; font-size: 0.72rem;">Sesi Admin Aktif</div>
+            <div id="topbarLastLoginLoc" style="color: var(--text-muted); font-size: 0.68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Memuat...</div>
+          </div>
+          <a href="/admin/security" class="btn-login-history" title="Log Keamanan">🛡️</a>
+        </div>
+        <div class="admin-footer-actions">
+          <a href="/" target="_blank" class="btn-nav" style="flex: 1; text-align: center; font-size: 0.75rem; padding: 0.4rem 0.5rem;">Lihat Toko ↗</a>
+          <button id="btnLogoutSidebar" class="btn-nav btn-admin-logout" style="color: #f87171; font-size: 0.75rem; padding: 0.4rem 0.6rem;">Logout</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. MAIN VIEWPORT -->
+    <div class="admin-main-viewport">
+      
+      <!-- Topbar Header -->
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-hamburger-btn" id="adminHamburgerBtn" aria-label="Buka Menu Navigasi">
+            ☰
+          </button>
+          <div class="admin-breadcrumb">
+            <span>Admin</span>
+            <span>›</span>
+            <span>Promosi</span>
+            <span>›</span>
+            <span class="current">Popup Pengumuman</span>
+          </div>
+        </div>
+
+        <div class="admin-topbar-right">
+          <button class="btn-secondary" id="btnTestModalTop" style="font-size: 0.82rem; padding: 0.45rem 0.85rem;">
+            👁️ Tes Tampilan Popup
+          </button>
+          <button class="btn-primary" id="btnSaveAnnouncementTop" style="font-size: 0.82rem; padding: 0.45rem 1rem;">
+            💾 Simpan Pengumuman
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Body Container -->
+      <main class="admin-content-area">
+        
+        <div class="announcement-container">
+
+          <!-- Header Titles -->
+          <div class="admin-page-header" style="margin-bottom: 0.5rem;">
+            <div>
+              <h1 class="admin-page-title" style="display: flex; align-items: center; gap: 8px;">
+                <span>📢</span> Popup Pengumuman Toko
+              </h1>
+              <p class="admin-page-subtitle">
+                Atur modal pemberitahuan atau informasi promo yang otomatis muncul saat pengunjung pertama kali membuka halaman utama toko.
+              </p>
+            </div>
+          </div>
+
+          <!-- CARD 1: STATUS VISIBILITAS TOKO -->
+          <div class="admin-card" style="padding: 1.25rem;">
+            <div class="status-card-header" id="statusHeaderWrap">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                  <span style="font-size: 1.05rem; font-weight: 800; color: #fff;">Status Popup Toko</span>
+                  <span class="status-badge-pill inactive" id="statusBadgePill">○ NONAKTIF</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4;" id="statusDescText">
+                  Saat ini popup pengumuman disembunyikan dan tidak akan muncul di toko.
+                </div>
+              </div>
+
+              <!-- Switch Toggle -->
+              <div class="switch-container">
+                <label class="switch" style="position: relative; display: inline-block; width: 52px; height: 28px; margin: 0;">
+                  <input type="checkbox" id="announcementIsActive" style="opacity: 0; width: 0; height: 0;">
+                  <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #334155; transition: .25s; border-radius: 28px;"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Anti-Spam Info Note -->
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; font-size: 0.78rem; color: #93c5fd; line-height: 1.45;">
+              💡 <strong>Mekanisme Perlindungan Anti-Spam:</strong> Popup ini hanya muncul 1 kali per browser/sesi di halaman utama (<code>/</code> dan <code>/en/</code>). Pengunjung yang sudah menekan <em>"OK"</em> atau <em>"Jangan Tampilkan Lagi"</em> tidak akan diganggu lagi hingga Anda memperbarui pengumuman di halaman ini.
+            </div>
+          </div>
+
+          <!-- CARD 2: BANNER GAMBAR PENGUMUMAN -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h2 class="admin-card-title">1. Banner Gambar Bagian Atas</h2>
+                <p class="admin-card-desc">Pilih preset banner maskot atau upload gambar banner promosi kustom.</p>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.25rem;">
+              
+              <!-- Live Banner Preview Box -->
+              <div class="banner-preview-box">
+                <img id="announcementBannerPreview" src="/logo/gambar/alert.png" alt="Preview Banner" onerror="this.src='/logo/gambar/alert.png'">
+              </div>
+
+              <!-- Preset Quick Chips -->
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">PILIHAN PRESET BANNER CEPAT:</div>
+              <div class="preset-chips-wrap">
+                <button type="button" class="preset-chip active" data-url="/logo/gambar/alert.png">
+                  🤖 Robot Maskot Digimest (Default)
+                </button>
+                <button type="button" class="preset-chip" data-url="/logo/gambar/banner1.png">
+                  🎨 Promo Desktop AI
+                </button>
+                <button type="button" class="preset-chip" data-url="/logo/gambar/banner2.png">
+                  🚀 Promo Digital Store
+                </button>
+              </div>
+
+              <!-- Upload & Custom URL Row -->
+              <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                <label for="announcementFileInput" class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1rem; font-size: 0.84rem;">
+                  <span>📁 Upload Gambar Dari Komputer</span>
+                  <input type="file" id="announcementFileInput" accept="image/png,image/jpeg,image/webp" style="display: none;">
+                </label>
+
+                <div style="flex: 1; min-width: 240px; display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">URL:</span>
+                  <input type="text" id="announcementBannerUrl" class="form-input" value="/logo/gambar/alert.png" placeholder="/logo/gambar/alert.png" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; height: 38px;">
+                </div>
+              </div>
+
+              <div id="uploadStatusText" style="font-size: 0.8rem; margin-top: 6px; display: none;"></div>
+            </div>
+          </div>
+
+          <!-- CARD 3: KONTEN TEKS BAHASA INDONESIA (UTAMA) -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h2 class="admin-card-title">2. Isi Konten Pengumuman (Bahasa Indonesia)</h2>
+                <p class="admin-card-desc">Teks utama yang dibaca pengunjung toko Anda.</p>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1.25rem;">
+              
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">
+                  <span>Judul Pengumuman (Wajib jika status aktif)</span>
+                </label>
+                <input type="text" id="announcementTitleID" class="form-input" placeholder="Contoh: PENGUMUMAN PENTING & PROMO SPESIAL TOKO" maxlength="120">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">
+                  <span>Isi Pesan Pengumuman</span>
+                </label>
+                <textarea id="announcementContentID" class="form-input" rows="5" placeholder="Tulis rincian pengumuman di sini...&#10;Mendukung baris baru, rincian promo, info garansi, dan jam operasional admin." style="line-height: 1.55; resize: vertical;"></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- CARD 4: TERJEMAHAN BAHASA INGGRIS (OPSIONAL - ACCORDION) -->
+          <div class="admin-card" style="padding: 1rem 1.25rem;">
+            <button type="button" class="accordion-toggle-btn" id="btnToggleEnglishSection">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span>🌐</span>
+                <span>Terjemahan Bahasa Inggris / English Translation (Opsional)</span>
+              </span>
+              <span id="accordionArrow" style="font-size: 0.8rem; transition: transform 0.2s;">▼ Klik untuk Buka</span>
+            </button>
+
+            <div class="accordion-content" id="englishAccordionContent">
+              <div style="font-size: 0.8rem; color: #94a3b8; background: rgba(255, 255, 255, 0.02); padding: 8px 12px; border-radius: 8px; border: 1px dashed rgba(255, 255, 255, 0.1);">
+                💡 <em>Catatan: Jika dikosongkan, pengunjung toko versi English (<code>/en/</code>) akan otomatis menampilkan teks Bahasa Indonesia di atas.</em>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Judul Pengumuman (English - Opsional)</label>
+                <input type="text" id="announcementTitleEN" class="form-input" placeholder="Example: IMPORTANT STORE ANNOUNCEMENT" maxlength="120">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Isi Pesan Pengumuman (English - Opsional)</label>
+                <textarea id="announcementContentEN" class="form-input" rows="4" placeholder="Write English announcement details here..." style="line-height: 1.55; resize: vertical;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 5: TOMBOL TAUTAN AKSI PROMOSI (OPSIONAL) -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h2 class="admin-card-title">3. Tombol Tautan Aksi Promosi (Opsional)</h2>
+                <p class="admin-card-desc">Arahkan pengunjung ke halaman produk promo tertentu atau kontak Telegram langsung.</p>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.25rem;">
+              
+              <div class="form-grid-bilingual">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Label Tombol Tautan (ID)</label>
+                  <input type="text" id="announcementActionTextID" class="form-input" placeholder="Contoh: Lihat Promo Spesial ➔">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Label Tombol Tautan (EN - Opsional)</label>
+                  <input type="text" id="announcementActionTextEN" class="form-input" placeholder="Example: View Special Offers ➔">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">URL Tautan Tujuan (Action URL)</label>
+                <input type="text" id="announcementActionUrl" class="form-input" placeholder="Contoh: /product?slug=chatgpt-plus atau https://t.me/Digimestsupport">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                  Kosongkan jika hanya ingin tombol "OK, Mengerti" biasa tanpa tombol link promosi.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- STICKY ACTION & SAVE BAR -->
+          <div class="announcement-bottom-bar">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Status Data:</span>
+              <span style="font-size: 0.82rem; font-weight: 600; color: #e2e8f0;" id="announcementLastUpdatedText">
+                Memuat data dari server...
+              </span>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button type="button" class="btn-secondary" id="btnTestModalBottom" style="padding: 0.65rem 1rem; font-size: 0.85rem;">
+                👁️ Tes Tampilan Popup
+              </button>
+              <button type="button" class="btn-primary" id="btnSaveAnnouncementBottom" style="padding: 0.65rem 1.4rem; font-size: 0.88rem; font-weight: 700;">
+                💾 Simpan Pengumuman
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- INTERACTIVE TEST MODAL POPUP (PREVIEW LANGSUNG) -->
+  <div class="modal-overlay announcement-modal-overlay" id="announcementTestModal" style="display: none;">
+    <div class="announcement-modal-card" style="position: relative;">
+      
+      <!-- Close Button (✕) -->
+      <button class="announcement-close-btn" id="btnTestModalClose" aria-label="Tutup Popup">&times;</button>
+
+      <!-- Banner Image -->
+      <div class="announcement-banner-wrap">
+        <img id="testModalBannerImg" src="/logo/gambar/alert.png" alt="Banner Pengumuman" class="announcement-banner-img">
+      </div>
+
+      <!-- Content Area -->
+      <div class="announcement-content-wrap">
+        <h3 class="announcement-title" id="testModalTitle">JUDUL PENGUMUMAN</h3>
+        <div class="announcement-meta">
+          <span>🕒</span> <span id="testModalDateText">19 Oktober 2026</span>
+          <span style="margin-left: auto; font-size: 0.7rem; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 1px 6px; border-radius: 4px;">MODE PRATINJAU</span>
+        </div>
+        <div class="announcement-body" id="testModalBody">
+          Isi pengumuman toko akan tampil di sini.
+        </div>
+        <div id="testModalActionWrap" style="display: none; margin-top: 10px;">
+          <a href="javascript:void(0)" class="announcement-action-btn" id="testModalActionLink" style="pointer-events: none;">
+            Lihat Selengkapnya ➔
+          </a>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="announcement-footer">
+        <button class="btn-announcement-dismiss" id="btnTestModalNever">Jangan tampilkan lagi</button>
+        <button class="btn-announcement-ok" id="btnTestModalOk">OK, Mengerti</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api-config.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>
+    // Init page controller
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initAnnouncementPage === 'function') {
+        initAnnouncementPage();
+      }
+    });
+  </script>
+</body>
+</html>

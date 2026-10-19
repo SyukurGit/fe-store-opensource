@@ -310,7 +310,10 @@ function renderProductDetail(p, stats, reviews) {
 
   // Sold count & Reviews
   const soldEl = document.getElementById('dSoldText');
-  if (soldEl) soldEl.textContent = `${p.salesCount || 10} ${isEn ? 'sold' : 'terjual'}`;
+  const salesCountVal = (p.salesCount !== undefined && p.salesCount !== null)
+    ? p.salesCount
+    : ((p.sales_count !== undefined && p.sales_count !== null) ? p.sales_count : 10);
+  if (soldEl) soldEl.textContent = `${salesCountVal} ${isEn ? 'sold' : 'terjual'}`;
   renderReviewsSection(stats, reviews);
 
   // Badges

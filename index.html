@@ -441,6 +441,37 @@
     <span>Chat CS </span>
   </a>
 
+  <!-- Store Announcement Popup Modal -->
+  <div class="modal-overlay announcement-modal-overlay" id="announcementModal" style="display: none;">
+    <div class="announcement-modal-card">
+      <!-- Close Button (✕) -->
+      <button class="announcement-close-btn" id="btnAnnouncementClose" aria-label="Tutup Pengumuman">&times;</button>
+
+      <!-- Banner Graphic Container (16:10 Proportional Aspect Ratio) -->
+      <div class="announcement-banner-wrap">
+        <img id="announcementBannerImg" src="/logo/gambar/alert.png" alt="Pengumuman" class="announcement-banner-img">
+      </div>
+
+      <!-- Text Content -->
+      <div class="announcement-content-wrap">
+        <h3 class="announcement-title" id="announcementTitle">PENGUMUMAN TOKO</h3>
+        <div class="announcement-meta">
+          <span>🕒</span> <span id="announcementDateText">-</span>
+        </div>
+        <div class="announcement-body" id="announcementBody"></div>
+        <div id="announcementActionWrap" style="display: none; margin-top: 8px;">
+          <a href="#" class="announcement-action-btn" id="announcementActionLink" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Side by Side matching contoh alert.png) -->
+      <div class="announcement-footer">
+        <button type="button" class="btn-announcement-dismiss" id="btnAnnouncementNever">Jangan tampilkan lagi</button>
+        <button type="button" class="btn-announcement-ok" id="btnAnnouncementOk">OK, Mengerti</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast" class="toast-notice"></div>
   <script src="/js/order-history.js?v=5.9.13"></script>
