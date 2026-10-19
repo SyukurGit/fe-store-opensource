@@ -37,6 +37,20 @@ function copyText(text) {
   });
 }
 
+function copyWithFeedback(text, btnEl) {
+  if (!text) return;
+  copyText(text);
+  if (!btnEl) return;
+  const originalHtml = btnEl.innerHTML;
+  const isEn = document.documentElement.lang === 'en';
+  btnEl.classList.add('copied');
+  btnEl.textContent = isEn ? '✓ Copied!' : '✓ Tersalin!';
+  setTimeout(() => {
+    btnEl.classList.remove('copied');
+    btnEl.innerHTML = originalHtml;
+  }, 1500);
+}
+
 function parseTimestamp(dateStr) {
   if (!dateStr) return null;
   if (typeof dateStr === 'number') return isNaN(dateStr) ? null : dateStr;
@@ -179,14 +193,33 @@ function renderPendingView(order) {
   currentOrderData = order;
   const isBinance = (order.payment_method === 'BINANCE_PAY' || order.payment_gateway === 'BINANCE');
   const isBEP20 = (order.payment_gateway === 'USDT_BEP20' || order.payment_channel === 'BEP20' || order.payment_gateway === 'PAYMENTG_BEP20' || (order.payment_method === 'CRYPTO' && !isBinance));
+  
   const qrisBox = document.getElementById('qrisPendingContainer');
   const binanceBox = document.getElementById('binancePendingContainer');
   const bep20Box = document.getElementById('bep20PendingContainer');
 
+  const qrisVisual = document.getElementById('qrisVisualBox');
+  const binanceVisual = document.getElementById('binanceVisualBox');
+  const bep20Visual = document.getElementById('bep20VisualBox');
+
+  // Populate product info snippet
+  const prodNameEl = document.getElementById('pendingProductName');
+  if (prodNameEl && order.product_name) {
+    prodNameEl.textContent = order.product_name;
+  }
+  const prodQtyEl = document.getElementById('pendingProductQty');
+  if (prodQtyEl && order.quantity) {
+    prodQtyEl.textContent = `${order.quantity}x`;
+  }
+
   if (isBEP20) {
     if (qrisBox) qrisBox.style.display = 'none';
     if (binanceBox) binanceBox.style.display = 'none';
-    if (bep20Box) bep20Box.style.display = 'block';
+    if (bep20Box) bep20Box.style.display = 'flex';
+
+    if (qrisVisual) qrisVisual.style.display = 'none';
+    if (binanceVisual) binanceVisual.style.display = 'none';
+    if (bep20Visual) bep20Visual.style.display = 'flex';
 
     if (order.qr_url) {
       const qrImg = document.getElementById('bep20QrCode');
@@ -210,7 +243,11 @@ function renderPendingView(order) {
   } else if (isBinance) {
     if (qrisBox) qrisBox.style.display = 'none';
     if (bep20Box) bep20Box.style.display = 'none';
-    if (binanceBox) binanceBox.style.display = 'block';
+    if (binanceBox) binanceBox.style.display = 'flex';
+
+    if (qrisVisual) qrisVisual.style.display = 'none';
+    if (bep20Visual) bep20Visual.style.display = 'none';
+    if (binanceVisual) binanceVisual.style.display = 'flex';
 
     if (order.qr_url) {
       const qrImg = document.getElementById('binanceQrCode');
@@ -238,7 +275,11 @@ function renderPendingView(order) {
   } else {
     if (binanceBox) binanceBox.style.display = 'none';
     if (bep20Box) bep20Box.style.display = 'none';
-    if (qrisBox) qrisBox.style.display = 'block';
+    if (qrisBox) qrisBox.style.display = 'flex';
+
+    if (binanceVisual) binanceVisual.style.display = 'none';
+    if (bep20Visual) bep20Visual.style.display = 'none';
+    if (qrisVisual) qrisVisual.style.display = 'flex';
 
     const amtText = document.getElementById('totalAmountText');
     if (amtText) {
@@ -577,24 +618,35 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCheckExpiredLate')?.addEventListener('click', triggerManualCheck);
   document.getElementById('copyAllKeysBtn')?.addEventListener('click', copyAllKeys);
 
-  // Copy buttons for Binance Pay
-  document.getElementById('btnCopyCryptoAmount')?.addEventListener('click', () => {
-    const el = document.getElementById('cryptoAmountDisplay');
-    if (el) copyText(el.textContent.trim());
+  // Copy button for QRIS
+  document.getElementById('btnCopyQrisAmount')?.addEventListener('click', (e) => {
+    const el = document.getElementById('totalAmountText');
+    if (el) {
+      const rawText = el.textContent.trim();
+      const match = rawText.match(/Rp\s*([\d\.,]+)/i);
+      const cleanVal = match ? match[1].replace(/\./g, '') : rawText.replace(/[^\d]/g, '');
+      copyWithFeedback(cleanVal || rawText, e.currentTarget);
+    }
   });
-  document.getElementById('btnCopyPayId')?.addEventListener('click', () => {
+
+  // Copy buttons for Binance Pay
+  document.getElementById('btnCopyCryptoAmount')?.addEventListener('click', (e) => {
+    const el = document.getElementById('cryptoAmountDisplay');
+    if (el) copyWithFeedback(el.textContent.trim(), e.currentTarget);
+  });
+  document.getElementById('btnCopyPayId')?.addEventListener('click', (e) => {
     const el = document.getElementById('binancePayIdDisplay');
-    if (el) copyText(el.textContent.trim());
+    if (el) copyWithFeedback(el.textContent.trim(), e.currentTarget);
   });
 
   // Copy buttons for USDT BEP-20
-  document.getElementById('btnCopyBep20Amount')?.addEventListener('click', () => {
+  document.getElementById('btnCopyBep20Amount')?.addEventListener('click', (e) => {
     const el = document.getElementById('bep20AmountDisplay');
-    if (el) copyText(el.textContent.trim());
+    if (el) copyWithFeedback(el.textContent.trim(), e.currentTarget);
   });
-  document.getElementById('btnCopyBep20Wallet')?.addEventListener('click', () => {
+  document.getElementById('btnCopyBep20Wallet')?.addEventListener('click', (e) => {
     const el = document.getElementById('bep20WalletDisplay');
-    if (el) copyText(el.textContent.trim());
+    if (el) copyWithFeedback(el.textContent.trim(), e.currentTarget);
   });
 
   // Cancel order modal handlers
