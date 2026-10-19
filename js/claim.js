@@ -311,6 +311,7 @@ const starLabels = {
 };
 
 function setupClaimReviewUI(order) {
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || (window.location.pathname.startsWith('/en'));
   const card = document.getElementById('claimReviewCard');
   if (!card) return;
 
@@ -435,13 +436,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const codeParam = params.get('code') || params.get('invoice');
 
   if (codeParam) {
-    document.getElementById('claimInput').value = codeParam;
+    const inputEl = document.getElementById('claimInput');
+    if (inputEl) inputEl.value = codeParam;
     doClaim(codeParam);
   }
 
   document.getElementById('claimForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const q = document.getElementById('claimInput').value.trim();
+    const q = (document.getElementById('claimInput')?.value || '').trim();
     if (q) doClaim(q);
   });
 

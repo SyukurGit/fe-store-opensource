@@ -82,11 +82,15 @@ async function initProductPage() {
     })
     .catch(() => {});
 
+  const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   const params = new URLSearchParams(window.location.search);
   const rawSlug = params.get('slug');
 
   if (!rawSlug) {
-    showError('Parameter Produk Kosong', 'Silakan pilih produk dari katalog toko terlebih dahulu.');
+    showError(
+      isEn ? 'Missing Product Parameter' : 'Parameter Produk Kosong',
+      isEn ? 'Please select a product from our store catalog first.' : 'Silakan pilih produk dari katalog toko terlebih dahulu.'
+    );
     return;
   }
 
@@ -153,11 +157,17 @@ async function initProductPage() {
 
     // Only if both direct fetch and catalog fallback completely fail
     const errData = await res.json().catch(() => ({}));
-    showError('Produk Tidak Ditemukan', errData.error || `Produk '${cleanSlug}' tidak ditemukan atau sedang tidak aktif.`);
+    showError(
+      isEn ? 'Product Not Found' : 'Produk Tidak Ditemukan',
+      errData.error || (isEn ? `Product '${cleanSlug}' was not found or is currently inactive.` : `Produk '${cleanSlug}' tidak ditemukan atau sedang tidak aktif.`)
+    );
 
   } catch (err) {
     console.error('Fetch product error:', err);
-    showError('Koneksi Gagal', 'Gagal menghubungi server Digimest. Silakan coba beberapa saat lagi.');
+    showError(
+      isEn ? 'Connection Failed' : 'Koneksi Gagal',
+      isEn ? 'Failed to contact Digimest server. Please try again shortly.' : 'Gagal menghubungi server Digimest. Silakan coba beberapa saat lagi.'
+    );
   }
 }
 
@@ -389,10 +399,10 @@ function renderProductDetail(p, stats, reviews) {
   }
 
   // Description
-  document.getElementById('dProdDesc').textContent = p.description || 'Lisensi akun premium langsung aktif setelah pembayaran diverifikasi.';
+  document.getElementById('dProdDesc').textContent = p.description || (isEn ? 'Instant premium digital license delivered after payment verification.' : 'Lisensi akun premium langsung aktif setelah pembayaran diverifikasi.');
 
   // Terms Box (Default: Membeli berarti setuju)
-  const termsText = p.terms || 'Membeli berarti setuju.';
+  const termsText = p.terms || (isEn ? 'By purchasing, you agree to our terms and conditions.' : 'Membeli berarti setuju.');
   document.getElementById('dProdTerms').textContent = termsText;
 
   updateCalculations();
@@ -444,11 +454,13 @@ function updateCalculations() {
       handleCancelVoucher(true);
       const feedback = document.getElementById('voucherFeedback');
       if (feedback) {
-        feedback.textContent = `Voucher ${vCode} dibatalkan otomatis: minimal belanja ${formatIDR(vMin)} belum terpenuhi.`;
+        feedback.textContent = isEn
+          ? `Voucher ${vCode} auto-cancelled: minimum spend of ${formatCurrency(vMin)} not met.`
+          : `Voucher ${vCode} dibatalkan otomatis: minimal belanja ${formatIDR(vMin)} belum terpenuhi.`;
         feedback.style.color = '#f87171';
         feedback.style.display = 'block';
       }
-      showToast(`Voucher ${vCode} dibatalkan karena kuantitas berkurang.`);
+      showToast(isEn ? `Voucher ${vCode} cancelled because quantity decreased.` : `Voucher ${vCode} dibatalkan karena kuantitas berkurang.`);
       return;
     }
 
@@ -1232,14 +1244,32 @@ function saveHistoryItem(item) {
 }
 
 function openHistoryModal() {
-  if (window.StoreKuOrders) {
-    StoreKuOrders.renderHistoryList('historyListContainer');
+  const orderHandler = window.DigimestOrders || window.StoreKuOrders || window.DigihubOrders;
+  if (orderHandler && typeof orderHandler.openModal === 'function') {
+    orderHandler.openModal('historyListContainer', 'historyModal');
+    return;
   }
-  document.getElementById('historyModal')?.classList.add('open');
+  if (orderHandler) {
+    orderHandler.renderHistoryList('historyListContainer');
+  }
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
 }
 
 function closeHistoryModal() {
-  document.getElementById('historyModal')?.classList.remove('open');
+  const orderHandler = window.DigimestOrders || window.StoreKuOrders || window.DigihubOrders;
+  if (orderHandler && typeof orderHandler.closeModal === 'function') {
+    orderHandler.closeModal('historyModal');
+    return;
+  }
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
 }
 
 // Reactive Currency Switcher Listener for Product Detail

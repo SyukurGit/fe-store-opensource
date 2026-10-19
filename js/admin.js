@@ -47,20 +47,31 @@ function getAdminHeaders() {
 }
 
 async function adminFetch(url, options = {}) {
+  const token = localStorage.getItem('digimest_admin_token') || localStorage.getItem('Digimest_admin_token') || localStorage.getItem('storeku_admin_token');
+  if (!token && !window.location.pathname.includes('/login')) {
+    window.location.href = '/admin/login';
+    return null;
+  }
+
   const combinedHeaders = {
     ...getAdminHeaders(),
     ...(options.headers || {})
   };
   const targetUrl = window.digimestApi ? window.digimestApi(url) : url;
-  const res = await fetch(targetUrl, { ...options, headers: combinedHeaders });
-  if (res.status === 401) {
-    localStorage.removeItem('digimest_admin_token');
-    localStorage.removeItem('Digimest_admin_token');
-    localStorage.removeItem('storeku_admin_token');
-    window.location.href = '/admin/login';
+  try {
+    const res = await fetch(targetUrl, { ...options, headers: combinedHeaders });
+    if (res.status === 401) {
+      localStorage.removeItem('digimest_admin_token');
+      localStorage.removeItem('Digimest_admin_token');
+      localStorage.removeItem('storeku_admin_token');
+      window.location.href = '/admin/login';
+      return null;
+    }
+    return res;
+  } catch (err) {
+    console.warn('adminFetch network error:', err);
     return null;
   }
-  return res;
 }
 
 // -------------------------------------------------------------
@@ -72,13 +83,14 @@ async function loadStats() {
 
   try {
     const res = await adminFetch('/api/admin/stats');
-    if (!res) return;
+    if (!res || !res.ok) return;
     const json = await res.json();
     if (!json.success || !json.data) return;
 
     const s = json.data;
     statRev.textContent = formatIDR(s.total_revenue_idr);
-    document.getElementById('statPaidCount').textContent = s.paid_orders;
+    const paidEl = document.getElementById('statPaidCount');
+    if (paidEl) paidEl.textContent = s.paid_orders;
 
     const dcBalEl = document.getElementById('statDcBalance');
     if (dcBalEl) {
@@ -130,11 +142,16 @@ async function loadStats() {
       }
     }
 
-    document.getElementById('statDcOrders').textContent = s.digitalcore_orders || '0';
-    document.getElementById('statTodayRevenue').textContent = formatIDR(s.today_revenue_idr);
-    document.getElementById('statTodayOrders').textContent = s.today_orders;
-    document.getElementById('statPendingCount').textContent = s.pending_orders;
-    document.getElementById('statFailedCount').textContent = s.failed_orders;
+    const dcOrdersEl = document.getElementById('statDcOrders');
+    if (dcOrdersEl) dcOrdersEl.textContent = s.digitalcore_orders || '0';
+    const todayRevEl = document.getElementById('statTodayRevenue');
+    if (todayRevEl) todayRevEl.textContent = formatIDR(s.today_revenue_idr);
+    const todayOrdersEl = document.getElementById('statTodayOrders');
+    if (todayOrdersEl) todayOrdersEl.textContent = s.today_orders;
+    const pendingEl = document.getElementById('statPendingCount');
+    if (pendingEl) pendingEl.textContent = s.pending_orders;
+    const failedEl = document.getElementById('statFailedCount');
+    if (failedEl) failedEl.textContent = s.failed_orders;
   } catch (err) {
     console.error('Failed to load stats:', err);
   }

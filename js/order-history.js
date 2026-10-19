@@ -365,7 +365,17 @@ const DigimestOrders = (() => {
       const claim = escapeHtml(item.claim_code);
       const name = escapeHtml(item.product_name);
       const qty = item.quantity || 1;
-      const amountStr = formatIDR(item.total_amount);
+      
+      const isBinanceOrder = (item.payment_gateway === 'BINANCE' || item.payment_method === 'BINANCE_PAY');
+      const isBep20Order = (item.payment_gateway === 'USDT_BEP20' || item.payment_method === 'CRYPTO' || item.payment_channel === 'BEP20');
+      let amountStr;
+      if (isBinanceOrder && item.crypto_amount_str) {
+        amountStr = `${item.crypto_amount_str} ${item.crypto_currency || 'USDT'}`;
+      } else if (isBep20Order && item.crypto_amount_str) {
+        amountStr = `${item.crypto_amount_str} USDT (BEP-20)`;
+      } else {
+        amountStr = formatIDR(item.total_amount);
+      }
 
       let effectiveStatus = item.payment_status || 'PENDING';
       const expiredByTime = effectiveStatus === 'PENDING' && isExpired(item);
@@ -435,7 +445,7 @@ const DigimestOrders = (() => {
       } else if (effectiveStatus === 'EXPIRED' || expiredByTime) {
         // Expired order (DISABLED, 100% non-clickable with delete button)
         const expiredBadge = isEn ? '⌛ Expired' : '⌛ Kadaluarsa';
-        const expiredSub = isEn ? '15-minute payment window has expired' : 'Batas waktu bayar 15 menit telah habis';
+        const expiredSub = isEn ? 'Payment window has expired' : 'Batas waktu bayar telah habis';
         const deleteTitle = isEn ? 'Remove from history' : 'Hapus dari riwayat';
 
         return `
@@ -463,11 +473,21 @@ const DigimestOrders = (() => {
           </div>
         `;
       } else {
-        // Unpaid pending order (CLICKABLE to pay QRIS)
+        // Unpaid pending order (CLICKABLE to pay with respective gateway)
         const payUrl = isEn ? `/en/payment?inv=${encodeURIComponent(item.invoice_number)}` : `/payment?inv=${encodeURIComponent(item.invoice_number)}`;
         const pendingBadge = isEn ? '⏳ Unpaid' : '⏳ Belum Bayar';
-        const pendingSub = isEn ? 'Click to scan & pay QRIS now ➔' : 'Klik untuk scan & bayar QRIS sekarang ➔';
-        const payBtn = isEn ? 'Pay QRIS ➔' : 'Bayar QRIS ➔';
+        let pendingSub;
+        let payBtn;
+        if (isBinanceOrder) {
+          pendingSub = isEn ? 'Click to pay via Binance Pay (USDT) now ➔' : 'Klik untuk bayar via Binance Pay (USDT) sekarang ➔';
+          payBtn = isEn ? 'Pay Binance ➔' : 'Bayar Binance ➔';
+        } else if (isBep20Order) {
+          pendingSub = isEn ? 'Click to pay via USDT (BEP-20) now ➔' : 'Klik untuk bayar via USDT (BEP-20) sekarang ➔';
+          payBtn = isEn ? 'Pay USDT ➔' : 'Bayar USDT ➔';
+        } else {
+          pendingSub = isEn ? 'Click to scan & pay QRIS now ➔' : 'Klik untuk scan & bayar QRIS sekarang ➔';
+          payBtn = isEn ? 'Pay QRIS ➔' : 'Bayar QRIS ➔';
+        }
 
         return `
           <div class="order-history-card active-card highlight-unpaid" onclick="window.location.href='${payUrl}'">

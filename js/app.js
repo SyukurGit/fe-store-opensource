@@ -129,17 +129,16 @@ function applyFilterAndSearch() {
   const filterCat = activeFilterBtn?.dataset?.filter || 'all';
 
   let filtered = allProducts.filter(p => {
-    const nameMatch = (p.name || '').toLowerCase().includes(query) ||
-                      (p.description || '').toLowerCase().includes(query) ||
-                      (p.type || '').toLowerCase().includes(query);
+    const fullSearchText = `${p.name || ''} ${p.description || ''} ${p.type || ''} ${p.category || ''}`.toLowerCase();
+    const nameMatch = !query || fullSearchText.includes(query);
 
     if (!nameMatch) return false;
 
     if (filterCat === 'all') return true;
-    if (filterCat === 'ai') return /gemini|chatgpt|claude|lovable|elevenlabs/i.test(p.name + p.description);
-    if (filterCat === 'vpn') return /vpn|nord|shield/i.test(p.name + p.description);
-    if (filterCat === 'stream') return /youtube|netflix|spotify|media/i.test(p.name + p.description);
-    if (filterCat === 'edu') return /coursera|duolingo|adobe|notion/i.test(p.name + p.description);
+    if (filterCat === 'ai') return /(^|\W)(ai|artificial intelligence|gpt|gemini|chatgpt|claude|lovable|elevenlabs|midjourney|perplexity|cursor|deepseek|copilot|openai|anthropic)(\W|$)/i.test(fullSearchText);
+    if (filterCat === 'vpn') return /(^|\W)(vpn|nord|shield|surfshark|express|cyberghost|mullvad|proxy|wireguard)(\W|$)/i.test(fullSearchText);
+    if (filterCat === 'stream') return /(^|\W)(stream|streaming|youtube|netflix|spotify|media|disney|prime|hbo|apple tv|deezer|vidio|wetv)(\W|$)/i.test(fullSearchText);
+    if (filterCat === 'edu') return /(^|\W)(edu|education|edukasi|coursera|duolingo|adobe|notion|canva|skillshare|udemy|grammarly)(\W|$)/i.test(fullSearchText);
 
     return true;
   });
@@ -147,17 +146,34 @@ function applyFilterAndSearch() {
   renderProducts(filtered);
 }
 
-// History Modal Render (Uses unified DigihubOrders)
+// History Modal Render (Uses unified DigimestOrders with scroll lock)
 function openHistoryModal() {
   const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
+  if (orderHandler && typeof orderHandler.openModal === 'function') {
+    orderHandler.openModal('historyListContainer', 'historyModal');
+    return;
+  }
   if (orderHandler) {
     orderHandler.renderHistoryList('historyListContainer');
   }
-  document.getElementById('historyModal')?.classList.add('open');
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
 }
 
 function closeHistoryModal() {
-  document.getElementById('historyModal')?.classList.remove('open');
+  const orderHandler = window.DigimestOrders || window.DigihubOrders || window.StoreKuOrders;
+  if (orderHandler && typeof orderHandler.closeModal === 'function') {
+    orderHandler.closeModal('historyModal');
+    return;
+  }
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
 }
 
 function escapeHtml(str) {
@@ -496,6 +512,7 @@ async function initStoreAnnouncement() {
 
   function closeModal(actionType) {
     modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
     setTimeout(() => {
       modal.style.display = 'none';
     }, 250);
@@ -604,6 +621,7 @@ async function initStoreAnnouncement() {
     modal.style.display = 'flex';
     void modal.offsetWidth; // Reflow
     modal.classList.add('open');
+    document.body.classList.add('modal-open');
 
   } catch (err) {
     console.debug('Announcement check skipped:', err);
