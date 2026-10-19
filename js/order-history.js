@@ -683,7 +683,7 @@ window.addEventListener('appconfigloaded', () => {
       drawerOverlay?.classList.add('open');
       document.body.style.overflow = 'hidden';
       // Sync UI on drawer open
-      window.DigimestCurrency.syncUI();
+      window.DigimestCurrency?.syncUI();
     }
 
     function closeDrawer() {
@@ -738,7 +738,7 @@ window.addEventListener('appconfigloaded', () => {
         e.preventDefault();
         const targetCur = el.getAttribute('data-currency');
         curWrap?.classList.remove('open');
-        window.DigimestCurrency.setCurrency(targetCur, true);
+        window.DigimestCurrency?.setCurrency?.(targetCur, true);
       });
     });
 
@@ -747,12 +747,12 @@ window.addEventListener('appconfigloaded', () => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
         const targetCur = el.getAttribute('data-currency');
-        window.DigimestCurrency.setCurrency(targetCur, true);
+        window.DigimestCurrency?.setCurrency?.(targetCur, true);
       });
     });
 
     // Sync Currency UI
-    window.DigimestCurrency.syncUI();
+    window.DigimestCurrency?.syncUI?.();
 
     // Sync Language Switcher UI with current page language
     const isEnPage = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');

@@ -492,7 +492,42 @@ async function initStoreAnnouncement() {
   const modal = document.getElementById('announcementModal');
   if (!modal) return;
 
-  // 1. Only run on root page
+  let annVersion = '1';
+
+  function closeModal(actionType) {
+    modal.classList.remove('open');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 250);
+
+    if (actionType === 'never' || actionType === 'ok') {
+      // Suppress across reloads until admin publishes new updated_at version
+      localStorage.setItem('digimest_announcement_dismissed_ver', annVersion);
+      sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
+    } else {
+      // Closed with (✕) or overlay: suppress for current browser tab session
+      sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
+    }
+  }
+
+  // Button & overlay event listeners (always active once initialized)
+  document.getElementById('btnAnnouncementNever')?.addEventListener('click', () => closeModal('never'));
+  document.getElementById('btnAnnouncementOk')?.addEventListener('click', () => closeModal('ok'));
+  document.getElementById('btnAnnouncementClose')?.addEventListener('click', () => closeModal('close'));
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal('close');
+    }
+  });
+
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape' && modal.classList.contains('open')) {
+      closeModal('close');
+    }
+  });
+
+  // 1. Only run auto-popup check on root page
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
   const isRoot = path === '/' || path === '/index.html' || path === '/en' || path === '/en/index.html';
   if (!isRoot) return;
@@ -509,7 +544,7 @@ async function initStoreAnnouncement() {
     const ann = json.data;
     if (!ann.is_active || !ann.title) return;
 
-    const annVersion = String(ann.updated_at || '1');
+    annVersion = String(ann.updated_at || '1');
     const dismissedVer = localStorage.getItem('digimest_announcement_dismissed_ver');
     const sessionClosedVer = sessionStorage.getItem('digimest_announcement_session_closed');
 
@@ -569,40 +604,6 @@ async function initStoreAnnouncement() {
     modal.style.display = 'flex';
     void modal.offsetWidth; // Reflow
     modal.classList.add('open');
-
-    function closeModal(actionType) {
-      modal.classList.remove('open');
-      setTimeout(() => {
-        modal.style.display = 'none';
-      }, 250);
-
-      if (actionType === 'never' || actionType === 'ok') {
-        // Suppress across reloads until admin publishes new updated_at version
-        localStorage.setItem('digimest_announcement_dismissed_ver', annVersion);
-        sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
-      } else {
-        // Closed with (✕) or overlay: suppress for current browser tab session
-        sessionStorage.setItem('digimest_announcement_session_closed', annVersion);
-      }
-    }
-
-    // Button event listeners
-    document.getElementById('btnAnnouncementNever')?.addEventListener('click', () => closeModal('never'));
-    document.getElementById('btnAnnouncementOk')?.addEventListener('click', () => closeModal('ok'));
-    document.getElementById('btnAnnouncementClose')?.addEventListener('click', () => closeModal('close'));
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal('close');
-      }
-    });
-
-    document.addEventListener('keydown', function escHandler(e) {
-      if (e.key === 'Escape' && modal.classList.contains('open')) {
-        closeModal('close');
-        document.removeEventListener('keydown', escHandler);
-      }
-    });
 
   } catch (err) {
     console.debug('Announcement check skipped:', err);

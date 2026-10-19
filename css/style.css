@@ -23,6 +23,11 @@
   padding: 0;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
@@ -2900,6 +2905,7 @@ select.form-input option:checked {
     display: block !important;
     position: fixed;
     inset: 0;
+    overflow: hidden;
     background: rgba(0, 0, 0, 0.68);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -5442,6 +5448,7 @@ body.modal-open {
   .btn-change-gw.open .gw-chevron {
     transform: rotate(180deg);
   }
+}
 
 .qris-notice-point {
   display: flex;
@@ -5861,6 +5868,7 @@ body.modal-open {
 .partner-logo-img {
   display: block;
   object-fit: contain;
+  max-width: 100%;
 }
 
 /* Elegant standard logo styles */
@@ -5931,6 +5939,8 @@ body.modal-open {
   .payment-partners-bar {
     margin: 1.5rem auto 0.75rem;
     padding: 0 1rem;
+    max-width: 100%;
+    overflow: hidden;
   }
   .payment-partners-title {
     font-size: 0.68rem;
@@ -5939,17 +5949,35 @@ body.modal-open {
   .payment-partners-logos {
     gap: 1.25rem;
     justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .partner-logo-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    flex-shrink: 0;
   }
   .partner-logo-img.logo-qris-img {
-    height: 22px;
+    height: 24px;
+    max-width: 120px;
+    width: auto;
+    object-fit: contain;
     padding: 2px 6px;
     border-radius: 5px;
   }
   .partner-logo-img.logo-binance-img {
-    height: 22px;
+    height: 24px;
+    max-width: 120px;
+    width: auto;
+    object-fit: contain;
   }
   .partner-logo-img.logo-usdt-img {
-    height: 22px;
+    height: 24px;
+    max-width: 120px;
+    width: auto;
+    object-fit: contain;
   }
 }
 
@@ -7640,16 +7668,18 @@ html[data-theme="light"] .toast-notice {
    STORE ANNOUNCEMENT MODAL (RESPONSIVE FLOATING CARD, PROPORTIONAL BANNER)
    ========================================================================== */
 .announcement-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
   z-index: 2500 !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
   background: rgba(0, 0, 0, 0.78) !important;
-  display: flex !important;
+  display: flex;
   align-items: center !important;
   justify-content: center !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
-  padding: 1.25rem !important;
+  padding: env(safe-area-inset-top, 1.25rem) 1rem env(safe-area-inset-bottom, 1.25rem) 1rem !important;
   box-sizing: border-box !important;
 }
 
@@ -7702,21 +7732,21 @@ html[data-theme="light"] .toast-notice {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(15, 23, 42, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #f8fafc;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 15;
+  z-index: 25 !important;
   line-height: 1;
   padding: 0;
 }
@@ -7899,8 +7929,8 @@ html[data-theme="light"] .btn-announcement-dismiss:hover {
     align-items: center !important;
   }
   .announcement-modal-card {
-    /* Critical: NOT 100% width! Keep floating dialog with margins */
-    width: calc(100vw - 32px) !important;
+    /* Critical: Keep floating dialog within padded overlay */
+    width: 100% !important;
     max-width: 360px !important;
     margin: auto !important;
     max-height: calc(100dvh - 2rem) !important;
