@@ -242,6 +242,9 @@
               <div class="qris-box">
                 <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
               </div>
+              <button type="button" id="btnDownloadQris" class="btn-download-qr">
+                📥 Unduh Gambar QRIS
+              </button>
               <div class="payment-scan-hint">
                 Scan via Shopee, BCA, GoPay, OVO, Dana, LinkAja, atau M-Banking.
               </div>
@@ -427,54 +430,80 @@
 
       <!-- Paid & License Delivered View (Auto-Revealed!) -->
       <div id="successView" style="display: none;">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
-        <h2 style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin-bottom: 0.35rem;">Pembayaran Sukses!</h2>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Pesanan Anda telah dipenuhi seketika oleh sistem otomatis Digimest. Lisensi siap digunakan.</p>
-
-        <!-- KARTU KODE AMBIL PESANAN & DIRECT LINK KHUSUS -->
-        <div class="claim-info-card">
-          <div class="claim-card-title">🔑 KODE AMBIL PESANAN ANDA</div>
-          <div class="claim-code-row">
-            <span id="paidClaimCodeDisplay" class="claim-code-value">...</span>
-            <button type="button" id="btnCopyClaimCode" class="btn-copy-claim">
-              📋 Salin Kode
-            </button>
+        
+        <!-- Compact Celebration Top Banner -->
+        <div class="success-header-compact">
+          <div class="success-icon-badge">🎉</div>
+          <div>
+            <h2 class="success-header-title">Pembayaran Berhasil! Pesanan Anda Siap</h2>
+            <p class="success-header-sub">Sistem otomatis Digimest telah memproses lisensi Anda. Amankan data di bawah ini.</p>
           </div>
-          <p class="claim-card-hint">
-            Simpan kode di atas untuk mengambil atau mengecek lisensi pesanan Anda kapan saja di Digimest.
-          </p>
+        </div>
+
+        <!-- 2-Column Split: Left is Product/License (Primary), Right is Order Reference & Actions (Secondary) -->
+        <div class="success-split-grid">
           
-          <div class="claim-direct-wrap">
-            <div class="claim-direct-label">
-              Atau Anda bisa klik link di bawah ini untuk mengambil produk Anda:
+          <!-- LEFT COLUMN: LISENSI & KREDENSIAL PRODUK (FOKUS UTAMA) -->
+          <div class="success-col-product">
+            <div>
+              <div class="success-card-tag tag-product">
+                <span>🔑</span> Lisensi / Akun Digital Anda
+              </div>
+
+              <div class="success-product-head">
+                <span class="success-product-name" id="sProdName">Memuat produk...</span>
+                <span id="sProdWarranty" class="badge badge-warranty">🛡️ Garansi Toko</span>
+              </div>
+
+              <!-- Lisensi rendered dynamically here -->
+              <div id="itemsContainer"></div>
+
+              <button type="button" id="copyAllKeysBtn" class="btn-copy-all-keys" style="display: none;">
+                📋 Salin Semua Lisensi
+              </button>
             </div>
-            <a id="paidDirectClaimLink" href="#" target="_blank" class="direct-claim-btn">
-              <span>Buka & Ambil Produk via Link Langsung ➔</span>
-            </a>
-            <div id="paidDirectClaimUrlText" class="claim-direct-url-text"></div>
+
+            <div id="warrantyAlert" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 0.65rem 0.85rem; margin-top: 0.75rem; font-size: 0.76rem; color: #fbbf24; line-height: 1.4;">
+              💡 <strong>Tips Aktivasi:</strong> Segera simpan dan amankan lisensi/akun di atas sesuai batas garansi toko.
+            </div>
           </div>
+
+          <!-- RIGHT COLUMN: BUKTI TRANSAKSI & KODE PENGAMBILAN (FOKUS SEKUNDER) -->
+          <div class="success-col-reference">
+            <div>
+              <div class="success-card-tag tag-reference">
+                <span>📋</span> Bukti Resi & Akses Pesanan
+              </div>
+
+              <div class="reference-card-body">
+                <div style="font-size: 0.74rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">
+                  Kode Pengambilan Pesanan:
+                </div>
+                
+                <div class="reference-code-box">
+                  <span id="paidClaimCodeDisplay" class="reference-code-value">...</span>
+                  <button type="button" id="btnCopyClaimCode" class="btn-copy-claim">📋 Salin</button>
+                </div>
+
+                <div class="reference-notice-box">
+                  ℹ️ <strong>Bukan voucher produk:</strong> Ini adalah nomor referensi pesanan Anda. Simpan kode ini jika ingin membuka kembali lisensi ini sewaktu-waktu di masa depan via menu Klaim.
+                </div>
+
+                <a id="paidDirectClaimLink" href="#" target="_blank" class="btn-open-claim-link">
+                  <span>🔗 Buka Halaman Klaim Pesanan ↗</span>
+                </a>
+              </div>
+            </div>
+
+            <div style="margin-top: 0.75rem;">
+              <a href="/" class="btn-shop-more" style="width: 100%; box-sizing: border-box;">
+                ← Lanjut Belanja di Katalog
+              </a>
+            </div>
+          </div>
+
         </div>
 
-        <div class="success-reveal-box">
-          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
-            <span>Produk: <span id="sProdName" style="color: #60a5fa;"></span></span>
-            <span id="sProdWarranty" class="badge badge-warranty"></span>
-          </div>
-
-          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">LISENSI / LINK AKTIVASI ANDA:</div>
-          <div id="itemsContainer">
-            <!-- License items rendered here -->
-          </div>
-
-          <div id="warrantyAlert" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 0.85rem; margin-top: 1rem; font-size: 0.82rem; color: #fbbf24;">
-            <strong>Panduan Aktivasi:</strong> Segera lakukan klaim/aktivasi lisensi sesuai batas waktu garansi di atas.
-          </div>
-        </div>
-
-        <div style="margin-top: 1.75rem; display: flex; gap: 0.75rem;">
-          <a href="/" class="btn-submit" style="text-decoration: none; text-align: center; flex: 1;">Belanja Lagi</a>
-          <button id="copyAllKeysBtn" class="btn-nav" style="padding: 0.75rem 1rem;">Salin Semua</button>
-        </div>
       </div>
 
       <!-- Expired View -->

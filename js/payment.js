@@ -363,22 +363,18 @@ function showSuccessView(order) {
   }
 
   const directLinkEl = document.getElementById('paidDirectClaimLink');
-  const directUrlTextEl = document.getElementById('paidDirectClaimUrlText');
   if (currentClaimCode) {
     const claimPath = isEn ? '/en/claim' : '/claim';
     const directUrl = `${window.location.origin}${claimPath}?code=${encodeURIComponent(currentClaimCode)}`;
     if (directLinkEl) {
       directLinkEl.href = directUrl;
     }
-    if (directUrlTextEl) {
-      directUrlTextEl.textContent = directUrl;
-    }
   }
 
   const copyClaimBtn = document.getElementById('btnCopyClaimCode');
   if (copyClaimBtn && currentClaimCode) {
-    copyClaimBtn.onclick = () => {
-      copyText(currentClaimCode);
+    copyClaimBtn.onclick = (e) => {
+      copyWithFeedback(currentClaimCode, e.currentTarget);
     };
   }
 
@@ -403,38 +399,41 @@ function showSuccessView(order) {
     if (copyAllBtn) copyAllBtn.style.display = 'none';
     const isFailed = order.fulfillment_status === 'FAILED' || order.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
     const title = isEn 
-      ? (isFailed ? 'Upstream Stock Delivery Issue' : 'Product Quota Sold Out')
-      : (isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual');
+      ? (isFailed ? 'Payment Verified — Preparing License Allocation' : 'Payment Verified — Waiting for Stock')
+      : (isFailed ? 'Pembayaran Sukses — Lisensi Sedang Disiapkan Admin' : 'Pembayaran Sukses — Menunggu Alokasi Stok');
     const defaultMsg = isEn
-      ? (isFailed
-        ? "Your payment is verified, but an automatic fulfillment issue occurred with the server provider (momentarily empty stock/bot balance). Your funds are 100% safe! Please contact our Telegram CS below."
-        : "Sorry, this product quota is currently sold out. Your funds are 100% safe. For refund or assistance, please contact our Telegram Customer Service.")
-      : (isFailed
-        ? "Pembayaran Anda terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan klik tombol di bawah untuk chat CS Telegram kami."
-        : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.");
+      ? "Your payment was successfully received. The license for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
+      : "Pembayaran Anda telah sukses kami terima. Lisensi pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
+
+    const teleText = encodeURIComponent(isEn 
+      ? `Hello Admin Digimest, I have completed payment for invoice ${currentInvoice} (${order.product_name || 'Product'}). Please assist with my license delivery.`
+      : `Halo Admin Digimest, saya sudah bayar Invoice ${currentInvoice} (${order.product_name || 'Produk'}). Mohon bantuan penerbitan lisensinya.`);
+    const teleUrl = `https://t.me/Digimestsupport?text=${teleText}`;
 
     itemsContainer.innerHTML = `
-      <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
-        <div style="font-size: 1.8rem; margin-bottom: 8px;">⚠️</div>
+      <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 18px; text-align: center;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;">
+          <span>🛡️</span> ${isEn ? 'FUNDS 100% SAFE • SYSTEM PRIORITY' : 'DANA 100% AMAN • PRIORITAS SISTEM'}
+        </div>
         <div style="font-weight: 700; color: #fbbf24; font-size: 1.05rem; margin-bottom: 8px;">${title}</div>
-        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; margin-bottom: 14px;">
           ${escapeHtml(order.quota_out_message || defaultMsg)}
         </p>
-        <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-          <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
+        <a href="${teleUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);" data-tele-cs>
+          <span>💬 ${isEn ? 'Chat Telegram Support' : 'Hubungi Admin via Telegram'}</span> ➔
         </a>
       </div>
     `;
-    showToast(isEn ? (isFailed ? 'Upstream Stock Issue' : 'Payment Received (Sold Out)') : (isFailed ? 'Kendala Stok Upstream' : 'Pembayaran Diterima (Kuota Habis)'));
+    showToast(isEn ? 'Payment Verified — Processing License' : 'Pembayaran Sukses — Lisensi Sedang Diproses');
     return;
   }
 
   if (deliveredKeys.length === 0) {
     itemsContainer.innerHTML = `
-      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px; color: #fbbf24; font-size: 0.88rem;">
+      <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 12px; color: #fbbf24; font-size: 0.85rem; line-height: 1.45;">
         ${isEn
-          ? 'Payment verified! Your order is being processed by the system queue in 1-2 minutes. Please wait a moment or save the Pickup Code above.'
-          : 'Pembayaran terverifikasi! Pesanan Anda sedang diproses oleh antrean sistem dalam 1-2 menit. Silakan tunggu sebentar atau simpan Kode Ambil Pesanan di atas.'}
+          ? 'Payment verified! Your license is being generated by the system queue in 1–2 minutes. Please wait a moment or keep your Pickup Code saved.'
+          : 'Pembayaran sukses terverifikasi! Lisensi Anda sedang digenerate oleh antrean sistem dalam 1–2 menit. Mohon tunggu sebentar atau simpan Kode Pengambilan di samping.'}
       </div>
     `;
   } else {
@@ -599,6 +598,59 @@ async function triggerManualCheck(e) {
   }
 }
 
+function downloadQrisImage() {
+  const qrisImg = document.getElementById('qrisImage');
+  const isEn = document.documentElement.lang === 'en';
+  if (!qrisImg || !qrisImg.src) {
+    showToast(isEn ? 'QR image not ready yet' : 'Gambar QR belum siap diunduh');
+    return;
+  }
+
+  fetch(qrisImg.src, { mode: 'cors' })
+    .then(res => {
+      if (!res.ok) throw new Error('Network error: ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `QRIS-${currentInvoice || 'Digimest'}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(isEn ? 'QRIS image downloaded! 📥' : 'Gambar QRIS berhasil diunduh! 📥');
+    })
+    .catch(() => {
+      // Fallback via in-memory canvas
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = qrisImg.naturalWidth || 250;
+        canvas.height = qrisImg.naturalHeight || 250;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(qrisImg, 0, 0);
+        canvas.toBlob(blob => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `QRIS-${currentInvoice || 'Digimest'}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(isEn ? 'QRIS image downloaded! 📥' : 'Gambar QRIS berhasil diunduh! 📥');
+          } else {
+            window.open(qrisImg.src, '_blank');
+          }
+        });
+      } catch (e) {
+        window.open(qrisImg.src, '_blank');
+      }
+    });
+}
+
 function copyAllKeys() {
   if (deliveredKeys.length === 0) return;
   copyText(deliveredKeys.join('\n'));
@@ -617,6 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnManualCheck')?.addEventListener('click', triggerManualCheck);
   document.getElementById('btnCheckExpiredLate')?.addEventListener('click', triggerManualCheck);
   document.getElementById('copyAllKeysBtn')?.addEventListener('click', copyAllKeys);
+  document.getElementById('btnDownloadQris')?.addEventListener('click', downloadQrisImage);
 
   // Copy button for QRIS
   document.getElementById('btnCopyQrisAmount')?.addEventListener('click', (e) => {

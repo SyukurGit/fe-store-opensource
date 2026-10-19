@@ -207,34 +207,37 @@ function renderClaimResult(data) {
     } else if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
       const isFailed = data.fulfillment_status === 'FAILED' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
       const title = isEn
-        ? (isFailed ? 'Upstream Server Stock Issue' : 'Product Quota Sold Out')
-        : (isFailed ? 'Kendala Pemenuhan Stok Upstream' : 'Kuota Produk Habis Terjual');
+        ? (isFailed ? 'Payment Verified — Preparing License Allocation' : 'Payment Verified — Waiting for Stock')
+        : (isFailed ? 'Pembayaran Sukses — Lisensi Sedang Disiapkan Admin' : 'Pembayaran Sukses — Menunggu Alokasi Stok');
       const defaultMsg = isEn
-        ? (isFailed
-            ? "Your payment is verified, but an automatic fulfillment issue occurred with the server provider (momentarily empty stock/bot balance). Your funds are 100% safe! Please contact our Telegram Support."
-            : "Sorry, this product quota is currently sold out. Your funds are 100% safe. For refund or assistance, please contact our Telegram Support.")
-        : (isFailed
-            ? "Pembayaran terverifikasi, namun terjadi kendala pemenuhan otomatis dari penyedia server (stok mendadak kosong/saldo bot). Dana Anda aman 100%! Silakan hubungi Customer Service kami via Telegram."
-            : "Mohon maaf, kuota produk saat ini telah habis terjual. Dana pembayaran Anda aman 100%. Untuk proses pengembalian dana (refund), silakan hubungi Customer Service kami via Telegram.");
+        ? "Your payment was successfully received. The license for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
+        : "Pembayaran Anda telah sukses kami terima. Lisensi pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
+
+      const teleText = encodeURIComponent(isEn 
+        ? `Hello Admin Digimest, I need assistance with my order ${data.invoice_number || ''} (${data.product_name || 'Product'}).`
+        : `Halo Admin Digimest, saya ingin konfirmasi pesanan Invoice ${data.invoice_number || ''} (${data.product_name || 'Produk'}).`);
+      const teleUrl = `https://t.me/Digimestsupport?text=${teleText}`;
 
       if (statusBadge) {
         statusBadge.className = 'badge badge-region';
-        statusBadge.style.color = '#fbbf24';
-        statusBadge.style.borderColor = 'rgba(245,158,11,0.4)';
+        statusBadge.style.color = '#34d399';
+        statusBadge.style.borderColor = 'rgba(16,185,129,0.4)';
         statusBadge.textContent = isEn
-          ? (isFailed ? '● STOCK ISSUE (FUNDS SAFE)' : '● FUNDS SAFE (SOLD OUT)')
-          : (isFailed ? '● KENDALA STOK (DANA AMAN)' : '● DANA AMAN (KUOTA HABIS)');
+          ? '● FUNDS 100% SAFE (PROCESSING)'
+          : '● DANA 100% AMAN (DIPROSES)';
       }
 
       itemsContainer.innerHTML = `
-        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
-          <div style="font-size: 1.8rem; margin-bottom: 8px;">⚠️</div>
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 18px; text-align: center;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;">
+            <span>🛡️</span> ${isEn ? 'FUNDS 100% SAFE • SYSTEM PRIORITY' : 'DANA 100% AMAN • PRIORITAS SISTEM'}
+          </div>
           <div style="font-weight: 700; color: #fbbf24; font-size: 1.05rem; margin-bottom: 8px;">${title}</div>
-          <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+          <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; margin-bottom: 14px;">
             ${escapeHtml(data.quota_out_message || defaultMsg)}
           </p>
-          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-            <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
+          <a href="${teleUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);" data-tele-cs>
+            <span>💬 ${isEn ? 'Chat Telegram Support' : 'Hubungi Admin via Telegram'}</span> ➔
           </a>
         </div>
       `;
