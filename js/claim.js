@@ -102,7 +102,7 @@ function renderClaimResult(data) {
 
   if (invoiceEl) {
     invoiceEl.textContent = data.claim_code
-      ? `Invoice: ${data.invoice_number} | ${isEn ? 'Claim Code' : 'Kode Klaim'}: ${data.claim_code}`
+      ? `Invoice: ${data.invoice_number} | ${isEn ? 'Order Reference' : 'Kode Pesanan'}: ${data.claim_code}`
       : `Invoice: ${data.invoice_number}`;
   }
 
@@ -130,7 +130,7 @@ function renderClaimResult(data) {
       statusBadge.textContent = isEn ? '● ORDER CANCELLED' : '● ORDER DIBATALKAN';
     } else if (data.payment_status === 'PAID') {
       statusBadge.className = 'badge badge-stock';
-      statusBadge.textContent = isEn ? '● PAYMENT COMPLETED' : '● PEMBAYARAN LUNAS';
+      statusBadge.textContent = isEn ? '● COMPLETED / READY' : '● PEMBAYARAN LUNAS (SIAP PAKAI)';
     } else {
       statusBadge.className = 'badge badge-region';
       statusBadge.textContent = isEn ? '● AWAITING PAYMENT' : '● MENUNGGU PEMBAYARAN';
@@ -188,16 +188,16 @@ function renderClaimResult(data) {
     } else if (data.fulfillment_status === 'PENDING_MANUAL_DELIVERY') {
       if (statusBadge) {
         statusBadge.className = 'badge badge-stock';
-        statusBadge.textContent = isEn ? '● PAID (PREPARING LICENSE)' : '● PEMBAYARAN LUNAS (MENUNGGU PENGIRIMAN KEY)';
+        statusBadge.textContent = isEn ? '● PAID (PREPARING PRODUCT)' : '● PEMBAYARAN LUNAS (SEDANG DISIAPKAN)';
       }
       itemsContainer.innerHTML = `
         <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
           <div style="font-size: 1.8rem; margin-bottom: 8px;">📦</div>
-          <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">${isEn ? 'Payment Verified! License Is Being Prepared' : 'Pembayaran Lunas! Lisensi Sedang Disiapkan'}</div>
+          <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">${isEn ? 'Payment Verified! Product Is Being Prepared' : 'Pembayaran Lunas! Produk Sedang Disiapkan'}</div>
           <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
             ${isEn
-              ? `We have received your payment. The license / serial key for this order is being prepared by our store admin. Click the button below to contact Customer Service via Telegram (Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) or wait for confirmation to be sent to your email.`
-              : `Pembayaran Anda telah kami terima dengan sukses. Lisensi / serial key untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.`}
+              ? `We have received your payment. Your digital product details for this order are being prepared by our store admin. Click the button below to contact Customer Service via Telegram (Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) or wait for confirmation to be sent to your email.`
+              : `Pembayaran Anda telah kami terima dengan sukses. Rincian produk digital untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.`}
           </p>
           <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
             <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
@@ -207,11 +207,11 @@ function renderClaimResult(data) {
     } else if (data.is_quota_out || data.fulfillment_status === 'HOLD_PRICE_SPIKE' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE' || data.fulfillment_status === 'FAILED') {
       const isFailed = data.fulfillment_status === 'FAILED' || data.fulfillment_status === 'HOLD_INSUFFICIENT_BOT_BALANCE';
       const title = isEn
-        ? (isFailed ? 'Payment Verified — Preparing License Allocation' : 'Payment Verified — Waiting for Stock')
-        : (isFailed ? 'Pembayaran Sukses — Lisensi Sedang Disiapkan Admin' : 'Pembayaran Sukses — Menunggu Alokasi Stok');
+        ? (isFailed ? 'Payment Verified — Preparing Product Allocation' : 'Payment Verified — Waiting for Stock')
+        : (isFailed ? 'Pembayaran Sukses — Produk Sedang Disiapkan Admin' : 'Pembayaran Sukses — Menunggu Alokasi Stok');
       const defaultMsg = isEn
-        ? "Your payment was successfully received. The license for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
-        : "Pembayaran Anda telah sukses kami terima. Lisensi pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
+        ? "Your payment was successfully received. The digital product for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
+        : "Pembayaran Anda telah sukses kami terima. Produk digital pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
 
       const teleText = encodeURIComponent(isEn 
         ? `Hello Admin Digimest, I need assistance with my order ${data.invoice_number || ''} (${data.product_name || 'Product'}).`
@@ -245,7 +245,7 @@ function renderClaimResult(data) {
       if (data.payment_status === 'PAID') {
         itemsContainer.innerHTML = `
           <div style="background: rgba(245,158,11,0.1); padding: 12px; border-radius: 8px; color: #fbbf24; font-size: 0.85rem;">
-            ${isEn ? 'Your payment has been received. The license is being processed by the system queue within 1-2 minutes.' : 'Pembayaran Anda telah diterima. Lisensi sedang diproses oleh antrean sistem dalam 1-2 menit.'}
+            ${isEn ? 'Your payment has been received. Your digital product is being processed by the system queue within 1-2 minutes.' : 'Pembayaran Anda telah diterima. Produk digital Anda sedang diproses oleh antrean sistem dalam 1-2 menit.'}
           </div>
         `;
       } else {
