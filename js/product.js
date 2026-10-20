@@ -1142,7 +1142,7 @@ async function submitCheckout() {
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailPattern.test(email)) {
-    const errMsg = isEn ? 'Please enter a valid email address for digital license delivery!' : 'Silakan masukkan alamat email yang valid untuk pengiriman kode klaim!';
+    const errMsg = isEn ? 'Please enter a valid email address for product pickup code delivery!' : 'Silakan masukkan alamat email yang valid untuk pengiriman kode ambil produk!';
     if (emailErr) {
       emailErr.textContent = errMsg;
       emailErr.style.display = 'block';
