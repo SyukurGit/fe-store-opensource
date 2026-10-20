@@ -448,7 +448,12 @@ function showSuccessView(order) {
 
   const existingTx = document.getElementById('successTxHashRow');
   if (existingTx) existingTx.remove();
-  if (order.tx_hash) {
+
+  const isBinanceOrder = (order.payment_method === 'BINANCE_PAY' || order.payment_gateway === 'BINANCE');
+  const isBEP20Order = (order.payment_gateway === 'USDT_BEP20' || order.payment_channel === 'BEP20' || order.payment_gateway === 'PAYMENTG_BEP20' || order.payment_method === 'USDT' || (order.payment_method === 'CRYPTO' && !isBinanceOrder));
+
+  // ONLY render blockchain tx hash for genuine BSC on-chain transactions (BEP-20)
+  if (isBEP20Order && order.tx_hash && typeof order.tx_hash === 'string' && order.tx_hash.toLowerCase().startsWith('0x') && order.tx_hash.length >= 60) {
     const txRow = document.createElement('div');
     txRow.id = 'successTxHashRow';
     txRow.style.cssText = 'background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 1rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; text-align: left;';
@@ -460,6 +465,21 @@ function showSuccessView(order) {
       <a href="https://bscscan.com/tx/${encodeURIComponent(order.tx_hash)}" target="_blank" rel="noopener noreferrer" style="color: #f0b90b; font-family: var(--font-mono); font-weight: 700; text-decoration: underline; font-size: 0.78rem;" title="${escapeHtml(order.tx_hash)}">
         ${escapeHtml(order.tx_hash.slice(0, 10))}...${escapeHtml(order.tx_hash.slice(-8))} ↗
       </a>
+    `;
+    itemsContainer.parentNode.appendChild(txRow);
+  } else if (isBinanceOrder && order.binance_tx_id && order.binance_tx_id !== 'MANUAL_ADMIN_CONFIRMATION' && !order.binance_tx_id.startsWith('sbx_')) {
+    // For Binance Pay: display internal merchant/binance transaction ID cleanly without blockchain link
+    const txRow = document.createElement('div');
+    txRow.id = 'successTxHashRow';
+    txRow.style.cssText = 'background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 1rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; text-align: left;';
+    txRow.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span>🟡</span>
+        <span style="color: #94a3b8;">${isEn ? 'Binance Order Ref:' : 'Referensi Transaksi Binance:'}</span>
+      </div>
+      <span style="color: #f0b90b; font-family: var(--font-mono); font-weight: 700; font-size: 0.78rem;">
+        ${escapeHtml(order.binance_tx_id)}
+      </span>
     `;
     itemsContainer.parentNode.appendChild(txRow);
   }
