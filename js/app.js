@@ -68,21 +68,24 @@ function renderProducts(products) {
     const stockDisplay = isOut
       ? (isEn ? 'Out of Stock' : 'Habis')
       : (p.stockCapped ? (isEn ? '>1000 In Stock' : '>1000 Stok') : (isEn ? `${p.stock} In Stock` : `${p.stock} Stok`));
-    const logoSrc = p.logo || 'https://via.placeholder.com/46?text=DC';
-    const salesCountVal = (p.salesCount !== undefined && p.salesCount !== null)
+    const logoSrc = window.DigimestUtils?.safeUrl
+      ? window.DigimestUtils.safeUrl(p.logo, '/logo/digimest_icon.png')
+      : (p.logo || '/logo/digimest_icon.png');
+    const rawSold = (p.salesCount !== undefined && p.salesCount !== null)
       ? p.salesCount
-      : ((p.sales_count !== undefined && p.sales_count !== null) ? p.sales_count : 10);
+      : p.sales_count;
+    const soldCount = Number(rawSold) || 0;
     const prodLink = prodBaseUrl + encodeURIComponent(p.slug || '');
 
     return `
       <div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="window.location.href='${prodLink}'" style="cursor: pointer;">
         <div class="prod-card-body">
           <div class="prod-header">
-            <img src="${logoSrc}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.src='https://via.placeholder.com/46?text=DC'">
+            <img src="${escapeHtml(logoSrc)}" alt="${escapeHtml(p.name)}" class="prod-logo" onerror="this.onerror=null;this.src='/logo/digimest_icon.png'">
             <div class="prod-title-wrap">
               <div class="prod-header-meta">
                 <span class="prod-category">${escapeHtml(p.type || 'Digital License')}</span>
-                <span class="prod-sold-badge">${salesCountVal} ${isEn ? 'sold' : 'terjual'}</span>
+                ${soldCount > 0 ? `<span class="prod-sold-badge">${soldCount} ${isEn ? 'sold' : 'terjual'}</span>` : ''}
               </div>
               <h3 class="prod-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
             </div>
@@ -446,6 +449,19 @@ function initEnhancedSearch() {
   });
 }
 
+function showCatalogError(isEn) {
+  const loadingEl = document.getElementById('loadingCatalog');
+  if (!loadingEl) return;
+  loadingEl.innerHTML = `
+    <div class="catalog-error-state">
+      <div class="catalog-error-icon">⚠️</div>
+      <strong>${isEn ? 'Catalog is temporarily unavailable' : 'Katalog sedang tidak dapat dimuat'}</strong>
+      <p>${isEn ? 'Please check your connection and try again.' : 'Silakan periksa koneksi Anda lalu coba lagi.'}</p>
+      <a href="">${isEn ? 'Reload Page' : 'Muat Ulang Halaman'}</a>
+    </div>
+  `;
+}
+
 // Lifecycle Init
 document.addEventListener('DOMContentLoaded', async () => {
   updateHistoryBadge();
@@ -463,12 +479,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       allProducts = data.data;
       renderProducts(allProducts);
     } else {
-      if (loadingEl) loadingEl.textContent = (isEn ? 'Failed to load catalog: ' : 'Gagal memuat katalog: ') + (data.error || 'Server error');
+      showCatalogError(isEn);
     }
   } catch (e) {
     const isEn = document.documentElement.lang === 'en' || window.location.pathname.startsWith('/en');
-    const loadingEl = document.getElementById('loadingCatalog');
-    if (loadingEl) loadingEl.textContent = (isEn ? 'Connection to backend failed: ' : 'Koneksi ke backend gagal: ') + e.message;
+    showCatalogError(isEn);
   }
 
   // Filter tag buttons
@@ -591,7 +606,10 @@ async function initStoreAnnouncement() {
     if (btnOk) btnOk.textContent = isEn ? "OK, Understood" : "OK, Mengerti";
 
     if (bannerEl && ann.banner_url) {
-      bannerEl.src = ann.banner_url;
+      const safeBanner = window.DigimestUtils?.safeUrl
+        ? window.DigimestUtils.safeUrl(ann.banner_url)
+        : ann.banner_url;
+      if (safeBanner) bannerEl.src = safeBanner;
     }
 
     if (dateTextEl && ann.updated_at) {
@@ -608,8 +626,11 @@ async function initStoreAnnouncement() {
     }
 
     if (actionWrap && actionLink) {
-      if (ann.action_url) {
-        actionLink.href = ann.action_url;
+      const safeAction = ann.action_url && window.DigimestUtils?.safeUrl
+        ? window.DigimestUtils.safeUrl(ann.action_url)
+        : '';
+      if (safeAction) {
+        actionLink.href = safeAction;
         actionLink.textContent = displayActionText;
         actionWrap.style.display = 'block';
       } else {

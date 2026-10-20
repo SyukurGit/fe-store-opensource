@@ -9,7 +9,23 @@ function showToast(msg) {
 }
 
 function copyText(text) {
+  if (window.DigimestUtils && typeof window.DigimestUtils.copyText === 'function') {
+    window.DigimestUtils.copyText(text);
+    return;
+  }
   const isEn = (document.documentElement && document.documentElement.lang === 'en') || (window.location.pathname.startsWith('/en'));
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast(isEn ? 'Copied to clipboard!' : 'Berhasil disalin!');
+    return;
+  }
   navigator.clipboard.writeText(text).then(() => {
     showToast(isEn ? 'Copied to clipboard! 📋' : 'Berhasil disalin! 📋');
   }).catch(() => {
@@ -81,6 +97,12 @@ function renderClaimResult(data) {
         claim_code: data.claim_code,
         product_name: data.product_name,
         quantity: data.quantity,
+        total_amount: data.total_amount,
+        payment_gateway: data.payment_gateway,
+        payment_method: data.payment_method,
+        payment_channel: data.payment_channel,
+        crypto_amount_str: data.crypto_amount_str,
+        crypto_currency: data.crypto_currency,
         payment_status: data.payment_status,
         created_at: data.created_at
       });
@@ -271,7 +293,7 @@ function renderClaimResult(data) {
       itemsContainer.innerHTML = items.map(item => `
         <div class="license-item-box">
           <span>${escapeHtml(item)}</span>
-          <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">${isEn ? 'Copy' : 'Salin'}</button>
+          <button type="button" class="copy-mini-btn" data-copy="${escapeHtml(item)}">${isEn ? 'Copy' : 'Salin'}</button>
         </div>
       `).join('');
     }
@@ -284,7 +306,11 @@ function renderClaimResult(data) {
 
   const createdAtEl = document.getElementById('resCreatedAt');
   if (createdAtEl) {
-    createdAtEl.textContent = data.created_at || '-';
+    const parseTs = window.DigimestUtils?.parseTimestamp || window.parseTimestamp;
+    const createdTs = parseTs ? parseTs(data.created_at) : null;
+    createdAtEl.textContent = createdTs
+      ? new Date(createdTs).toLocaleString(isEn ? 'en-GB' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+      : (data.created_at || '-');
   }
 
   // Safe fallback if legacy element exists
@@ -293,7 +319,10 @@ function renderClaimResult(data) {
     if (data.digitalcore_view_url) {
       viewUrlWrap.style.display = 'inline';
       const viewUrl = document.getElementById('resViewUrl');
-      if (viewUrl) viewUrl.href = data.digitalcore_view_url;
+      const safeViewUrl = window.DigimestUtils?.safeUrl
+        ? window.DigimestUtils.safeUrl(data.digitalcore_view_url)
+        : '';
+      if (viewUrl && safeViewUrl) viewUrl.href = safeViewUrl;
     } else {
       viewUrlWrap.style.display = 'none';
     }
@@ -450,30 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (q) doClaim(q);
   });
 
-  // History modal handlers
-  document.getElementById('btnOpenHistory')?.addEventListener('click', () => {
-    if (window.DigimestOrders && typeof window.DigimestOrders.openModal === 'function') {
-      window.DigimestOrders.openModal('historyListContainer', 'historyModal');
-    } else {
-      const handler = window.DigimestOrders || window.StoreKuOrders;
-      if (handler) handler.renderHistoryList('historyListContainer');
-      document.getElementById('historyModal')?.classList.add('open');
-    }
-  });
-  document.getElementById('closeHistoryBtn')?.addEventListener('click', () => {
-    if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
-      window.DigimestOrders.closeModal('historyModal');
-    } else {
-      document.getElementById('historyModal')?.classList.remove('open');
-    }
-  });
-  document.getElementById('historyModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'historyModal') {
-      if (window.DigimestOrders && typeof window.DigimestOrders.closeModal === 'function') {
-        window.DigimestOrders.closeModal('historyModal');
-      } else {
-        document.getElementById('historyModal')?.classList.remove('open');
-      }
-    }
+  // History modal handlers live in nav-mobile.js (bound on every page)
+  document.getElementById('resItemsContainer')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-mini-btn[data-copy]');
+    if (!btn) return;
+    copyText(btn.getAttribute('data-copy'));
   });
 });

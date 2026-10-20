@@ -7,6 +7,8 @@ let selectedPaymentMethod = 'QRIS';
 let selectedPaymentChannel = 'SHOPEEPAY';
 let appConfig = { usd_rate: 18000 };
 let initialCheckoutCurrency = 'IDR';
+let isCheckoutInFlight = false;
+let hasUserChosenGateway = false;
 
 function shouldShowQrisNotice() {
   // 1. Target: Pengguna yang sebelum checkout mengatur mata uang USD
@@ -48,6 +50,13 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function safeMediaUrl(value, fallback = '/logo/digimest_icon.png') {
+  if (window.DigimestUtils && typeof window.DigimestUtils.safeUrl === 'function') {
+    return window.DigimestUtils.safeUrl(value, fallback);
+  }
+  return value || fallback;
 }
 
 function showToast(msg) {
@@ -172,12 +181,21 @@ async function initProductPage() {
 }
 
 function showError(title, msg) {
-  document.getElementById('productLoading').style.display = 'none';
-  document.getElementById('productDetailContent').style.display = 'none';
+  document.body.classList.add('product-error');
+  const loading = document.getElementById('productLoading');
+  if (loading) loading.style.display = 'none';
+  const content = document.getElementById('productDetailContent');
+  if (content) content.style.setProperty('display', 'none', 'important');
+  const sticky = document.getElementById('mobileStickyBar');
+  if (sticky) sticky.style.display = 'none';
+  const bcName = document.getElementById('bcProductName');
+  if (bcName) bcName.textContent = title;
   const errBox = document.getElementById('productError');
-  errBox.style.display = 'block';
-  document.getElementById('errorTitle').textContent = title;
-  document.getElementById('errorMessage').textContent = msg;
+  if (errBox) errBox.style.display = 'block';
+  const titleEl = document.getElementById('errorTitle');
+  if (titleEl) titleEl.textContent = title;
+  const msgEl = document.getElementById('errorMessage');
+  if (msgEl) msgEl.textContent = msg;
 }
 
 function formatDate(dateStr) {
@@ -187,7 +205,8 @@ function formatDate(dateStr) {
 }
 
 function getStarString(rating) {
-  const rounded = Math.round(Number(rating || 5));
+  const numeric = Number(rating);
+  const rounded = Number.isFinite(numeric) ? Math.round(numeric) : 0;
   let stars = '';
   for (let i = 1; i <= 5; i++) {
     stars += i <= rounded ? '★' : '☆';
@@ -196,24 +215,28 @@ function getStarString(rating) {
 }
 
 function renderReviewsSection(stats, reviews) {
-  const avg = stats?.average_rating || 5.0;
-  const count = stats?.total_reviews || (reviews ? reviews.length : 0);
+  const count = Number(stats?.total_reviews || (reviews ? reviews.length : 0)) || 0;
+  const avg = count > 0 ? Number(stats?.average_rating || 0) : 0;
 
   const avgEl = document.getElementById('dRatingAvgText');
-  if (avgEl) avgEl.textContent = avg.toFixed(1);
+  if (avgEl) avgEl.textContent = count > 0 ? avg.toFixed(1) : '–';
 
   const isEn = (document.documentElement && document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   const countEl = document.getElementById('dRatingCountText');
   if (countEl) countEl.textContent = isEn ? `(${count} reviews)` : `(${count} ulasan)`;
 
   const scoreBig = document.getElementById('revOverallScore');
-  if (scoreBig) scoreBig.textContent = avg.toFixed(1);
+  if (scoreBig) scoreBig.textContent = count > 0 ? avg.toFixed(1) : '–';
 
   const overallStars = document.getElementById('revOverallStars');
   if (overallStars) overallStars.textContent = getStarString(avg);
 
   const overallCount = document.getElementById('revOverallCount');
-  if (overallCount) overallCount.textContent = isEn ? `Based on ${count} reviews` : `Berdasarkan ${count} ulasan`;
+  if (overallCount) {
+    overallCount.textContent = count > 0
+      ? (isEn ? `Based on ${count} reviews` : `Berdasarkan ${count} ulasan`)
+      : (isEn ? 'No reviews yet' : 'Belum ada ulasan');
+  }
 
   // Star breakdown bars
   const barsWrap = document.getElementById('revBreakdownBars');
@@ -253,13 +276,14 @@ function renderReviewsSection(stats, reviews) {
         const starStr = getStarString(r.rating);
         const verifiedText = isEn ? '✓ Verified Buyer' : '✓ Terverifikasi';
         const defaultAuthor = isEn ? 'Verified Customer' : 'Pelanggan Terverifikasi';
+        const isVerified = r.verified === true || r.is_verified === true || r.verified_purchase === true;
         return `
           <div class="review-item-card">
             <div class="review-item-top">
               <div class="review-author-wrap">
                 <div class="review-avatar">${escapeHtml(initial)}</div>
                 <div class="review-author-name">${escapeHtml(r.author_name || defaultAuthor)}</div>
-                <span class="verified-buyer-badge">${verifiedText}</span>
+                ${isVerified ? `<span class="verified-buyer-badge">${verifiedText}</span>` : ''}
               </div>
               <div class="review-stars-val">${starStr}</div>
             </div>
@@ -299,6 +323,7 @@ function renderReviewsSection(stats, reviews) {
 }
 
 function renderProductDetail(p, stats, reviews) {
+  document.body.classList.remove('product-error');
   document.getElementById('productLoading').style.display = 'none';
   const detailGrid = document.getElementById('productDetailContent');
   if (detailGrid) {
@@ -312,7 +337,11 @@ function renderProductDetail(p, stats, reviews) {
   document.getElementById('bcProductName').textContent = p.name;
 
   // Header
-  document.getElementById('dProdLogo').src = p.logo || 'https://via.placeholder.com/76?text=DC';
+  const prodLogoEl = document.getElementById('dProdLogo');
+  if (prodLogoEl) {
+    prodLogoEl.src = safeMediaUrl(p.logo);
+    prodLogoEl.alt = p.name || 'Product logo';
+  }
   const titleEl = document.getElementById('dProdTitle');
   if (titleEl) titleEl.textContent = p.name;
   const slugEl = document.getElementById('dProdSlug');
@@ -320,10 +349,18 @@ function renderProductDetail(p, stats, reviews) {
 
   // Sold count & Reviews
   const soldEl = document.getElementById('dSoldText');
-  const salesCountVal = (p.salesCount !== undefined && p.salesCount !== null)
+  const rawSold = (p.salesCount !== undefined && p.salesCount !== null)
     ? p.salesCount
-    : ((p.sales_count !== undefined && p.sales_count !== null) ? p.sales_count : 10);
-  if (soldEl) soldEl.textContent = `${salesCountVal} ${isEn ? 'sold' : 'terjual'}`;
+    : p.sales_count;
+  const salesCountVal = Number(rawSold) || 0;
+  if (soldEl) {
+    if (salesCountVal > 0) {
+      soldEl.textContent = `${salesCountVal} ${isEn ? 'sold' : 'terjual'}`;
+      soldEl.style.display = '';
+    } else {
+      soldEl.style.display = 'none';
+    }
+  }
   renderReviewsSection(stats, reviews);
 
   // Badges
@@ -697,6 +734,7 @@ function setupPaymentSelectorListeners() {
 }
 
 function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
+  if (triggerAnim) hasUserChosenGateway = true;
   selectedPaymentGateway = gateway;
   selectedPaymentMethod = method;
   selectedPaymentChannel = channel;
@@ -798,6 +836,50 @@ function selectPaymentMethod(gateway, method, channel, triggerAnim = false) {
   }
 }
 
+let voucherRevalidateTimer = null;
+
+function scheduleVoucherRevalidation() {
+  if (!appliedVoucher) return;
+  clearTimeout(voucherRevalidateTimer);
+  voucherRevalidateTimer = setTimeout(revalidateAppliedVoucher, 400);
+}
+
+async function revalidateAppliedVoucher() {
+  if (!appliedVoucher || !currentProduct) return;
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+  const code = appliedVoucher.code;
+
+  try {
+    const validateUrl = window.digimestApi ? window.digimestApi('/api/vouchers/validate') : '/api/vouchers/validate';
+    const res = await fetch(validateUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, product_slug: currentProduct.slug, quantity: currentQty })
+    });
+    const json = await res.json();
+
+    if (!(json.success && json.data && json.data.valid)) {
+      handleCancelVoucher(true);
+      const feedback = document.getElementById('voucherFeedback');
+      if (feedback) {
+        feedback.textContent = isEn
+          ? `Voucher ${code} is no longer valid for this quantity.`
+          : `Voucher ${code} tidak berlaku untuk jumlah ini.`;
+        feedback.className = 'voucher-feedback feedback-error';
+        feedback.style.display = 'block';
+      }
+      showToast(isEn ? 'Voucher removed: quantity changed.' : 'Voucher dilepas: jumlah berubah.');
+      return;
+    }
+
+    appliedVoucher.discountIDR = json.data.discount_idr;
+    appliedVoucher.minSpendIDR = json.data.min_spend_idr || 0;
+    triggerPriceRecalcAnimation();
+  } catch (e) {
+    // Network error: keep the voucher the user already applied
+  }
+}
+
 function getMaxAvailableQty() {
   if (currentProduct && currentProduct.stock > 0 && !currentProduct.stockCapped) {
     return Math.min(currentProduct.stock, 100);
@@ -808,6 +890,14 @@ function getMaxAvailableQty() {
 function setupEventListeners() {
   const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
   setupPaymentSelectorListeners();
+
+  // Align the visible gateway card with the internal state on first load
+  const startCurrency = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
+  if (startCurrency === 'USD') {
+    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
+  } else {
+    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
+  }
   const qtyInput = document.getElementById('detailQtyInput');
   const btnMinus = document.getElementById('btnQtyMinus');
   const btnPlus = document.getElementById('btnQtyPlus');
@@ -817,6 +907,7 @@ function setupEventListeners() {
       currentQty--;
       qtyInput.value = currentQty;
       updateCalculations();
+      scheduleVoucherRevalidation();
     }
   });
 
@@ -826,6 +917,7 @@ function setupEventListeners() {
       currentQty++;
       qtyInput.value = currentQty;
       updateCalculations();
+      scheduleVoucherRevalidation();
     } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
       showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
@@ -844,6 +936,7 @@ function setupEventListeners() {
     currentQty = val;
     qtyInput.value = val;
     updateCalculations();
+    scheduleVoucherRevalidation();
   });
 
   // Modal checkout quantity stepper handlers
@@ -857,6 +950,7 @@ function setupEventListeners() {
       if (qtyInput) qtyInput.value = currentQty;
       if (modalQty) modalQty.value = currentQty;
       triggerPriceRecalcAnimation();
+      scheduleVoucherRevalidation();
     }
   });
 
@@ -867,6 +961,7 @@ function setupEventListeners() {
       if (qtyInput) qtyInput.value = currentQty;
       if (modalQty) modalQty.value = currentQty;
       triggerPriceRecalcAnimation();
+      scheduleVoucherRevalidation();
     } else if (currentProduct && currentProduct.stock > 0 && currentQty >= currentProduct.stock) {
       showToast(isEn ? `Only ${currentProduct.stock} unit(s) available in stock.` : `Batas stok produk ini tersisa ${currentProduct.stock} unit.`);
     }
@@ -886,6 +981,7 @@ function setupEventListeners() {
     modalQty.value = val;
     if (qtyInput) qtyInput.value = val;
     triggerPriceRecalcAnimation();
+    scheduleVoucherRevalidation();
   });
 
   // Email input real-time validation handler to clear inline error on typing
@@ -916,10 +1012,6 @@ function setupEventListeners() {
 
   // Submit Checkout
   document.getElementById('btnConfirmCheckout')?.addEventListener('click', submitCheckout);
-
-  // History Drawer
-  document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryModal);
-  document.getElementById('closeHistoryBtn')?.addEventListener('click', closeHistoryModal);
 
   // Smooth scroll to customer reviews section
   document.getElementById('dRatingLink')?.addEventListener('click', (e) => {
@@ -960,15 +1052,6 @@ function setupEventListeners() {
     }
   });
 
-  // Automatically update checkout gateway when currency is switched in header
-  window.addEventListener('currencychange', (e) => {
-    const newCur = e.detail?.currency;
-    if (newCur === 'USD') {
-      selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', true);
-    } else {
-      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', true);
-    }
-  });
 }
 
 async function handleApplyVoucher() {
@@ -1094,7 +1177,11 @@ function openCheckoutModal() {
   const modal = document.getElementById('checkoutModal');
   document.getElementById('mProdName').textContent = currentProduct.name;
   document.getElementById('mProdType').textContent = currentProduct.type || 'Digital License';
-  document.getElementById('mProdLogo').src = currentProduct.logo || 'https://via.placeholder.com/40';
+  const modalLogoEl = document.getElementById('mProdLogo');
+  if (modalLogoEl) {
+    modalLogoEl.src = safeMediaUrl(currentProduct.logo);
+    modalLogoEl.alt = currentProduct.name || 'Product logo';
+  }
 
   const emailInput = document.getElementById('emailInput');
   const savedEmail = localStorage.getItem('digimest_saved_email') || localStorage.getItem('digihub_saved_email') || localStorage.getItem('storeku_saved_email');
@@ -1105,10 +1192,12 @@ function openCheckoutModal() {
   // Smart default gateway: IDR -> QRIS, USD -> Binance Pay
   const activeCur = window.DigimestCurrency ? window.DigimestCurrency.getCurrency() : 'IDR';
   initialCheckoutCurrency = activeCur;
-  if (activeCur === 'USD') {
-    selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
-  } else {
-    selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
+  if (!hasUserChosenGateway) {
+    if (activeCur === 'USD') {
+      selectPaymentMethod('BINANCE', 'BINANCE_PAY', 'USDT', false);
+    } else {
+      selectPaymentMethod('PAYMENTG', 'QRIS', 'SHOPEEPAY', false);
+    }
   }
 
   updateCalculations();
@@ -1124,6 +1213,11 @@ function openCheckoutModal() {
 }
 
 function closeCheckoutModal() {
+  const isEn = (document.documentElement.lang === 'en') || window.location.pathname.startsWith('/en');
+  if (isCheckoutInFlight) {
+    showToast(isEn ? 'Creating your order, please wait a moment…' : 'Sedang membuat pesanan, mohon tunggu sebentar…');
+    return;
+  }
   closeGwSelectorModal();
   closeQrisRegionNoticeModal();
   document.getElementById('checkoutModal')?.classList.remove('open');
@@ -1158,9 +1252,13 @@ async function submitCheckout() {
     return;
   }
 
+  if (isCheckoutInFlight) return;
+
   const isBinance = (selectedPaymentMethod === 'BINANCE_PAY');
   const isBep20 = (selectedPaymentGateway === 'USDT_BEP20' || selectedPaymentMethod === 'CRYPTO');
-  btn.disabled = true;
+  isCheckoutInFlight = true;
+  window.__digimestCheckoutInFlight = true;
+  if (btn) btn.disabled = true;
   if (isBinance) {
     btn.innerText = isEn ? 'Preparing Binance Pay...' : 'Menyiapkan Binance Pay (USDT)...';
   } else if (isBep20) {
@@ -1175,11 +1273,15 @@ async function submitCheckout() {
         ? (isEn ? 'Pay Now via USDT (BEP-20) ➔' : 'Bayar Sekarang via USDT (BEP-20) ➔')
         : (isEn ? 'Pay Now via QRIS ➔' : 'Bayar Sekarang via QRIS ➔'));
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
   try {
     const checkoutUrl = window.digimestApi ? window.digimestApi('/api/checkout') : '/api/checkout';
     const res = await fetch(checkoutUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         product_slug: currentProduct.slug,
         quantity: currentQty,
@@ -1193,35 +1295,45 @@ async function submitCheckout() {
     });
 
     const data = await res.json();
-    if (!data.success) {
-      const errMsg = isEn ? ('Failed to create order: ' + (data.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data.error || 'Terjadi kesalahan'));
+    if (!data || !data.success) {
+      const errMsg = isEn ? ('Failed to create order: ' + (data?.error || 'An error occurred')) : ('Gagal membuat pesanan: ' + (data?.error || 'Terjadi kesalahan'));
       showToast(errMsg);
-      btn.disabled = false;
-      btn.innerText = defaultBtnText;
       return;
     }
 
     const order = data.data;
 
-    // SAVE EMAIL & ORDER TO LOCAL STORAGE!
-    localStorage.setItem('digimest_saved_email', email); localStorage.setItem('digihub_saved_email', email);
-    localStorage.setItem('storeku_saved_email', email);
-    if ((window.DigimestOrders || window.DigihubOrders)) {
-      (window.DigimestOrders || window.DigihubOrders).saveOrder({
-        invoice_number: order.invoice_number,
-        claim_code: order.claim_code,
-        product_name: order.product_name,
-        quantity: order.quantity,
-        total_amount: order.total_amount,
-        crypto_amount_str: order.crypto_amount_str || '',
-        crypto_currency: order.crypto_currency || '',
-        payment_gateway: order.payment_gateway || selectedPaymentGateway,
-        payment_method: order.payment_method || selectedPaymentMethod,
-        customer_email: email,
-        payment_status: 'PENDING',
-        expires_at: order.expires_at,
-        created_at: new Date().toISOString()
-      });
+    // Order is already created on the server at this point: storage failures must not block redirect
+    try {
+      localStorage.setItem('digimest_saved_email', email);
+      localStorage.setItem('digihub_saved_email', email);
+      localStorage.setItem('storeku_saved_email', email);
+    } catch (e) {
+      console.warn('Could not remember email:', e);
+    }
+
+    try {
+      const orderHandler = window.DigimestOrders || window.DigihubOrders;
+      if (orderHandler) {
+        orderHandler.saveOrder({
+          invoice_number: order.invoice_number,
+          claim_code: order.claim_code,
+          product_name: order.product_name,
+          quantity: order.quantity,
+          total_amount: order.total_amount,
+          crypto_amount_str: order.crypto_amount_str || '',
+          crypto_currency: order.crypto_currency || '',
+          payment_gateway: order.payment_gateway || selectedPaymentGateway,
+          payment_method: order.payment_method || selectedPaymentMethod,
+          payment_channel: order.payment_channel || selectedPaymentChannel,
+          customer_email: email,
+          payment_status: 'PENDING',
+          expires_at: order.expires_at,
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.warn('Could not save order history locally:', e);
     }
 
     // Redirect to Payment Screen (Clean URL, matching current language)
@@ -1230,9 +1342,18 @@ async function submitCheckout() {
 
   } catch (err) {
     console.error('Checkout error:', err);
-    showToast(isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
-    btn.disabled = false;
-    btn.innerText = defaultBtnText;
+    const message = err && err.name === 'AbortError'
+      ? (isEn ? 'Checkout timed out. Please try again.' : 'Checkout melebihi waktu tunggu. Silakan coba lagi.')
+      : (isEn ? 'Network error occurred during checkout.' : 'Terjadi kesalahan jaringan saat checkout.');
+    showToast(message);
+  } finally {
+    clearTimeout(timeoutId);
+    isCheckoutInFlight = false;
+    window.__digimestCheckoutInFlight = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = defaultBtnText;
+    }
   }
 }
 

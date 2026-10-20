@@ -6,6 +6,11 @@ let currentInvoice = '';
 let currentClaimCode = '';
 let deliveredKeys = [];
 let currentOrderData = null;
+let isTerminal = false;
+let isPolling = false;
+let statusErrorCount = 0;
+let lastSyncedSignature = '';
+let manualCheckTimer = null;
 
 function formatIDR(num) {
   if (window.DigimestCurrency && typeof window.DigimestCurrency.format === 'function') {
@@ -23,7 +28,23 @@ function showToast(msg) {
 }
 
 function copyText(text) {
+  if (window.DigimestUtils && typeof window.DigimestUtils.copyText === 'function') {
+    window.DigimestUtils.copyText(text);
+    return;
+  }
   const isEn = document.documentElement.lang === 'en';
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast(isEn ? 'Copied to clipboard!' : 'Berhasil disalin!');
+    return;
+  }
   navigator.clipboard.writeText(text).then(() => {
     showToast(isEn ? 'Copied to clipboard! 📋' : 'Berhasil disalin ke clipboard! 📋');
   }).catch(() => {
@@ -87,22 +108,73 @@ async function loadPaymentDetails() {
 
   await checkStatus();
 
-  // Start status polling every 3 seconds
-  pollInterval = setInterval(checkStatus, 3000);
+  // Start status polling every 3 seconds, but never for a final state
+  if (!isTerminal && !pollInterval) {
+    pollInterval = setInterval(checkStatus, 3000);
+  }
+}
+
+function stopPolling() {
+  clearInterval(pollInterval);
+  clearInterval(timerInterval);
+  pollInterval = null;
+  timerInterval = null;
+}
+
+function updatePollStatusText() {
+  const el = document.getElementById('pollStatusText');
+  if (!el) return;
+  const isEn = document.documentElement.lang === 'en';
+  const time = new Date().toLocaleTimeString(isEn ? 'en-GB' : 'id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  el.textContent = isEn ? `Auto-checked · ${time}` : `Dicek otomatis · ${time}`;
+}
+
+function showStatusErrorView() {
+  const isEn = document.documentElement.lang === 'en';
+  const view = document.getElementById('errorView');
+  const msg = document.getElementById('errorViewMessage');
+  if (msg) {
+    msg.textContent = isEn
+      ? 'We could not reach the payment server. Your order is safe — check your connection and try again.'
+      : 'Kami tidak dapat menghubungi server pembayaran. Pesanan Anda aman — periksa koneksi lalu coba lagi.';
+  }
+  if (view) view.style.display = 'flex';
+  const poll = document.getElementById('pollStatusText');
+  if (poll) poll.textContent = isEn ? 'Automatic checks paused' : 'Pemeriksaan otomatis berhenti';
+}
+
+function hideStatusErrorView() {
+  const view = document.getElementById('errorView');
+  if (view) view.style.display = 'none';
+}
+
+async function retryStatusCheck() {
+  statusErrorCount = 0;
+  isTerminal = false;
+  hideStatusErrorView();
+  await checkStatus();
+  if (!isTerminal && !pollInterval) {
+    pollInterval = setInterval(checkStatus, 3000);
+  }
 }
 
 async function checkStatus() {
-  if (!currentInvoice) return;
+  if (!currentInvoice || isTerminal || isPolling) return;
+  isPolling = true;
 
   try {
     const statusUrl = window.digimestApi ? window.digimestApi(`/api/orders/${encodeURIComponent(currentInvoice)}/status`) : `/api/orders/${encodeURIComponent(currentInvoice)}/status`;
-    const res = await fetch(statusUrl);
-    if (!res.ok) return;
+    const res = await fetch(statusUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Status request failed: HTTP ' + res.status);
 
     const json = await res.json();
-    if (!json.success || !json.data) return;
+    if (!json.success || !json.data) throw new Error('Status response invalid');
 
     const order = json.data;
+    statusErrorCount = 0;
+    hideStatusErrorView();
+    updatePollStatusText();
+
     currentClaimCode = order.claim_code || '';
 
     // Update status badge di header
@@ -132,19 +204,37 @@ async function checkStatus() {
       }
     }
 
-    // Sync order state into browser's Pesanan Saya
+    // Sync order state into browser's Pesanan Saya only when the snapshot changed
     const handler = getOrderHandler();
     if (handler) {
-      handler.saveOrder({
-        invoice_number: order.invoice_number,
-        claim_code: order.claim_code || '',
-        product_name: order.product_name,
-        quantity: order.quantity,
-        total_amount: order.total_amount,
-        payment_status: order.payment_status,
-        expires_at: order.expires_at,
-        created_at: order.created_at
-      });
+      const signature = [
+        order.invoice_number,
+        order.payment_status,
+        order.claim_code || '',
+        order.fulfillment_status || '',
+        (order.delivered_items || []).length
+      ].join('|');
+
+      if (signature !== lastSyncedSignature) {
+        lastSyncedSignature = signature;
+        handler.saveOrder({
+          invoice_number: order.invoice_number,
+          claim_code: order.claim_code || '',
+          product_name: order.product_name,
+          quantity: order.quantity,
+          total_amount: order.total_amount,
+          payment_gateway: order.payment_gateway || '',
+          payment_method: order.payment_method || '',
+          payment_channel: order.payment_channel || '',
+          crypto_amount_str: order.crypto_amount_str || '',
+          crypto_currency: order.crypto_currency || '',
+          customer_email: order.customer_email || '',
+          fulfillment_status: order.fulfillment_status || '',
+          payment_status: order.payment_status,
+          expires_at: order.expires_at,
+          created_at: order.created_at
+        });
+      }
     }
 
     if (order.customer_email) {
@@ -158,24 +248,24 @@ async function checkStatus() {
 
     // Check if Paid and Fulfilled
     if (order.payment_status === 'PAID') {
-      clearInterval(pollInterval);
-      clearInterval(timerInterval);
+      isTerminal = true;
+      stopPolling();
       if (handler) handler.updateOrderStatus(order.invoice_number, 'PAID');
       showSuccessView(order);
       return;
     }
 
     if (order.payment_status === 'EXPIRED') {
-      clearInterval(pollInterval);
-      clearInterval(timerInterval);
+      isTerminal = true;
+      stopPolling();
       if (handler) handler.updateOrderStatus(order.invoice_number, 'EXPIRED');
       showExpiredView();
       return;
     }
 
     if (order.payment_status === 'CANCELLED') {
-      clearInterval(pollInterval);
-      clearInterval(timerInterval);
+      isTerminal = true;
+      stopPolling();
       if (handler) handler.updateOrderStatus(order.invoice_number, 'CANCELLED');
       showCancelledView();
       return;
@@ -186,6 +276,14 @@ async function checkStatus() {
 
   } catch (err) {
     console.warn('Poll error:', err);
+    statusErrorCount++;
+    if (statusErrorCount >= 2 && !isTerminal) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      showStatusErrorView();
+    }
+  } finally {
+    isPolling = false;
   }
 }
 
@@ -223,8 +321,9 @@ function renderPendingView(order) {
 
     if (order.qr_url) {
       const qrImg = document.getElementById('bep20QrCode');
-      if (qrImg && qrImg.src !== order.qr_url) {
-        qrImg.src = order.qr_url;
+      const safeQr = window.DigimestUtils?.safeUrl ? window.DigimestUtils.safeUrl(order.qr_url) : order.qr_url;
+      if (qrImg && safeQr && qrImg.src !== safeQr) {
+        qrImg.src = safeQr;
       }
     }
 
@@ -251,8 +350,9 @@ function renderPendingView(order) {
 
     if (order.qr_url) {
       const qrImg = document.getElementById('binanceQrCode');
-      if (qrImg && qrImg.src !== order.qr_url) {
-        qrImg.src = order.qr_url;
+      const safeQr = window.DigimestUtils?.safeUrl ? window.DigimestUtils.safeUrl(order.qr_url) : order.qr_url;
+      if (qrImg && safeQr && qrImg.src !== safeQr) {
+        qrImg.src = safeQr;
       }
     }
 
@@ -296,8 +396,9 @@ function renderPendingView(order) {
 
     if (order.qr_url) {
       const qrisImg = document.getElementById('qrisImage');
-      if (qrisImg && qrisImg.src !== order.qr_url) {
-        qrisImg.src = order.qr_url;
+      const safeQr = window.DigimestUtils?.safeUrl ? window.DigimestUtils.safeUrl(order.qr_url) : order.qr_url;
+      if (qrisImg && safeQr && qrisImg.src !== safeQr) {
+        qrisImg.src = safeQr;
       }
     }
   }
@@ -324,8 +425,8 @@ function startCountdown(targetTime) {
     const distance = targetTime - now;
 
     if (distance <= 0) {
-      clearInterval(timerInterval);
-      clearInterval(pollInterval);
+      isTerminal = true;
+      stopPolling();
       const handler = getOrderHandler();
       if (handler) handler.updateOrderStatus(currentInvoice, 'EXPIRED');
       showExpiredView();
@@ -339,16 +440,22 @@ function startCountdown(targetTime) {
   }
 
   update();
-  timerInterval = setInterval(update, 1000);
+  if (!isTerminal) {
+    timerInterval = setInterval(update, 1000);
+  }
 }
 
 function showSuccessView(order) {
+  isTerminal = true;
+  stopPolling();
   document.getElementById('pendingView').style.display = 'none';
   document.getElementById('expiredView').style.display = 'none';
   const cancelledView = document.getElementById('cancelledView');
   if (cancelledView) cancelledView.style.display = 'none';
   const successView = document.getElementById('successView');
   successView.style.display = 'block';
+  const timerBox = document.querySelector('.timer-box-inline');
+  if (timerBox) timerBox.style.display = 'none';
 
   const isEn = document.documentElement.lang === 'en';
   document.getElementById('sProdName').textContent = order.product_name;
@@ -438,10 +545,10 @@ function showSuccessView(order) {
     `;
   } else {
     if (copyAllBtn) copyAllBtn.style.display = 'inline-block';
-    itemsContainer.innerHTML = deliveredKeys.map((item, idx) => `
+    itemsContainer.innerHTML = deliveredKeys.map(item => `
       <div class="license-item-box">
         <span>${escapeHtml(item)}</span>
-        <button class="copy-mini-btn" onclick="copyText('${escapeHtml(item)}')">${isEn ? 'Copy' : 'Salin'}</button>
+        <button type="button" class="copy-mini-btn" data-copy="${escapeHtml(item)}">${isEn ? 'Copy' : 'Salin'}</button>
       </div>
     `).join('');
   }
@@ -489,23 +596,27 @@ function showSuccessView(order) {
 
 
 function showExpiredView() {
-  clearInterval(pollInterval);
-  clearInterval(timerInterval);
+  isTerminal = true;
+  stopPolling();
   document.getElementById('pendingView').style.display = 'none';
   document.getElementById('successView').style.display = 'none';
   const cancelledView = document.getElementById('cancelledView');
   if (cancelledView) cancelledView.style.display = 'none';
   document.getElementById('expiredView').style.display = 'block';
+  const timerText = document.getElementById('timerText');
+  if (timerText) timerText.textContent = '00:00';
 }
 
 function showCancelledView() {
-  clearInterval(pollInterval);
-  clearInterval(timerInterval);
+  isTerminal = true;
+  stopPolling();
   document.getElementById('pendingView').style.display = 'none';
   document.getElementById('successView').style.display = 'none';
   document.getElementById('expiredView').style.display = 'none';
   const cancelledView = document.getElementById('cancelledView');
   if (cancelledView) cancelledView.style.display = 'block';
+  const timerBox = document.querySelector('.timer-box-inline');
+  if (timerBox) timerBox.style.display = 'none';
 }
 
 function openCancelModal() {
@@ -541,8 +652,8 @@ async function confirmCancelOrder() {
     }
 
     closeCancelModal();
-    clearInterval(pollInterval);
-    clearInterval(timerInterval);
+    isTerminal = true;
+    stopPolling();
 
     const handler = getOrderHandler();
     if (handler) {
@@ -603,7 +714,8 @@ async function triggerManualCheck(e) {
     showToast((isEn ? 'Failed to check payment: ' : 'Gagal memeriksa mutasi: ') + err.message);
   } finally {
     // Cooldown 4 seconds to match server throttle
-    setTimeout(() => {
+    clearTimeout(manualCheckTimer);
+    manualCheckTimer = setTimeout(() => {
       if (spinner) spinner.style.display = 'none';
       if (icon) icon.style.display = 'inline-block';
       if (textEl) {
@@ -731,18 +843,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Pause polling when tab is hidden, resume when tab is active
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener('visibilitychange', async () => {
     if (document.hidden) {
       clearInterval(pollInterval);
-    } else {
-      const isPending = document.getElementById('pendingView')?.style.display !== 'none';
-      if (currentInvoice && isPending) {
-        checkStatus();
-        clearInterval(pollInterval);
+      pollInterval = null;
+      return;
+    }
+    const isPending = document.getElementById('pendingView')?.style.display !== 'none';
+    if (currentInvoice && isPending && !isTerminal) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      await checkStatus();
+      if (!isTerminal && !pollInterval) {
         pollInterval = setInterval(checkStatus, 3000);
       }
     }
   });
+
+  // Copy buttons inside the delivered-license list (data attribute, no inline JS)
+  document.getElementById('itemsContainer')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-mini-btn[data-copy]');
+    if (!btn) return;
+    copyWithFeedback(btn.getAttribute('data-copy'), btn);
+  });
+
+  document.getElementById('btnRetryStatus')?.addEventListener('click', retryStatusCheck);
 
   // Reactive Currency Switcher Listener for Payment Page
   window.addEventListener('currencychange', () => {

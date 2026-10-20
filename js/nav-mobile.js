@@ -198,6 +198,17 @@
       });
     });
 
+    // Desktop "My Orders" button (present on info pages) — bound in one central place
+    document.getElementById('btnOpenHistory')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeDrawer();
+      setTimeout(() => {
+        if (window.DigimestOrders && typeof window.DigimestOrders.openModal === 'function') {
+          window.DigimestOrders.openModal('historyListContainer', 'historyModal');
+        }
+      }, 100);
+    });
+
     // When drawer history button is clicked, close drawer and open history modal
     drawerHistoryBtn?.addEventListener('click', (e) => {
       e.preventDefault();

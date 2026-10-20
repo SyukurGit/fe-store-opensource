@@ -38,6 +38,21 @@
     },
 
     /**
+     * Validate a URL coming from API/admin data before placing it in src/href.
+     * Only http(s) URLs and same-origin relative paths are allowed.
+     */
+    safeUrl: function(value, fallback = '') {
+      if (!value) return fallback;
+      try {
+        const parsed = new URL(String(value), window.location.origin);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return parsed.href;
+        }
+      } catch (e) {}
+      return fallback;
+    },
+
+    /**
      * Display a floating toast notification message
      */
     showToast: function(msg) {
@@ -108,6 +123,7 @@
   if (!window.formatCurrency) window.formatCurrency = DigimestUtils.formatCurrency;
   if (!window.formatIDR) window.formatIDR = DigimestUtils.formatIDR;
   if (!window.escapeHtml) window.escapeHtml = DigimestUtils.escapeHtml;
+  if (!window.safeUrl) window.safeUrl = DigimestUtils.safeUrl;
   if (!window.showToast) window.showToast = DigimestUtils.showToast;
   if (!window.copyText) window.copyText = DigimestUtils.copyText;
   if (!window.parseTimestamp) window.parseTimestamp = DigimestUtils.parseTimestamp;

@@ -216,24 +216,41 @@ window.STOREKU_BUILD_VERSION = '5.9.20';
       })
       .then(data => {
         if (data && data.version && data.version !== window.STOREKU_BUILD_VERSION) {
-          // Check if user is actively filling a form or has a modal open
-          const hasOpenModal = document.querySelector('.modal.open, .modal-overlay.open, #checkoutModal.open');
-          const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
-
-          if (hasOpenModal || isTyping) {
-            // Postpone reload to prevent wiping user input
-            console.log('[Storeku] Versi baru tersedia:', data.version, ', ditunda karena pengguna sedang aktif mengisi form/modal.');
-            return;
-          }
-
-          console.log('[Storeku] Versi baru terdeteksi:', data.version, '(Versi saat ini:', window.STOREKU_BUILD_VERSION, ')');
-          window.location.reload(true);
+          // Never reload automatically: it can wipe checkout forms and paid license screens.
+          showVersionUpdateBanner(data.version);
         }
       })
       .catch(() => {})
       .finally(() => {
         isChecking = false;
       });
+  }
+
+  function isPageBusy() {
+    if (document.body && document.body.classList.contains('modal-open')) return true;
+    if (document.querySelector('#checkoutModal.open, #historyModal.open, .modal-overlay.open')) return true;
+    if (window.__digimestCheckoutInFlight) return true;
+    const el = document.activeElement;
+    return !!(el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  }
+
+  function showVersionUpdateBanner(newVersion) {
+    if (!document.body || document.getElementById('digimestVersionBanner')) return;
+    if (isPageBusy()) return;
+
+    const isEn = document.documentElement.lang === 'en';
+    const banner = document.createElement('div');
+    banner.id = 'digimestVersionBanner';
+    banner.className = 'version-update-banner';
+    banner.setAttribute('role', 'status');
+    banner.innerHTML = `
+      <span>${isEn ? 'A new version of the store is available.' : 'Versi baru toko sudah tersedia.'}</span>
+      <button type="button">${isEn ? 'Reload' : 'Muat Ulang'}</button>
+    `;
+    banner.querySelector('button').addEventListener('click', () => window.location.reload());
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('show'));
+    console.log('[Storeku] Versi baru terdeteksi:', newVersion, '(Versi saat ini:', window.STOREKU_BUILD_VERSION, ')');
   }
 
   // Check when tab becomes visible again

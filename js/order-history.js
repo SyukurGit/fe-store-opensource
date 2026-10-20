@@ -63,21 +63,33 @@ const DigimestOrders = (() => {
     return Date.now() > expTime;
   }
 
+  // Read one storage key without letting a single corrupt entry wipe everything
+  function readOrdersKey(key) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn('DigihubOrders: Skipping unreadable storage key:', key);
+      return [];
+    }
+  }
+
   // Retrieve and auto-migrate legacy history
   function getOrders() {
     try {
-      let orders = JSON.parse(localStorage.getItem(PRIMARY_STORAGE_KEY) || '[]');
+      let orders = readOrdersKey(PRIMARY_STORAGE_KEY);
       
       // Auto-migrate from legacy keys if primary is empty or legacy has unmerged items
       let merged = false;
       const existingInv = new Set(orders.map(o => o.invoice_number));
 
       for (const legKey of LEGACY_STORAGE_KEYS) {
-        const legacy = JSON.parse(localStorage.getItem(legKey) || '[]');
+        const legacy = readOrdersKey(legKey);
         if (Array.isArray(legacy) && legacy.length > 0) {
           for (const item of legacy) {
             if (item && item.invoice_number && !existingInv.has(item.invoice_number)) {
               orders.push({
+                ...item,
                 invoice_number: item.invoice_number,
                 claim_code: item.claim_code || '',
                 product_name: item.product_name || 'Produk Digital',
@@ -123,8 +135,9 @@ const DigimestOrders = (() => {
           expires_at: orderData.expires_at || list[existingIdx].expires_at || null
         };
       } else {
-        // New order pushed to front
+        // New order pushed to front (keep every field so crypto orders render correctly)
         list.unshift({
+          ...orderData,
           invoice_number: orderData.invoice_number,
           claim_code: orderData.claim_code || '',
           product_name: orderData.product_name || 'Produk Digital',
@@ -279,6 +292,17 @@ const DigimestOrders = (() => {
             }
             if (json.data.expires_at && json.data.expires_at !== order.expires_at) {
               order.expires_at = json.data.expires_at;
+              changed = true;
+            }
+            // Backfill payment metadata for orders saved before the whitelist fix
+            ['payment_gateway', 'payment_method', 'payment_channel', 'crypto_amount_str', 'crypto_currency'].forEach(key => {
+              if (json.data[key] && !order[key]) {
+                order[key] = json.data[key];
+                changed = true;
+              }
+            });
+            if (json.data.total_amount && !order.total_amount) {
+              order.total_amount = json.data.total_amount;
               changed = true;
             }
           }

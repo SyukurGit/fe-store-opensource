@@ -207,7 +207,7 @@
     <div class="breadcrumb-bar">
       <a href="/">Beranda</a>
       <span>/</span>
-      <span>Katalog Produk</span>
+      <a href="/">Katalog Produk</a>
       <span>/</span>
       <span id="bcProductName" style="color: var(--text-main); font-weight: 600;">Memuat Produk...</span>
     </div>
@@ -233,7 +233,7 @@
       <!-- 1. Product Header Identity Card -->
       <div class="detail-card-main detail-card-header" id="dBlockHeader">
         <div class="detail-header-flex">
-          <img id="dProdLogo" src="" alt="" class="detail-big-logo" onerror="this.src='https://via.placeholder.com/76?text=DC'">
+          <img id="dProdLogo" src="/logo/digimest_icon.png" alt="Logo produk" class="detail-big-logo" onerror="this.onerror=null;this.src='/logo/digimest_icon.png'">
           <div style="flex: 1; min-width: 0;">
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
               <span id="dProdCategory" class="badge badge-region"></span>
@@ -245,11 +245,11 @@
             <div class="detail-rating-sold-row" id="dRatingSoldRow">
               <a href="#customerReviewsSection" class="detail-rating-link" id="dRatingLink" title="Lihat ulasan pelanggan">
                 <span class="detail-stars-inline">⭐</span>
-                <strong id="dRatingAvgText">5.0</strong>
+                <strong id="dRatingAvgText">–</strong>
                 <span id="dRatingCountText" class="detail-rating-count">(0 ulasan)</span>
               </a>
               <span class="detail-dot-sep">•</span>
-              <span class="detail-sold-text" id="dSoldText">10 terjual</span>
+              <span class="detail-sold-text" id="dSoldText" style="display: none;"></span>
             </div>
           </div>
         </div>
@@ -372,9 +372,9 @@
 
           <div class="reviews-summary-grid">
             <div class="reviews-score-box">
-              <div class="reviews-score-big" id="revOverallScore">5.0</div>
-              <div class="reviews-stars-row" id="revOverallStars">⭐⭐⭐⭐⭐</div>
-              <div class="reviews-count-sub" id="revOverallCount">Berdasarkan 0 ulasan</div>
+              <div class="reviews-score-big" id="revOverallScore">–</div>
+              <div class="reviews-stars-row" id="revOverallStars">☆☆☆☆☆</div>
+              <div class="reviews-count-sub" id="revOverallCount">Belum ada ulasan</div>
             </div>
             <div class="reviews-breakdown-bars" id="revBreakdownBars">
               <!-- Injected dynamically via JS -->
@@ -430,7 +430,7 @@
             <!-- Integrated Product & Quantity Card -->
             <div class="modal-product-card">
               <div class="modal-product-row">
-                <img id="mProdLogo" src="" alt="" class="modal-prod-img">
+                <img id="mProdLogo" src="/logo/digimest_icon.png" alt="Logo produk" class="modal-prod-img" onerror="this.onerror=null;this.src='/logo/digimest_icon.png'">
                 <div class="modal-prod-details">
                   <div id="mProdName" class="modal-prod-name"></div>
                   <div class="modal-prod-sub-row">
@@ -479,6 +479,7 @@
                   <button type="button" id="btnCancelVoucher" class="btn-voucher-cancel" style="display: none;" title="Hapus voucher">✕ Batalkan</button>
                 </div>
                 <div id="voucherFeedback" class="voucher-feedback" style="display: none;"></div>
+                <span id="voucherStatusTag" class="voucher-status-tag" style="display: none;"></span>
               </div>
             </div>
 

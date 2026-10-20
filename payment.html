@@ -220,6 +220,16 @@
         </div>
       </div>
 
+      <!-- Connection / status error banner -->
+      <div id="errorView" class="payment-error-banner" style="display: none;">
+        <div class="payment-error-icon">⚠️</div>
+        <div class="payment-error-text">
+          <strong>Koneksi ke server pembayaran terputus</strong>
+          <p id="errorViewMessage">Kami tidak dapat menghubungi server pembayaran. Pesanan Anda aman — periksa koneksi lalu coba lagi.</p>
+        </div>
+        <button type="button" id="btnRetryStatus" class="btn-retry-status">Coba Lagi</button>
+      </div>
+
       <!-- Pending State View -->
       <div id="pendingView">
 
@@ -233,7 +243,7 @@
                 <span>🇮🇩</span> QRIS Standar Nasional
               </div>
               <div class="qris-box">
-                <img id="qrisImage" src="" alt="QRIS Loading..." class="qris-img">
+                <img id="qrisImage" alt="QRIS Loading..." class="qris-img">
               </div>
               <button type="button" id="btnDownloadQris" class="btn-download-qr">
                 📥 Unduh Gambar QRIS
@@ -249,7 +259,7 @@
                 <span>⚡</span> Binance Pay (USDT)
               </div>
               <div class="qris-box">
-                <img id="binanceQrCode" src="" alt="Binance Pay QR Loading..." class="qris-img">
+                <img id="binanceQrCode" alt="Binance Pay QR Loading..." class="qris-img">
               </div>
               <div class="payment-scan-hint">
                 Buka App Binance ➔ Icon Scan di pojok kanan atas ➔ Konfirmasi bayar.
@@ -262,7 +272,7 @@
                 <span>🟡</span> BNB Smart Chain (BEP-20)
               </div>
               <div class="qris-box">
-                <img id="bep20QrCode" src="" alt="USDT BEP-20 QR Loading..." class="qris-img">
+                <img id="bep20QrCode" alt="USDT BEP-20 QR Loading..." class="qris-img">
               </div>
               <div class="payment-scan-hint">
                 Scan via Binance, TrustWallet, MetaMask, OKX, Bybit, atau Web3 App.
@@ -402,7 +412,7 @@
 
               <div class="payment-auto-status">
                 <span class="pulse-dot"></span>
-                <span>Sistem otomatis mengecek status mutasi setiap 3 detik...</span>
+                <span id="pollStatusText">Sistem otomatis mengecek status mutasi setiap 3 detik...</span>
               </div>
 
               <div class="payment-secondary-actions">
@@ -538,6 +548,22 @@
       <div class="cancel-modal-actions">
         <button type="button" id="btnDismissCancelModal" class="btn-modal-back">Kembali</button>
         <button type="button" id="btnConfirmCancelAction" class="btn-modal-confirm-cancel">Ya, Batalkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer / Modal Riwayat Pesanan Saya (LocalStorage) -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Riwayat Pesanan Saya</h3>
+        <button type="button" class="modal-close" id="closeHistoryBtn" aria-label="Tutup riwayat pesanan">&times;</button>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Riwayat ini tersimpan otomatis di browser Anda tanpa perlu akun login. Anda dapat membuka atau mengklaim kembali lisensi kapan saja.
+      </div>
+      <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto;">
+        <!-- Injected via JavaScript -->
       </div>
     </div>
   </div>
