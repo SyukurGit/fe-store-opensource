@@ -150,7 +150,7 @@
               <span class="footer-channel-label">WhatsApp</span>
               <span class="footer-channel-value" data-support-wa-value>WhatsApp CS</span>
             </span>
-            <span class="footer-channel-badge" data-support-primary-badge>PRIMARY</span>
+            <span class="footer-channel-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
           </a>
           <a href="#" target="_blank" rel="noopener noreferrer" class="footer-channel footer-channel-tg" data-support-telegram>
             <span class="footer-channel-icon">${ICONS.telegram}</span>
@@ -158,7 +158,7 @@
               <span class="footer-channel-label">Telegram</span>
               <span class="footer-channel-value" data-support-telegram-value>Telegram CS</span>
             </span>
-            <span class="footer-channel-badge footer-channel-badge-alt">SECONDARY</span>
+            <span class="footer-channel-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
           </a>
         </div>
       </div>

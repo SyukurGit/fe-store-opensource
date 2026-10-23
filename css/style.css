@@ -3241,6 +3241,11 @@ select.form-input option:checked {
   grid-template-columns: 1.3fr 1fr;
   gap: 3.5rem;
   margin-bottom: 2.25rem;
+  min-width: 0;
+}
+
+.footer-streamlined-grid > * {
+  min-width: 0;
 }
 
 .footer-col-links h5,
@@ -3337,11 +3342,13 @@ select.form-input option:checked {
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.9rem;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 14px;
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(15, 23, 42, 0.16) 100%);
-  border: 1px solid rgba(129, 140, 248, 0.26);
+    radial-gradient(120% 140% at 0% 0%, rgba(59, 130, 246, 0.13) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.07) 0%, rgba(15, 23, 42, 0.16) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.26);
 }
 
 .footer-help-head {
@@ -3357,10 +3364,10 @@ select.form-input option:checked {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  color: #e0e7ff;
-  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-  border: 1px solid rgba(165, 180, 252, 0.25);
-  box-shadow: 0 8px 18px rgba(67, 56, 202, 0.28);
+  color: #eff6ff;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
 }
 
 .footer-help-icon svg {
@@ -3383,7 +3390,7 @@ select.form-input option:checked {
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #a5b4fc;
+  color: #93c5fd;
 }
 
 .footer-help-title {
@@ -3413,6 +3420,7 @@ select.form-input option:checked {
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 0.6rem;
+  min-width: 0;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -3490,23 +3498,33 @@ select.form-input option:checked {
   text-overflow: ellipsis;
 }
 
-.footer-channel-badge {
+.footer-channel-arrow {
   flex: 0 0 auto;
-  font-size: 0.55rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6ee7b7;
-  background: rgba(37, 211, 102, 0.12);
-  border: 1px solid rgba(37, 211, 102, 0.25);
-  padding: 2px 6px;
-  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #64748b;
+  transition: transform 0.18s ease, color 0.18s ease;
 }
 
-.footer-channel-badge-alt {
-  color: #93c5fd;
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.22);
+.footer-channel-arrow svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.footer-channel:hover .footer-channel-arrow {
+  transform: translateX(2px);
+  color: #e2e8f0;
+}
+
+.footer-channel-wa:hover .footer-channel-arrow {
+  color: #25d366;
+}
+
+.footer-channel-tg:hover .footer-channel-arrow {
+  color: #38bdf8;
 }
 
 .footer-social-block {
@@ -3627,10 +3645,11 @@ select.form-input option:checked {
     gap: 0.65rem;
   }
   .footer-channel {
+    min-height: 44px;
     padding: 0.45rem 0.5rem;
   }
-  .footer-channel-badge {
-    display: none;
+  .footer-channel-arrow {
+    color: #94a3b8;
   }
   .footer-social-btn {
     width: 40px;
@@ -3996,14 +4015,20 @@ select.form-input option:checked {
   flex-shrink: 0;
 }
 
-/* WhatsApp Help CS floating action */
+/* Help CS floating action */
 .floating-telegram-btn[data-tele-float] {
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.42);
 }
 
 .floating-telegram-btn[data-tele-float]:hover {
-  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.55);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.58);
+}
+
+@media (max-width: 860px) {
+  .floating-telegram-btn[data-tele-float] {
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.48);
+  }
 }
 
 /* Di Mobile: tombol dikecilkan menjadi bulatan ringkas dengan ikon CS agen headset saja */
@@ -8274,9 +8299,9 @@ html[data-theme="light"] .reseller-sub {
 
 html[data-theme="light"] .footer-help-panel {
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(15, 23, 42, 0.02) 100%) !important;
-  border-color: rgba(99, 102, 241, 0.22) !important;
+    radial-gradient(120% 140% at 0% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(15, 23, 42, 0.02) 100%) !important;
+  border-color: rgba(59, 130, 246, 0.22) !important;
 }
 
 html[data-theme="light"] .footer-help-title {
@@ -8284,7 +8309,11 @@ html[data-theme="light"] .footer-help-title {
 }
 
 html[data-theme="light"] .footer-help-kicker {
-  color: #4f46e5 !important;
+  color: #1d4ed8 !important;
+}
+
+html[data-theme="light"] .footer-channel-arrow {
+  color: #64748b !important;
 }
 
 html[data-theme="light"] .footer-help-sub {
@@ -8358,8 +8387,8 @@ html[data-theme="light"] .mobile-sticky-price {
 }
 
 html[data-theme="light"] .floating-telegram-btn {
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
-  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.35) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35) !important;
 }
 
 /* ==========================================================================
