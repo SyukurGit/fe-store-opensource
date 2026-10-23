@@ -597,35 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
   DigimestOrders.updateBadge();
 });
 
-// Auto-sync Telegram support username dynamically from /api/config
-(async () => {
-  try {
-    let username = sessionStorage.getItem('digimest_tele_user') || sessionStorage.getItem('digihub_tele_user');
-    if (!username) {
-      const configUrl = window.digimestApi ? window.digimestApi('/api/config') : '/api/config';
-      const res = await fetch(configUrl);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.telegram_username) {
-          username = data.telegram_username;
-          sessionStorage.setItem('digimest_tele_user', username);
-        }
-      }
-    }
-    if (username) {
-      document.querySelectorAll('a[href*="t.me/"]').forEach(a => {
-        a.href = a.href.replace(/t\.me\/[a-zA-Z0-9_]+/, `t.me/${username}`);
-      });
-      document.querySelectorAll('[data-tele-cs]').forEach(el => {
-        if (el.textContent.includes('Bantuan CS Telegram')) {
-          el.textContent = `💬 Bantuan CS Telegram: @${username}`;
-        } else if (el.textContent.includes('Chat CS Telegram')) {
-          el.textContent = `💬 Chat CS Telegram: @${username}`;
-        }
-      });
-    }
-  } catch (e) {}
-})();
+// Support & social links are hydrated centrally by /js/support-links.js
 
 // Currency Engine & Mobile Navigation have been modularized into:
 // - /js/currency.js (window.DigimestCurrency)

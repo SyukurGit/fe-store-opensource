@@ -1039,3 +1039,166 @@ select.form-input option:checked {
   }
 }
 
+/* ============================================================== */
+/* SUPPORT & SOCIAL SETTINGS PAGE */
+/* ============================================================== */
+.support-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 1.25rem;
+  align-items: start;
+  max-width: 1120px;
+}
+
+.support-note {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 1.35rem;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.55;
+}
+
+.support-note code {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #93c5fd;
+  font-family: var(--font-mono);
+}
+
+.support-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.support-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.support-field-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.support-field-body .form-label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.support-brand-icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  margin-top: 1.45rem;
+}
+
+.support-brand-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.support-brand-wa {
+  color: #25d366;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.support-brand-tiktok {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(37, 244, 238, 0.18) 0%, rgba(254, 44, 85, 0.18) 100%);
+  border: 1px solid rgba(254, 44, 85, 0.35);
+}
+
+.support-brand-threads {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.support-brand-reseller {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 1.1rem;
+}
+
+.support-hint {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  margin-top: 5px;
+  line-height: 1.45;
+}
+
+.support-hint code {
+  color: #93c5fd;
+  font-family: var(--font-mono);
+}
+
+.support-optional {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.72rem;
+}
+
+.support-preview-card {
+  position: sticky;
+  top: 1rem;
+}
+
+.support-preview-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: #060911;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.support-preview-heading {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.support-preview-stage .footer-reseller-card,
+.support-preview-stage .footer-help-card {
+  margin-bottom: 0;
+}
+
+.support-tip {
+  margin-top: 1rem;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .support-layout {
+    grid-template-columns: 1fr;
+  }
+  .support-preview-card {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .support-brand-icon {
+    display: none;
+  }
+}
+

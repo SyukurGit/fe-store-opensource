@@ -173,7 +173,7 @@ function renderClaimResult(data) {
           </p>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <a href="${catalogUrl}" class="btn-buy" style="text-decoration: none; padding: 6px 16px; font-size: 0.82rem;">${isEn ? 'Store Catalog ➔' : 'Katalog Toko ➔'}</a>
-            <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn-nav" style="text-decoration: none; padding: 6px 14px; font-size: 0.82rem;" data-tele-cs>${isEn ? 'Telegram Support' : 'Hubungi CS Telegram'}</a>
+            <a href="#" target="_blank" rel="noopener" class="btn-nav" style="text-decoration: none; padding: 6px 14px; font-size: 0.82rem;" data-tele-cs>${isEn ? 'WhatsApp Support' : 'Hubungi CS WhatsApp'}</a>
           </div>
         </div>
       `;
@@ -218,11 +218,11 @@ function renderClaimResult(data) {
           <div style="font-weight: 700; color: #a5b4fc; font-size: 1.05rem; margin-bottom: 8px;">${isEn ? 'Payment Verified! Product Is Being Prepared' : 'Pembayaran Lunas! Produk Sedang Disiapkan'}</div>
           <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
             ${isEn
-              ? `We have received your payment. Your digital product details for this order are being prepared by our store admin. Click the button below to contact Customer Service via Telegram (Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) or wait for confirmation to be sent to your email.`
-              : `Pembayaran Anda telah kami terima dengan sukses. Rincian produk digital untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via Telegram (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.`}
+              ? `We have received your payment. Your digital product details for this order are being prepared by our store admin. Click the button below to contact Customer Service via WhatsApp (Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) or wait for confirmation to be sent to your email.`
+              : `Pembayaran Anda telah kami terima dengan sukses. Rincian produk digital untuk pesanan ini sedang disiapkan oleh admin toko. Silakan klik tombol di bawah untuk menghubungi Customer Service via WhatsApp (sebutkan Invoice <strong>${escapeHtml(data.invoice_number)}</strong>) atau tunggu informasi pesanan dikirimkan ke email Anda.`}
           </p>
-          <a href="https://t.me/Digimestsupport" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs>
-            <span>${isEn ? 'Contact CS via Telegram' : 'Hubungi CS via Telegram'}</span> ➔
+          <a href="#" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; padding: 10px 20px;" data-tele-cs data-support-message="${escapeHtml(isEn ? `Hello Digimest, I need help with order ${data.invoice_number || ''} (${data.product_name || 'Product'}).` : `Halo Digimest, saya butuh bantuan untuk pesanan ${data.invoice_number || ''} (${data.product_name || 'Produk'}).`)}">
+            <span>${isEn ? 'Contact CS via WhatsApp' : 'Hubungi CS via WhatsApp'}</span> ➔
           </a>
         </div>
       `;
@@ -235,10 +235,9 @@ function renderClaimResult(data) {
         ? "Your payment was successfully received. The digital product for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
         : "Pembayaran Anda telah sukses kami terima. Produk digital pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
 
-      const teleText = encodeURIComponent(isEn 
+      const supportMessage = isEn
         ? `Hello Admin Digimest, I need assistance with my order ${data.invoice_number || ''} (${data.product_name || 'Product'}).`
-        : `Halo Admin Digimest, saya ingin konfirmasi pesanan Invoice ${data.invoice_number || ''} (${data.product_name || 'Produk'}).`);
-      const teleUrl = `https://t.me/Digimestsupport?text=${teleText}`;
+        : `Halo Admin Digimest, saya ingin konfirmasi pesanan Invoice ${data.invoice_number || ''} (${data.product_name || 'Produk'}).`;
 
       if (statusBadge) {
         statusBadge.className = 'badge badge-region';
@@ -258,8 +257,8 @@ function renderClaimResult(data) {
           <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; margin-bottom: 14px;">
             ${escapeHtml(data.quota_out_message || defaultMsg)}
           </p>
-          <a href="${teleUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);" data-tele-cs>
-            <span>💬 ${isEn ? 'Chat Telegram Support' : 'Hubungi Admin via Telegram'}</span> ➔
+          <a href="#" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #25d366, #128c7e); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.32);" data-tele-cs data-support-message="${escapeHtml(supportMessage)}">
+            <span>💬 ${isEn ? 'Chat WhatsApp Support' : 'Hubungi Admin via WhatsApp'}</span> ➔
           </a>
         </div>
       `;

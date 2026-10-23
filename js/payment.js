@@ -512,10 +512,9 @@ function showSuccessView(order) {
       ? "Your payment was successfully received. The license for this order is currently being assigned by our admin team on priority queue (usually 5–15 mins). Your funds are 100% safe and protected! Click below to confirm directly with our Customer Support."
       : "Pembayaran Anda telah sukses kami terima. Lisensi pesanan ini sedang disiapkan dan dialokasikan oleh tim admin dalam antrean prioritas (biasanya 5–15 menit). Dana Anda 100% aman dan terjamin! Klik tombol di bawah untuk konfirmasi langsung ke Customer Service kami.";
 
-    const teleText = encodeURIComponent(isEn 
+    const supportMessage = isEn
       ? `Hello Admin Digimest, I have completed payment for invoice ${currentInvoice} (${order.product_name || 'Product'}). Please assist with my license delivery.`
-      : `Halo Admin Digimest, saya sudah bayar Invoice ${currentInvoice} (${order.product_name || 'Produk'}). Mohon bantuan penerbitan lisensinya.`);
-    const teleUrl = `https://t.me/Digimestsupport?text=${teleText}`;
+      : `Halo Admin Digimest, saya sudah bayar Invoice ${currentInvoice} (${order.product_name || 'Produk'}). Mohon bantuan penerbitan lisensinya.`;
 
     itemsContainer.innerHTML = `
       <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 18px; text-align: center;">
@@ -526,8 +525,8 @@ function showSuccessView(order) {
         <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.55; margin-bottom: 14px;">
           ${escapeHtml(order.quota_out_message || defaultMsg)}
         </p>
-        <a href="${teleUrl}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);" data-tele-cs>
-          <span>💬 ${isEn ? 'Chat Telegram Support' : 'Hubungi Admin via Telegram'}</span> ➔
+        <a href="#" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; font-weight: 700; color: #ffffff !important; background: linear-gradient(135deg, #25d366, #128c7e); border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.32);" data-tele-cs data-support-message="${escapeHtml(supportMessage)}">
+          <span>💬 ${isEn ? 'Chat WhatsApp Support' : 'Hubungi Admin via WhatsApp'}</span> ➔
         </a>
       </div>
     `;

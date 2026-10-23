@@ -195,11 +195,16 @@
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Jika modal naik &le; persentase ini, harga passthrough disesuaikan otomatis tanpa menyembunyikan produk. Jika modal melonjak ekstrem melebihinya (default 50%), produk otomatis dinonaktifkan dari katalog demi keselamatan toko hingga dicek manual.</div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="cfgTelegramUser">📱 Username Telegram Customer Service</label>
-              <input type="text" id="cfgTelegramUser" class="form-input" placeholder="Digimestsupport">
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Username akun Telegram CS tanpa simbol @ (contoh: <code>Digimestsupport</code>). Link bantuan dan tombol komplain di frontend otomatis memakai username ini secara instan.</div>
-            </div>
+            <a href="/admin/support" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; text-decoration: none; background: rgba(37, 211, 102, 0.08); border: 1px solid rgba(37, 211, 102, 0.26); border-radius: 12px; padding: 14px 16px; transition: border-color 0.2s, transform 0.2s;">
+              <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                <span style="width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); color: #fff; font-size: 1.1rem; flex: 0 0 auto;">💬</span>
+                <span style="min-width: 0;">
+                  <span style="display: block; font-weight: 800; color: #fff; font-size: 0.95rem;">Bantuan & Sosial</span>
+                  <span style="display: block; font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Atur nomor WhatsApp Help CS, TikTok, Threads, dan link reseller di menu terpisah.</span>
+                </span>
+              </span>
+              <span style="color: #34d399; font-weight: 800; white-space: nowrap;">Kelola ➔</span>
+            </a>
 
             <!-- Switch Tarik API DigitalCore -->
             <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 14px 16px; margin-top: 0.5rem;">

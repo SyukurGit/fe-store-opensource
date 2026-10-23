@@ -806,8 +806,6 @@ async function loadSettings() {
       document.getElementById('cfgMarginFixed').value = json.data.margin_fixed || 2000;
       const maxSurge = document.getElementById('cfgMaxSurgePct');
       if (maxSurge) maxSurge.value = json.data.max_surge_disable_percent || 50;
-      const teleInput = document.getElementById('cfgTelegramUser');
-      if (teleInput) teleInput.value = json.data.telegram_cs_username || 'Digimestsupport';
 
       const dcSwitch = document.getElementById('cfgDigitalCoreEnabled');
       if (dcSwitch) {
@@ -892,7 +890,6 @@ async function saveSettings() {
   btn.disabled = true;
   btn.innerText = 'Menyimpan...';
 
-  const teleInput = document.getElementById('cfgTelegramUser');
   const dcSwitch = document.getElementById('cfgDigitalCoreEnabled');
   const silvexSwitch = document.getElementById('cfgSilvexEnabled');
   const body = {
@@ -900,7 +897,6 @@ async function saveSettings() {
     margin_percent: document.getElementById('cfgMarginPct').value,
     margin_fixed: document.getElementById('cfgMarginFixed').value,
     max_surge_disable_percent: document.getElementById('cfgMaxSurgePct')?.value || "50",
-    telegram_cs_username: teleInput ? teleInput.value.trim().replace(/^@/, '') : "Digimestsupport",
     digitalcore_enabled: dcSwitch ? (dcSwitch.checked ? "true" : "false") : "true",
     silvex_enabled: silvexSwitch ? (silvexSwitch.checked ? "true" : "false") : "true"
   };
@@ -988,7 +984,33 @@ function setupAppShellNavigation() {
 // -------------------------------------------------------------
 // 5. INITIALIZATION & EVENT LISTENERS
 // -------------------------------------------------------------
+function ensureSupportNavLink() {
+  const sidebar = document.querySelector('.admin-sidebar-content');
+  if (!sidebar) return;
+
+  const existing = sidebar.querySelector('a[href="/admin/support"]');
+  if (existing) {
+    if (window.location.pathname.startsWith('/admin/support')) existing.classList.add('active');
+    return;
+  }
+
+  let target = null;
+  sidebar.querySelectorAll('.admin-nav-group').forEach((group) => {
+    const title = group.querySelector('.admin-nav-group-title');
+    if (title && /Sistem/i.test(title.textContent)) target = group;
+  });
+  if (!target) return;
+
+  const link = document.createElement('a');
+  link.href = '/admin/support';
+  link.className = 'admin-sidebar-link' + (window.location.pathname.startsWith('/admin/support') ? ' active' : '');
+  link.innerHTML = '<span class="nav-icon">🔗</span><span class="nav-label">Bantuan &amp; Sosial</span>';
+  const settingsLink = target.querySelector('a[href="/admin/settings"]');
+  target.insertBefore(link, settingsLink || null);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  ensureSupportNavLink();
   setupAppShellNavigation();
   loadStats();
   loadAdminProducts();

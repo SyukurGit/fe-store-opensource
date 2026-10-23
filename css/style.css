@@ -3316,21 +3316,194 @@ select.form-input option:checked {
   line-height: 1.4;
 }
 
-.footer-cs-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #38bdf8;
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 4px 0;
-  transition: color 0.2s;
+/* Support CS & Social Media Block */
+.footer-col-action {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
 }
 
-.footer-cs-link:hover {
-  color: #7dd3fc;
-  text-decoration: underline;
+.footer-col-action h5 {
+  margin-bottom: 0.25rem;
+}
+
+.footer-col-action .footer-reseller-card {
+  margin-bottom: 0;
+}
+
+.footer-help-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(37, 211, 102, 0.16) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(37, 211, 102, 0.1) 0%, rgba(18, 140, 126, 0.05) 100%);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-help-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 211, 102, 0.65);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(37, 211, 102, 0.15);
+  text-decoration: none;
+}
+
+.footer-help-card:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 3px;
+}
+
+.footer-help-icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.28);
+}
+
+.footer-help-icon svg {
+  width: 23px;
+  height: 23px;
+  display: block;
+}
+
+.footer-help-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.25;
+}
+
+.footer-help-kicker {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+}
+
+.footer-help-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.footer-help-sub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer-help-arrow {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #34d399;
+  background: rgba(37, 211, 102, 0.12);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.footer-help-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+.footer-help-card:hover .footer-help-arrow {
+  transform: translateX(3px);
+  background: rgba(37, 211, 102, 0.22);
+}
+
+.footer-social-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.15rem;
+}
+
+.footer-social-title {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.footer-social-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.footer-social-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-social-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.footer-social-btn:hover {
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.footer-social-btn:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+}
+
+.footer-social-btn.social-tiktok:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(37, 244, 238, 0.18) 0%, rgba(254, 44, 85, 0.2) 100%);
+  border-color: rgba(254, 44, 85, 0.45);
+  box-shadow: 0 10px 22px rgba(254, 44, 85, 0.18);
+}
+
+.footer-social-btn.social-threads:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.footer-social-btn.social-whatsapp {
+  color: #25d366;
+}
+
+.footer-social-btn.social-whatsapp:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(37, 211, 102, 0.24);
 }
 
 .footer-bottom-simple {
@@ -3363,6 +3536,33 @@ select.form-input option:checked {
   }
   .footer-nav-links a {
     font-size: 0.86rem !important;
+  }
+  .footer-help-card {
+    padding: 0.85rem 0.9rem;
+  }
+  .footer-help-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .footer-help-sub {
+    font-size: 0.72rem;
+  }
+  .footer-social-icons {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .footer-help-card {
+    gap: 0.7rem;
+    padding: 0.8rem 0.85rem;
+  }
+  .footer-help-arrow {
+    display: none;
+  }
+  .footer-social-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -3722,6 +3922,16 @@ select.form-input option:checked {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
+}
+
+/* WhatsApp Help CS floating action */
+.floating-telegram-btn[data-tele-float] {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+}
+
+.floating-telegram-btn[data-tele-float]:hover {
+  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.55);
 }
 
 /* Di Mobile: tombol dikecilkan menjadi bulatan ringkas dengan ikon CS agen headset saja */
@@ -7990,8 +8200,55 @@ html[data-theme="light"] .reseller-sub {
   color: #475569 !important;
 }
 
-html[data-theme="light"] .footer-cs-link {
-  color: #0284c7 !important;
+html[data-theme="light"] .footer-help-card {
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(37, 211, 102, 0.14) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(37, 211, 102, 0.09) 0%, rgba(18, 140, 126, 0.04) 100%) !important;
+  border-color: rgba(18, 140, 126, 0.28) !important;
+}
+
+html[data-theme="light"] .footer-help-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .footer-help-kicker {
+  color: #047857 !important;
+}
+
+html[data-theme="light"] .footer-help-sub {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .footer-social-title {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .footer-social-btn {
+  background: rgba(15, 23, 42, 0.035) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .footer-social-btn.social-whatsapp {
+  color: #128c7e !important;
+}
+
+html[data-theme="light"] .footer-social-btn.social-tiktok:hover {
+  color: #0f172a !important;
+  background: linear-gradient(135deg, rgba(37, 244, 238, 0.22) 0%, rgba(254, 44, 85, 0.16) 100%) !important;
+  border-color: rgba(254, 44, 85, 0.35) !important;
+}
+
+html[data-theme="light"] .footer-social-btn.social-threads:hover {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.07) !important;
+  border-color: rgba(15, 23, 42, 0.24) !important;
+}
+
+html[data-theme="light"] .footer-social-btn.social-whatsapp:hover {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
+  border-color: transparent !important;
 }
 
 html[data-theme="light"] .footer-bottom-simple {
@@ -8014,8 +8271,8 @@ html[data-theme="light"] .mobile-sticky-price {
 }
 
 html[data-theme="light"] .floating-telegram-btn {
-  background: #0088cc;
-  box-shadow: 0 8px 25px rgba(0, 136, 204, 0.35);
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
+  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.35) !important;
 }
 
 /* ==========================================================================
