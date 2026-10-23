@@ -3332,30 +3332,22 @@ select.form-input option:checked {
   margin-bottom: 0;
 }
 
-.footer-help-card {
+.footer-help-panel {
   display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.9rem 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem;
   border-radius: 14px;
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(37, 211, 102, 0.16) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(37, 211, 102, 0.1) 0%, rgba(18, 140, 126, 0.05) 100%);
-  border: 1px solid rgba(37, 211, 102, 0.3);
-  text-decoration: none;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    radial-gradient(120% 140% at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(15, 23, 42, 0.16) 100%);
+  border: 1px solid rgba(129, 140, 248, 0.26);
 }
 
-.footer-help-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(37, 211, 102, 0.65);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(37, 211, 102, 0.15);
-  text-decoration: none;
-}
-
-.footer-help-card:focus-visible {
-  outline: 2px solid #34d399;
-  outline-offset: 3px;
+.footer-help-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .footer-help-icon {
@@ -3365,14 +3357,15 @@ select.form-input option:checked {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  color: #ffffff;
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.28);
+  color: #e0e7ff;
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  border: 1px solid rgba(165, 180, 252, 0.25);
+  box-shadow: 0 8px 18px rgba(67, 56, 202, 0.28);
 }
 
 .footer-help-icon svg {
-  width: 23px;
-  height: 23px;
+  width: 22px;
+  height: 22px;
   display: block;
 }
 
@@ -3390,7 +3383,7 @@ select.form-input option:checked {
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: #6ee7b7;
+  color: #a5b4fc;
 }
 
 .footer-help-title {
@@ -3409,26 +3402,111 @@ select.form-input option:checked {
   text-overflow: ellipsis;
 }
 
-.footer-help-arrow {
+.footer-help-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-channel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  text-decoration: none;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.footer-channel:hover {
+  transform: translateX(2px);
+  text-decoration: none;
+}
+
+.footer-channel:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+.footer-channel-icon {
   flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  color: #34d399;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.footer-channel-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.footer-channel-wa .footer-channel-icon {
+  color: #25d366;
   background: rgba(37, 211, 102, 0.12);
-  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.footer-help-arrow svg {
-  width: 15px;
-  height: 15px;
+.footer-channel-tg .footer-channel-icon {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
 }
 
-.footer-help-card:hover .footer-help-arrow {
-  transform: translateX(3px);
-  background: rgba(37, 211, 102, 0.22);
+.footer-channel-wa:hover {
+  background: rgba(37, 211, 102, 0.07);
+  border-color: rgba(37, 211, 102, 0.4);
+}
+
+.footer-channel-tg:hover {
+  background: rgba(56, 189, 248, 0.07);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.footer-channel-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.25;
+}
+
+.footer-channel-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.footer-channel-value {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footer-channel-badge {
+  flex: 0 0 auto;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.25);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.footer-channel-badge-alt {
+  color: #93c5fd;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.22);
 }
 
 .footer-social-block {
@@ -3495,17 +3573,6 @@ select.form-input option:checked {
   border-color: rgba(255, 255, 255, 0.32);
 }
 
-.footer-social-btn.social-whatsapp {
-  color: #25d366;
-}
-
-.footer-social-btn.social-whatsapp:hover {
-  color: #ffffff;
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  border-color: transparent;
-  box-shadow: 0 10px 22px rgba(37, 211, 102, 0.24);
-}
-
 .footer-bottom-simple {
   display: flex;
   align-items: center;
@@ -3537,8 +3604,8 @@ select.form-input option:checked {
   .footer-nav-links a {
     font-size: 0.86rem !important;
   }
-  .footer-help-card {
-    padding: 0.85rem 0.9rem;
+  .footer-help-panel {
+    padding: 0.8rem;
   }
   .footer-help-icon {
     width: 42px;
@@ -3547,17 +3614,22 @@ select.form-input option:checked {
   .footer-help-sub {
     font-size: 0.72rem;
   }
+  .footer-help-channels {
+    gap: 0.45rem;
+  }
   .footer-social-icons {
     gap: 0.5rem;
   }
 }
 
 @media (max-width: 420px) {
-  .footer-help-card {
-    gap: 0.7rem;
-    padding: 0.8rem 0.85rem;
+  .footer-help-head {
+    gap: 0.65rem;
   }
-  .footer-help-arrow {
+  .footer-channel {
+    padding: 0.45rem 0.5rem;
+  }
+  .footer-channel-badge {
     display: none;
   }
   .footer-social-btn {
@@ -8200,11 +8272,11 @@ html[data-theme="light"] .reseller-sub {
   color: #475569 !important;
 }
 
-html[data-theme="light"] .footer-help-card {
+html[data-theme="light"] .footer-help-panel {
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(37, 211, 102, 0.14) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(37, 211, 102, 0.09) 0%, rgba(18, 140, 126, 0.04) 100%) !important;
-  border-color: rgba(18, 140, 126, 0.28) !important;
+    radial-gradient(120% 140% at 0% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 55%),
+    linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(15, 23, 42, 0.02) 100%) !important;
+  border-color: rgba(99, 102, 241, 0.22) !important;
 }
 
 html[data-theme="light"] .footer-help-title {
@@ -8212,11 +8284,36 @@ html[data-theme="light"] .footer-help-title {
 }
 
 html[data-theme="light"] .footer-help-kicker {
-  color: #047857 !important;
+  color: #4f46e5 !important;
 }
 
 html[data-theme="light"] .footer-help-sub {
   color: #475569 !important;
+}
+
+html[data-theme="light"] .footer-channel {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .footer-channel-label {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .footer-channel-value {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .footer-channel-icon {
+  background: rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-theme="light"] .footer-channel-wa .footer-channel-icon {
+  background: rgba(37, 211, 102, 0.12) !important;
+}
+
+html[data-theme="light"] .footer-channel-tg .footer-channel-icon {
+  background: rgba(56, 189, 248, 0.12) !important;
 }
 
 html[data-theme="light"] .footer-social-title {
@@ -8229,10 +8326,6 @@ html[data-theme="light"] .footer-social-btn {
   color: #334155 !important;
 }
 
-html[data-theme="light"] .footer-social-btn.social-whatsapp {
-  color: #128c7e !important;
-}
-
 html[data-theme="light"] .footer-social-btn.social-tiktok:hover {
   color: #0f172a !important;
   background: linear-gradient(135deg, rgba(37, 244, 238, 0.22) 0%, rgba(254, 44, 85, 0.16) 100%) !important;
@@ -8243,12 +8336,6 @@ html[data-theme="light"] .footer-social-btn.social-threads:hover {
   color: #0f172a !important;
   background: rgba(15, 23, 42, 0.07) !important;
   border-color: rgba(15, 23, 42, 0.24) !important;
-}
-
-html[data-theme="light"] .footer-social-btn.social-whatsapp:hover {
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
-  border-color: transparent !important;
 }
 
 html[data-theme="light"] .footer-bottom-simple {

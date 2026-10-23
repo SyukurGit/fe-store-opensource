@@ -1113,6 +1113,12 @@ select.form-input option:checked {
   border: 1px solid rgba(37, 211, 102, 0.3);
 }
 
+.support-brand-telegram {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
 .support-brand-tiktok {
   color: #ffffff;
   background: linear-gradient(135deg, rgba(37, 244, 238, 0.18) 0%, rgba(254, 44, 85, 0.18) 100%);
@@ -1172,8 +1178,13 @@ select.form-input option:checked {
 }
 
 .support-preview-stage .footer-reseller-card,
-.support-preview-stage .footer-help-card {
+.support-preview-stage .footer-help-panel {
   margin-bottom: 0;
+}
+
+.support-preview-stage .footer-help-sub {
+  white-space: normal;
+  line-height: 1.35;
 }
 
 .support-tip {
